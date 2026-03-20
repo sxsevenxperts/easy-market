@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { Toaster } from 'react-hot-toast';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
+import PWAProvider from '@/components/PWAProvider';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -45,15 +46,17 @@ export default function RootLayout({
         <link rel="icon" type="image/png" href="/icons/favicon-16x16.png" sizes="16x16" />
       </head>
       <body className="bg-primary text-white antialiased">
-        <div className="flex h-screen overflow-hidden">
-          <Sidebar />
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <Header />
-            <main className="flex-1 overflow-auto">
-              {children}
-            </main>
+        <PWAProvider>
+          <div className="flex h-screen overflow-hidden">
+            <Sidebar />
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <Header />
+              <main className="flex-1 overflow-auto">
+                {children}
+              </main>
+            </div>
           </div>
-        </div>
+        </PWAProvider>
         <Toaster position="top-right" />
       </body>
     </html>

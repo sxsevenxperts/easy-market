@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Disallow: /api/
+Disallow: /admin/
+Disallow: /*.json$
+Disallow: /*.lock$
+
+Sitemap: https://dashboard.easymarket.app/sitemap.xml
