@@ -34,7 +34,6 @@
     "dotenv": "^16.3.1",
     "winston": "^3.11.0",
     "uuid": "^9.0.1",
-    "apscheduler": "^1.1.1",
     "node-schedule": "^2.1.1",
     "cron": "^3.1.7",
     "nodemailer": "^6.9.7",
