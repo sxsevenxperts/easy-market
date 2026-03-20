@@ -1,0 +1,119 @@
+{
+  "name": "Easy Market - Varejo IA",
+  "description": "Sistema de inteligência de varejo com predições de demanda (4 blocos + Claude)",
+  "keywords": [
+    "retail",
+    "ai",
+    "forecasting",
+    "supermarket",
+    "intelligence"
+  ],
+  "repository": "https://github.com/seu-usuario/easy-market",
+  "env": {
+    "NODE_ENV": {
+      "description": "Environment (production/development)",
+      "value": "production"
+    },
+    "PORT": {
+      "description": "Port do servidor",
+      "value": "3000"
+    },
+    "API_PREFIX": {
+      "description": "Prefixo da API (ex: /api/v1)",
+      "value": "/api/v1"
+    },
+    "SUPABASE_URL": {
+      "description": "URL do Supabase",
+      "value": "https://qfkwqfrnemqregjqxkcr.supabase.co"
+    },
+    "SUPABASE_KEY": {
+      "description": "Chave pública do Supabase",
+      "value": "sb_publishable_vBAVB5lBnPY18GbnJxRlkA_fxMYrUmQ"
+    },
+    "SUPABASE_HOST": {
+      "description": "Host PostgreSQL do Supabase",
+      "value": "qfkwqfrnemqregjqxkcr.supabase.co"
+    },
+    "SUPABASE_DB": {
+      "description": "Database PostgreSQL",
+      "value": "postgres"
+    },
+    "SUPABASE_USER": {
+      "description": "Usuário PostgreSQL",
+      "value": "postgres"
+    },
+    "SUPABASE_PASSWORD": {
+      "description": "Senha PostgreSQL (SEGREDO!)",
+      "value": "",
+      "required": true
+    },
+    "SUPABASE_PORT": {
+      "description": "Porta PostgreSQL",
+      "value": "5432"
+    },
+    "REDIS_URL": {
+      "description": "URL Redis (opcional)",
+      "value": "redis://localhost:6379"
+    },
+    "JWT_SECRET": {
+      "description": "Chave secreta JWT",
+      "value": "",
+      "required": true
+    },
+    "JWT_EXPIRES_IN": {
+      "description": "Expiração JWT",
+      "value": "7d"
+    },
+    "CORS_ORIGIN": {
+      "description": "CORS origin permitidos",
+      "value": "*"
+    },
+    "TWILIO_ACCOUNT_SID": {
+      "description": "Twilio Account SID (WhatsApp/SMS)",
+      "value": ""
+    },
+    "TWILIO_AUTH_TOKEN": {
+      "description": "Twilio Auth Token",
+      "value": ""
+    },
+    "TWILIO_WHATSAPP_NUMBER": {
+      "description": "Número WhatsApp Twilio",
+      "value": ""
+    },
+    "TWILIO_SMS_NUMBER": {
+      "description": "Número SMS Twilio",
+      "value": ""
+    },
+    "EMAIL_USER": {
+      "description": "Email para relatórios",
+      "value": ""
+    },
+    "EMAIL_PASS": {
+      "description": "Senha email (App Password)",
+      "value": ""
+    },
+    "ANTHROPIC_API_KEY": {
+      "description": "Claude API Key (revisor de predições)",
+      "value": "",
+      "required": true
+    }
+  },
+  "addons": [],
+  "buildpacks": [
+    {
+      "url": "heroku/nodejs"
+    }
+  ],
+  "stack": "heroku-20",
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "standard-1x"
+    }
+  },
+  "scripts": {
+    "dokku": {
+      "predeploy": "npm install && npm run db:migrate"
+    }
+  }
+}
