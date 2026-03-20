@@ -8,13 +8,22 @@ import psycopg2
 from datetime import datetime, timedelta
 import random
 import sys
+import os
+from dotenv import load_dotenv
 
-# Conexão Supabase PostgreSQL
-SUPABASE_HOST = "qfkwqfrnemqregjqxkcr.supabase.co"
-SUPABASE_DB = "postgres"
-SUPABASE_USER = "postgres"
-SUPABASE_PASSWORD = "Jacyara.10davimaria"
-SUPABASE_PORT = 5432
+load_dotenv()
+
+# Conexão Supabase PostgreSQL (via variáveis de ambiente)
+SUPABASE_HOST = os.getenv("SUPABASE_HOST", "qfkwqfrnemqregjqxkcr.supabase.co")
+SUPABASE_DB = os.getenv("SUPABASE_DB", "postgres")
+SUPABASE_USER = os.getenv("SUPABASE_USER", "postgres")
+SUPABASE_PASSWORD = os.getenv("SUPABASE_PASSWORD")
+SUPABASE_PORT = int(os.getenv("SUPABASE_PORT", "5432"))
+
+if not SUPABASE_PASSWORD:
+    print("❌ ERRO: SUPABASE_PASSWORD não configurada em .env")
+    print("Configure o arquivo .env com as credenciais do Supabase")
+    sys.exit(1)
 
 def connect():
     """Conectar ao PostgreSQL"""

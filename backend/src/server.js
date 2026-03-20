@@ -6,6 +6,7 @@ const jwt = require('fastify-jwt');
 const logger = require('./config/logger');
 const { pool } = require('./config/database');
 const redis = require('./config/redis');
+const schedulerService = require('./services/scheduler');
 
 // Initialize Fastify
 const app = fastify({
@@ -41,6 +42,7 @@ app.get('/health', async (request, reply) => {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
+      scheduler: Object.keys(schedulerService.jobs).length > 0 ? 'rodando' : 'parado',
       checks: {
         database: dbCheck ? 'ok' : 'error',
         redis: redisCheck === 'PONG' ? 'ok' : 'error',
@@ -51,6 +53,7 @@ app.get('/health', async (request, reply) => {
     logger.error('Health check failed:', err);
     return reply.code(503).send({
       status: 'error',
+      scheduler: 'error',
       checks: {
         database: 'error',
         redis: 'error'
@@ -167,11 +170,12 @@ const signals = ['SIGTERM', 'SIGINT'];
 signals.forEach(signal => {
   process.on(signal, async () => {
     logger.info(`${signal} received, shutting down gracefully...`);
-    
+
+    schedulerService.stop();
     await app.close();
     await pool.end();
     await redis.quit();
-    
+
     process.exit(0);
   });
 });
@@ -189,11 +193,9 @@ const start = async () => {
     await redis.ping();
     logger.info('✓ Redis connected');
 
-    // Start scheduled jobs
-    require('./jobs/calendar-sync');
-    require('./jobs/predictions');
-    require('./jobs/alerts');
-    logger.info('✓ Scheduled jobs started');
+    // Initialize 4-Block Automation Scheduler
+    schedulerService.init();
+    logger.info('✓ 4-Block Scheduler initialized');
 
     // Start server
     await app.listen({ port: process.env.PORT || 3000, host: '0.0.0.0' });
