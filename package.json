@@ -4,16 +4,9 @@
   "description": "Retail Intelligence & Demand Forecasting for Small/Medium Supermarkets",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\"",
-    "dev:backend": "cd backend && npm run dev",
-    "dev:frontend": "cd frontend && npm run dev",
-    "build": "npm run build:backend && npm run build:frontend",
-    "build:backend": "cd backend && npm run build",
-    "build:frontend": "cd frontend && npm run build",
-    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
-    "test": "jest",
-    "db:setup:supabase": "node scripts/setup-supabase-complete.js",
-    "db:seed:year": "node scripts/setup-supabase-complete.js"
+    "start": "cd backend && npm install && npm start",
+    "build": "cd backend && npm install",
+    "dev": "cd backend && npm run dev"
   },
   "keywords": [
     "retail",
