@@ -107,6 +107,15 @@ app.register(require('./routes/alertas'), { prefix: `${process.env.API_PREFIX}/a
 // Produtos Routes
 app.register(require('./routes/produtos'), { prefix: `${process.env.API_PREFIX}/produtos` });
 
+// Inventario Routes
+app.register(require('./routes/inventario'), { prefix: `${process.env.API_PREFIX}/inventario` });
+
+// Relatorios Routes
+app.register(require('./routes/relatorios'), { prefix: `${process.env.API_PREFIX}/relatorios` });
+
+// PDV Integration Routes
+app.register(require('./routes/integracao-pdv'), { prefix: `${process.env.API_PREFIX}/integracao-pdv` });
+
 // ============================================
 // Error Handling
 // ============================================
