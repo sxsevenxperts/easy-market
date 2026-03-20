@@ -10,6 +10,7 @@
     "lint": "eslint src/**/*.js",
     "db:migrate": "node src/migrations/runner.js",
     "db:seed": "node src/seeds/index.js",
+    "db:seed:year": "node scripts/seed-data-1year.js",
     "test": "jest --coverage",
     "test:watch": "jest --watch"
   },
@@ -35,6 +36,9 @@
     "uuid": "^9.0.1",
     "apscheduler": "^1.1.1",
     "node-schedule": "^2.1.1",
+    "cron": "^3.1.7",
+    "nodemailer": "^6.9.7",
+    "twilio": "^4.8.0",
     "ical": "^0.1.0",
     "icalendar": "^0.0.2"
   },
