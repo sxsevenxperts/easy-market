@@ -10,7 +10,7 @@ const schedulerService = require('./services/scheduler');
 
 // Initialize Fastify
 const app = fastify({
-  logger: logger,
+  logger: true,
   trustProxy: true
 });
 
