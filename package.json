@@ -1,0 +1,31 @@
+{
+  "name": "easy-market",
+  "version": "0.1.0",
+  "description": "Retail Intelligence & Demand Forecasting for Small/Medium Supermarkets",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "test": "jest"
+  },
+  "keywords": [
+    "retail",
+    "intelligence",
+    "demand-forecasting",
+    "supermarket",
+    "BI",
+    "timeseries"
+  ],
+  "author": "Easy Market Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.0.0",
+    "eslint": "^8.0.0",
+    "jest": "^29.0.0"
+  }
+}
