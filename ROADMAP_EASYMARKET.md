@@ -219,6 +219,10 @@ Roadmap para construir um **Sistema de Inteligência Varejista** completo que aj
 #### Sprint 3.4: Estoque (Inventory) Page 🟡 (Em Progresso)
 - [x] Product list table
 - [x] **Sell-In/Sell-Out rates** ⭐
+  - **Sell-In**: Unidades recebidas por dia (reposições)
+  - **Sell-Out**: Unidades vendidas por dia
+  - **Rotation**: Dias para rotação completa
+  - **Velocity**: Taxa de venda (unidades/dia)
 - [x] Status badges
 - [x] Search & filter
 - [x] Inventory summary cards
@@ -387,6 +391,119 @@ Roadmap para construir um **Sistema de Inteligência Varejista** completo que aj
 - [ ] Documentation
 
 **Platform**: Raspberry Pi OS (Debian-based)
+
+---
+
+### FASE 4.5: Análise Preditiva com IA 🤖 ✅
+**Tempo Estimado**: 20-30 horas
+**Status**: 🟡 90% Design Pronto
+**Início**: 2026-03-22
+**Target**: 2026-03-31
+
+#### Como Funciona a IA Preditiva
+
+A IA analisa **50+ variáveis** para prever a demanda do próximo dia:
+
+**Variáveis Temporais** (6):
+- Hora do dia, dia da semana, semana do mês, mês do ano, feriados
+
+**Variáveis de Clima** (5):
+- Temperatura, chuva, umidade, pressão, índice UV
+- *Exemplo*: Dia 35°C = refrigerante vende 3x mais
+
+**Variáveis de Economia** (5):
+- Preço do produto, preço da concorrência, inflação, Black Friday, descontos
+
+**Variáveis de Estoque** (5):
+- Quantidade em estoque, posicionamento, dias até vencimento, visibilidade
+
+**Variáveis de Produto** (5):
+- Categoria, marca, tamanho, novo vs consolidado, sazonal
+- *Exemplo*: Panetone = 0 vendas em setembro, 500 unidades em dezembro
+
+**Variáveis de Contexto** (8+):
+- Fluxo de pessoas, faixa etária, renda média, eventos locais, Copa do Mundo, Páscoa, volta às aulas
+
+**Variáveis de Loja** (6):
+- Caixas abertos, fila, temperatura interna, música, organização das prateleiras
+
+#### Sprint 4.5.1: Integração Backend
+- [x] Tabelas de análise preditiva criadas (25 tabelas)
+- [ ] API endpoints para previsões
+- [ ] Conexão Supabase para dados reais
+- [ ] Validation de predictions
+
+#### Sprint 4.5.2: Modelos ML
+- [x] Prophet (séries temporais)
+- [x] XGBoost (50+ variáveis)
+- [ ] Ensemble voting (múltiplos modelos)
+- [ ] Accuracy ≥ 85%
+- [ ] Retraining automático (weekly)
+
+#### Sprint 4.5.3: Dashboard Predictions
+- [ ] Próxima hora/dia: "Que vai vender?"
+- [ ] Confidence interval (85-95%)
+- [ ] Top 5 produtos por hora
+- [ ] Alertas de pico
+- [ ] Recomendações automáticas
+
+#### Sprint 4.5.4: Recomendações Inteligentes
+- [ ] "Repor urgente!" (falta de estoque predita)
+- [ ] "Desconto automático" (risco de vencimento)
+- [ ] "Abrir 4 caixas" (pico de demanda)
+- [ ] "Colocar próximo ao caixa" (impulso)
+- [ ] Impacto financeiro: +R$ 1.250/mês por loja
+
+#### Sprint 4.5.5: Análise de Impacto
+- [ ] Receita realizada vs potencial
+- [ ] Economia por ação preventiva
+- [ ] Redução de perdas por vencimento
+- [ ] Aumento de receita por reposição ótima
+- [ ] Reports diários/semanais/mensais
+
+**Saída Esperada da IA**:
+```json
+{
+  "produto": "Refrigerante 2L",
+  "data": "2026-03-22",
+  "hora": "18:00",
+  "previsao": {
+    "quantidade": 280,
+    "intervalo_confianca": "250-310",
+    "confianca": 0.87,
+    "modelo": "XGBoost"
+  },
+  "variaveis_importantes": {
+    "temperatura": 0.35,
+    "dia_semana": 0.25,
+    "semana_mes": 0.18,
+    "promocao": 0.15,
+    "evento": 0.07
+  },
+  "recomendacoes": [
+    "Repor 150 unidades",
+    "Ativar promoção (sexta + início mês)",
+    "Abrir 4 caixas",
+    "Colocar próximo ao caixa"
+  ],
+  "risco": {
+    "falta_estoque": "ALTO",
+    "vencimento": "BAIXO"
+  },
+  "impacto": {
+    "receita_esperada": "R$ 1.540",
+    "perda_potencial": "R$ 2.100",
+    "acao": "REPOR URGENTE"
+  }
+}
+```
+
+**Benefício**:
+- +R$ 500/mês (evita falta de estoque)
+- +R$ 300/mês (desconto automático para vencidos)
+- +R$ 250/mês (impulso bem direcionado)
+- +R$ 200/mês (menos capital parado)
+- **TOTAL: +R$ 1.250/mês por loja** 💰
 
 ---
 
