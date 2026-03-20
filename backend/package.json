@@ -24,9 +24,8 @@
   "license": "MIT",
   "dependencies": {
     "fastify": "^4.25.0",
-    "fastify-cors": "^8.4.2",
-    "fastify-jwt": "^7.8.0",
-    "fastify-bcrypt": "^1.0.0",
+    "@fastify/cors": "^8.4.0",
+    "@fastify/jwt": "^7.0.0",
     "pg": "^8.11.3",
     "redis": "^4.6.11",
     "joi": "^17.11.0",
@@ -37,9 +36,7 @@
     "node-schedule": "^2.1.1",
     "cron": "^3.1.7",
     "nodemailer": "^6.9.7",
-    "twilio": "^4.8.0",
-    "ical": "^0.1.0",
-    "icalendar": "^0.0.2"
+    "twilio": "^4.8.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.2",

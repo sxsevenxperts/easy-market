@@ -1,8 +1,8 @@
 require('dotenv').config();
 
 const fastify = require('fastify');
-const cors = require('fastify-cors');
-const jwt = require('fastify-jwt');
+const cors = require('@fastify/cors');
+const jwt = require('@fastify/jwt');
 const logger = require('./config/logger');
 const { pool } = require('./config/database');
 const redis = require('./config/redis');
