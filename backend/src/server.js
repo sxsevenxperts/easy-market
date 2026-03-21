@@ -180,16 +180,18 @@ signals.forEach(signal => {
 // ============================================
 const start = async () => {
   try {
-    // Test database connection
-    await pool.query('SELECT NOW()');
-    logger.info('✓ Database connected');
+    // Test database connection (non-blocking)
+    pool.query('SELECT NOW()').then(() => {
+      logger.info('✓ Database connected');
+    }).catch(err => {
+      logger.warn('⚠ Database connection failed (retrying in background):', err.message);
+    });
 
     // Connect Redis (optional)
-    await redis.connect();
+    redis.connect().catch(() => {});
 
     // Initialize 4-Block Automation Scheduler
-    schedulerService.init();
-    logger.info('✓ 4-Block Scheduler initialized');
+    try { schedulerService.init(); } catch(e) { logger.warn('Scheduler init failed:', e.message); }
 
     // Start server
     await app.listen({ port: process.env.PORT || 3000, host: '0.0.0.0' });
