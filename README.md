@@ -1,15 +1,15 @@
-# Easy Market v3.0 🚀
+# Smart Market v3.0 🚀
 
 **Plataforma de Inteligência Retail com Previsão de Vendas, RFM Scoring e Otimização de Estoque**
 
-[![GitHub](https://img.shields.io/badge/GitHub-sxsevenxperts/easy-market-blue)](https://github.com/sxsevenxperts/easy-market)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-green)](https://github.com/sxsevenxperts/easy-market)
-[![Version](https://img.shields.io/badge/Version-3.0.0-blue)](https://github.com/sxsevenxperts/easy-market)
+[![GitHub](https://img.shields.io/badge/GitHub-sxsevenxperts/smart-market-blue)](https://github.com/sxsevenxperts/smart-market)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-green)](https://github.com/sxsevenxperts/smart-market)
+[![Version](https://img.shields.io/badge/Version-3.0.0-blue)](https://github.com/sxsevenxperts/smart-market)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 ---
 
-## 📊 O que é Easy Market?
+## 📊 O que é Smart Market?
 
 Sistema de **inteligência retail** que ajuda supermercados a:
 - 🔮 **Prever vendas** com 92-75% de assertiveness (4 horizontes: dia, semana, quinzena, mês)
@@ -41,8 +41,8 @@ Sistema de **inteligência retail** que ajuda supermercados a:
 
 ### 1. Clone o Repositório
 ```bash
-git clone https://github.com/sxsevenxperts/easy-market.git
-cd easy-market
+git clone https://github.com/sxsevenxperts/smart-market.git
+cd smart-market
 ```
 
 ### 2. Instale Dependências
@@ -97,7 +97,7 @@ curl -X POST http://localhost:3000/api/v1/predicoes/forecast-tamanho-loja \
 ## 📁 Estrutura do Projeto
 
 ```
-easy-market/
+smart-market/
 ├── backend/
 │   ├── src/
 │   │   ├── index.js              # Servidor Express
@@ -255,7 +255,7 @@ git push origin main
 # 2. No EasyPanel Dashboard
 # → New App
 # → Source: GitHub
-# → Repository: easy-market
+# → Repository: smart-market
 # → Build: npm start
 # → Root: backend/
 # → Env vars: copiar de .env
@@ -280,7 +280,7 @@ Margem:         R$ 150.000 (15%)
 Lucro:          R$ 50.000 (5%)
 ```
 
-### Depois (30 dias com Easy Market)
+### Depois (30 dias com Smart Market)
 ```
 Receita:        R$ 1.150.000/mês (+15%)
 Perdas:         R$ 20.000 (1.7%)
@@ -299,7 +299,6 @@ ROI:            12.67x
 - **[CHECKLIST_PRODUCAO.md](./CHECKLIST_PRODUCAO.md)** — Todos os passos de deployment
 - **[DEPLOY_EASYPANEL_PRONTO.md](./DEPLOY_EASYPANEL_PRONTO.md)** — Deploy EasyPanel passo a passo
 - **[RESUMO_FINAL_COMPLETO_v3.md](./RESUMO_FINAL_COMPLETO_v3.md)** — Detalhes técnicos
-- **[DEPLOY_QUICKSTART.md](./DEPLOY_QUICKSTART.md)** — Deploy genérico
 
 ---
 
@@ -364,9 +363,9 @@ Para contribuir ao projeto:
 ## 📞 Suporte
 
 - **Documentação:** Veja os arquivos .md no projeto
-- **Issues:** [GitHub Issues](https://github.com/sxsevenxperts/easy-market/issues)
-- **Email:** support@easy-market.dev
-- **Status:** [Status Page](https://status.easy-market.dev)
+- **Issues:** [GitHub Issues](https://github.com/sxsevenxperts/smart-market/issues)
+- **Email:** support@smart-market.dev
+- **Status:** [Status Page](https://status.smart-market.dev)
 
 ---
 
@@ -392,4 +391,4 @@ Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para de
 
 **Desenvolvido com ❤️ para varejistas que querem vender mais e perder menos.**
 
-**Easy Market v3.0 — Seu supermercado inteligente. 🚀**
+**Smart Market v3.0 — Seu supermercado inteligente. 🚀**

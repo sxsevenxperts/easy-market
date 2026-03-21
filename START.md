@@ -1,4 +1,4 @@
-# 🚀 Easy Market v3.0 — PRONTO PARA RODAR
+# 🚀 Smart Market v3.0 — PRONTO PARA RODAR
 
 ## ✅ Status Atual
 ```
@@ -21,7 +21,7 @@
 
 **Cole o conteúdo de:**
 ```
-/tmp/easy-market/backend/src/migrations/000_run_all_migrations.sql
+/tmp/smart-market/backend/src/migrations/000_run_all_migrations.sql
 ```
 
 **Clique em "Execute"** e aguarde completar.
@@ -31,7 +31,7 @@
 ### 2. Iniciar Backend
 
 ```bash
-cd /tmp/easy-market/backend
+cd /tmp/smart-market/backend
 npm start
 ```
 
@@ -48,12 +48,12 @@ npm start
 
 **Opção A - Localmente:**
 ```bash
-open /tmp/easy-market/frontend/index.html
+open /tmp/smart-market/frontend/index.html
 ```
 
 **Opção B - Via HTTP:**
 ```bash
-cd /tmp/easy-market/frontend
+cd /tmp/smart-market/frontend
 python3 -m http.server 3001
 # Abra: http://localhost:3001
 ```
@@ -115,7 +115,7 @@ NODE_ENV=development
 ## 🐛 Troubleshooting
 
 **Erro: "SUPABASE_URL not found"**
-- Verificar se `/tmp/easy-market/backend/.env` existe e tem SUPABASE_URL
+- Verificar se `/tmp/smart-market/backend/.env` existe e tem SUPABASE_URL
 
 **Erro: "Tabelas não encontradas"**
 - Rodar as migrations no Supabase SQL Editor (passo 1)
@@ -132,7 +132,7 @@ NODE_ENV=development
 ## 📁 Estrutura
 
 ```
-/tmp/easy-market/
+/tmp/smart-market/
 ├─ backend/
 │   ├─ src/
 │   │   ├─ index.js ✅

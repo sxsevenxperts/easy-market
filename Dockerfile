@@ -1,5 +1,5 @@
 # ============================================================
-# Easy Market - Dockerfile
+# Smart Market - Dockerfile
 # Multi-stage build for production-ready Node.js backend
 # ============================================================
 

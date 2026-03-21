@@ -1,7 +1,7 @@
 {
-  "name": "easy-market",
+  "name": "smart-market",
   "version": "3.0.0",
-  "description": "Easy Market - Plataforma de gestão comercial",
+  "description": "Smart Market - Plataforma de gestão comercial inteligente",
   "services": {
     "backend": {
       "type": "app",
