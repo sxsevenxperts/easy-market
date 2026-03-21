@@ -138,6 +138,9 @@ app.register(require('./routes/integracao-pdv'), { prefix: `${env.API_PREFIX}/in
 // Clientes Routes (Fidelidade e LTV)
 app.register(require('./routes/clientes'), { prefix: `${env.API_PREFIX}/clientes` });
 
+// Debug Routes (Diagnostics only - remove in production)
+app.register(require('./routes/debug'), { prefix: `${env.API_PREFIX}/debug` });
+
 // Notificações Routes (TODO: fix db import)
 // app.register(require('./routes/notificacoes'), { prefix: `${env.API_PREFIX}/notificacoes` });
 // app.register(require('./routes/notificacao-contatos'), { prefix: `${env.API_PREFIX}/notificacao-contatos` });
