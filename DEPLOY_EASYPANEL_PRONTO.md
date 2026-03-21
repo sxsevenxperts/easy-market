@@ -1,4 +1,4 @@
-# 🚀 Deploy Easy Market no EasyPanel — Guia Completo
+# 🚀 Deploy Smart Market no EasyPanel — Guia Completo
 
 **Tempo estimado:** 15-20 minutos  
 **Requisitos:** Conta no EasyPanel + GitHub ou arquivo local
@@ -7,7 +7,7 @@
 
 ## 📋 Pré-Requisitos
 
-- [x] Código pronto em `/tmp/easy-market/`
+- [x] Código pronto em `/tmp/smart-market/`
 - [x] npm install completo
 - [x] .env com variáveis Supabase
 - [x] Migrations SQL prontas
@@ -20,18 +20,18 @@
 ### Passo 1: Push para GitHub
 
 ```bash
-cd /tmp/easy-market
+cd /tmp/smart-market
 
 # Inicializar git
 git init
 git add .
-git commit -m "Initial commit: Easy Market v3.0 - Production Ready"
+git commit -m "Initial commit: Smart Market v3.0 - Production Ready"
 
 # Criar repositório no GitHub
-# https://github.com/new → easy-market
+# https://github.com/new → smart-market
 
 # Fazer push
-git remote add origin https://github.com/SEU_USER/easy-market.git
+git remote add origin https://github.com/SEU_USER/smart-market.git
 git branch -M main
 git push -u origin main
 ```
@@ -46,8 +46,8 @@ git push -u origin main
 2. **Source:** GitHub
 3. **Connect GitHub** (se primeira vez)
    - Autorizar EasyPanel no GitHub
-   - Selecionar apenas repositório "easy-market"
-4. **Select Repository:** easy-market
+   - Selecionar apenas repositório "smart-market"
+4. **Select Repository:** smart-market
 5. **Branch:** main
 6. **Clique Next**
 
@@ -89,7 +89,7 @@ NODE_ENV=production
 HOST=0.0.0.0
 
 # JWT
-JWT_SECRET=easy-market-secret-2026-super-seguro
+JWT_SECRET=smart-market-secret-2026-super-seguro
 JWT_EXPIRES_IN=7d
 
 # CORS (IMPORTANTE: adicionar seu domínio)
@@ -139,8 +139,8 @@ LOG_LEVEL=info
 ### Passo 1: Preparar Arquivo ZIP
 
 ```bash
-cd /tmp/easy-market
-zip -r easy-market.zip backend/ frontend/ Dockerfile docker-compose.yml .env -x "backend/node_modules/*"
+cd /tmp/smart-market
+zip -r smart-market.zip backend/ frontend/ Dockerfile docker-compose.yml .env -x "backend/node_modules/*"
 ```
 
 ---
@@ -148,13 +148,13 @@ zip -r easy-market.zip backend/ frontend/ Dockerfile docker-compose.yml .env -x 
 ### Passo 2: No EasyPanel
 
 1. **New App** → **Upload File**
-2. Selecione `easy-market.zip`
+2. Selecione `smart-market.zip`
 3. **Extract**
 4. Configure igual à Opção 1 (passos 3-6)
 
 ---
 
-## 🗄️ Passo Crítico: Criar Tabelas no Supabase
+## 🗞️ Passo Crítico: Criar Tabelas no Supabase
 
 **Antes de iniciar o app no EasyPanel:**
 
@@ -163,7 +163,7 @@ zip -r easy-market.zip backend/ frontend/ Dockerfile docker-compose.yml .env -x 
 2. **SQL Editor** → **New Query**
 3. Cole o conteúdo de:
    ```
-   /tmp/easy-market/backend/src/migrations/000_run_all_migrations.sql
+   /tmp/smart-market/backend/src/migrations/000_run_all_migrations.sql
    ```
 4. **Execute**
 5. Aguarde "Success"
@@ -222,7 +222,7 @@ curl https://seu-app.easypanel.app/api/v1/anomalias/dashboard/loja_001
 
 ---
 
-## 🔒 SSL/TLS
+## 🔐 SSL/TLS
 
 **EasyPanel fornece HTTPS automaticamente:**
 - Certificado Let's Encrypt (gratuito)
@@ -326,7 +326,7 @@ curl https://seu-app.easypanel.app/api/v1/anomalias/dashboard/loja_001
 **Para restaurar:**
 1. **Restore from backup**
 2. Escolher data
-3. Confirmar (⚠️ Irreversível)
+3. Confirmar (⚠️ Irrevorsível)
 
 ---
 

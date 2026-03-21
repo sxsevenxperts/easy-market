@@ -16,12 +16,12 @@
 ```bash
 # Abra https://app.supabase.com
 # → Seu projeto → SQL Editor
-# → Cole: /tmp/easy-market/backend/src/migrations/000_run_all_migrations.sql
+# → Cole: /tmp/smart-market/backend/src/migrations/000_run_all_migrations.sql
 # → Execute
 
 # Ou via psql se preferir:
 psql postgresql://postgres:Jacyara.10davimaria@irzfpzroxwhufnmr.supabase.co:5432/postgres \
-  -f /tmp/easy-market/backend/src/migrations/000_run_all_migrations.sql
+  -f /tmp/smart-market/backend/src/migrations/000_run_all_migrations.sql
 ```
 
 **Verificação:** Tabelas criadas no Supabase ✅
@@ -31,7 +31,7 @@ psql postgresql://postgres:Jacyara.10davimaria@irzfpzroxwhufnmr.supabase.co:5432
 ### [ ] 2. Iniciar Backend (1 min)
 
 ```bash
-cd /tmp/easy-market/backend
+cd /tmp/smart-market/backend
 npm start
 ```
 
@@ -54,12 +54,12 @@ curl http://localhost:3000/health
 
 **Opção A - Browser direto:**
 ```bash
-open /tmp/easy-market/frontend/index.html
+open /tmp/smart-market/frontend/index.html
 ```
 
 **Opção B - HTTP Server:**
 ```bash
-cd /tmp/easy-market/frontend
+cd /tmp/smart-market/frontend
 python3 -m http.server 3001
 # Abra: http://localhost:3001
 ```
@@ -96,7 +96,7 @@ curl http://localhost:3000/api/v1/alertas/loja_001
 ### [ ] 5. Rodar Testes (3 min)
 
 ```bash
-cd /tmp/easy-market/backend
+cd /tmp/smart-market/backend
 npm test
 ```
 
@@ -122,7 +122,7 @@ Coverage: >50%
 ### [ ] 6. Build Docker
 
 ```bash
-cd /tmp/easy-market
+cd /tmp/smart-market
 docker-compose build
 ```
 
@@ -145,7 +145,7 @@ docker-compose ps
 ### [ ] 8. Preparar Deploy
 
 ```bash
-cd /tmp/easy-market
+cd /tmp/smart-market
 bash scripts/deploy-easypanel.sh
 ```
 
@@ -154,7 +154,7 @@ bash scripts/deploy-easypanel.sh
 ### [ ] 9. Fazer Deploy
 
 1. Acesse EasyPanel dashboard
-2. Novo app → Easy Market
+2. Novo app → Smart Market
 3. Source → GitHub (ou upload dos arquivos)
 4. Env vars → copie de .env
 5. Deploy
@@ -168,7 +168,7 @@ curl https://seu-app.easypanel.app/health
 
 ---
 
-## 🔒 Segurança Checklist
+## 🔐 Segurança Checklist
 
 - [ ] `.env` não está em git (`.gitignore`)
 - [ ] Senhas não estão em commits
