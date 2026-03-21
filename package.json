@@ -24,6 +24,8 @@
     "jest": "^29.0.0"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.99.3"
+    "@supabase/supabase-js": "^2.99.3",
+    "dotenv": "^17.3.1",
+    "pg": "^8.20.0"
   }
 }
