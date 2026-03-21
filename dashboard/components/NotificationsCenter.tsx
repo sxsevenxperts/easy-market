@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useNotifications } from '@/hooks/useNotifications';
 import { useStore } from '@/store/dashboard';
 import { apiClient } from '@/lib/api';
 import { Bell, X, Check } from 'lucide-react';
@@ -19,7 +18,9 @@ interface Notification {
 
 export default function NotificationsCenter() {
   const { loja_id } = useStore();
-  const { markAsRead } = useNotifications();
+  const markAsRead = async (id: string) => {
+    await apiClient.put(`/notificacoes/${id}/marcar-lida`).catch(console.error);
+  };
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showPanel, setShowPanel] = useState(false);
   const [loading, setLoading] = useState(false);

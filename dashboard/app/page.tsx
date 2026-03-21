@@ -13,8 +13,8 @@ import { apiClient } from '@/lib/api';
 export default function DashboardHome() {
   const { loja_id } = useStore();
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState(null);
-  const [error, setError] = useState(null);
+  const [data, setData] = useState<any>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -127,7 +127,7 @@ export default function DashboardHome() {
       <div className="card">
         <h3 className="text-xl font-bold mb-4">Categorias Mais Vendidas</h3>
         <div className="space-y-3">
-          {resumo.categorias?.slice(0, 5).map((cat, idx) => (
+          {resumo.categorias?.slice(0, 5).map((cat: any, idx: number) => (
             <div key={idx} className="flex items-center justify-between">
               <span className="text-sm">{cat.nome}</span>
               <div className="flex items-center gap-2">

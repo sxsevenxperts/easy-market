@@ -10,6 +10,7 @@ interface Contato {
   id: string;
   nome: string;
   cargo?: string;
+  setores?: string[];
   telefone_whatsapp?: string;
   telefone_sms?: string;
   email?: string;
@@ -117,7 +118,7 @@ export default function ContatosPage() {
   };
 
   const handleEdit = (contato: Contato) => {
-    setFormData(contato);
+    setFormData({ ...formData, ...contato, setores: SETORES });
     setEditingId(contato.id);
     setShowForm(true);
   };
