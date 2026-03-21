@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Easy Market — Retail Intelligence</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <div class="brand-icon"><i class="fas fa-store"></i></div>
+        <div class="brand-text">
+          <span class="brand-name">Easy Market</span>
+          <span class="brand-sub">Retail Intelligence</span>
+        </div>
+      </div>
+      <button class="sidebar-toggle" id="sidebarToggle">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <ul>
+        <li>
+          <a href="#" class="nav-item active" data-section="dashboard">
+            <i class="fas fa-chart-pie"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-section="previsao">
+            <i class="fas fa-crystal-ball"></i>
+            <span>Previsão de Vendas</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-section="estoque">
+            <i class="fas fa-boxes-stacked"></i>
+            <span>Estoque &amp; Perdas</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-section="clientes">
+            <i class="fas fa-users"></i>
+            <span>Clientes (RFM)</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-section="crosssell">
+            <i class="fas fa-cart-plus"></i>
+            <span>Cross-Sell</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-section="anomalias">
+            <i class="fas fa-triangle-exclamation"></i>
+            <span>Anomalias</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-section="alertas">
+            <i class="fas fa-bell"></i>
+            <span class="nav-label">Alertas</span>
+            <span class="nav-badge" id="alertBadge">3</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-section="relatorios">
+            <i class="fas fa-chart-line"></i>
+            <span>Relatórios</span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="store-selector">
+        <i class="fas fa-location-dot"></i>
+        <select id="storeSelect">
+          <option value="loja_001">Loja 001 — Centro</option>
+          <option value="loja_002">Loja 002 — Norte</option>
+          <option value="loja_003">Loja 003 — Sul</option>
+        </select>
+      </div>
+      <div class="last-update" id="lastUpdate">Atualizado agora</div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content" id="mainContent">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="topbar-menu-btn" id="topbarMenuBtn">
+          <i class="fas fa-bars"></i>
+        </button>
+        <div class="page-title" id="pageTitle">
+          <h1>Dashboard</h1>
+          <p>Visão geral da operação</p>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="status-pill" id="systemStatus">
+          <span class="status-dot status-green"></span>
+          <span>Sistema Online</span>
+        </div>
+        <button class="btn btn-ghost" id="refreshBtn" title="Atualizar dados">
+          <i class="fas fa-rotate-right"></i>
+        </button>
+        <div class="avatar">SM</div>
+      </div>
+    </header>
+
+    <!-- ==============================
+         SECTION: DASHBOARD
+         ============================== -->
+    <section class="content-area section-page active" id="section-dashboard">
+      <!-- KPI Cards -->
+      <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-blue"><i class="fas fa-dollar-sign"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Receita (hoje)</span>
+            <span class="kpi-value" id="kpi-receita">R$ —</span>
+            <span class="kpi-delta positive" id="kpi-receita-delta">+0%</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-green"><i class="fas fa-percent"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Margem Média</span>
+            <span class="kpi-value" id="kpi-margem">—%</span>
+            <span class="kpi-delta neutral" id="kpi-margem-delta">0%</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-red"><i class="fas fa-box-open"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Taxa de Perdas</span>
+            <span class="kpi-value" id="kpi-perdas">—%</span>
+            <span class="kpi-delta negative" id="kpi-perdas-delta">0%</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon kpi-yellow"><i class="fas fa-bell"></i></div>
+          <div class="kpi-body">
+            <span class="kpi-label">Alertas Ativos</span>
+            <span class="kpi-value" id="kpi-alertas">—</span>
+            <span class="kpi-delta" id="kpi-alertas-delta">abertos</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- System Status + Recent Activity -->
+      <div class="grid-2col mt-24">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-server"></i> Status do Sistema</h3>
+          </div>
+          <div class="card-body" id="systemStatusList">
+            <div class="status-row">
+              <span class="status-dot status-green"></span>
+              <span class="status-label">API Principal</span>
+              <span class="status-value text-green">Online</span>
+            </div>
+            <div class="status-row">
+              <span class="status-dot status-green"></span>
+              <span class="status-label">Motor de Previsão</span>
+              <span class="status-value text-green">Ativo</span>
+            </div>
+            <div class="status-row">
+              <span class="status-dot status-green"></span>
+              <span class="status-label">Banco de Dados</span>
+              <span class="status-value text-green">Conectado</span>
+            </div>
+            <div class="status-row">
+              <span class="status-dot status-yellow"></span>
+              <span class="status-label">Sincronização ERP</span>
+              <span class="status-value text-yellow">Pendente</span>
+            </div>
+            <div class="status-row">
+              <span class="status-dot status-green"></span>
+              <span class="status-label">Alertas Automáticos</span>
+              <span class="status-value text-green">Rodando</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-clock-rotate-left"></i> Atividade Recente</h3>
+          </div>
+          <div class="card-body" id="activityFeed">
+            <div class="activity-item">
+              <div class="activity-dot bg-green"></div>
+              <div class="activity-body">
+                <span class="activity-text">Previsão do dia gerada com 94% assertividade</span>
+                <span class="activity-time">há 2 min</span>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot bg-yellow"></div>
+              <div class="activity-body">
+                <span class="activity-text">Alerta: estoque crítico em Refrigerantes</span>
+                <span class="activity-time">há 15 min</span>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot bg-blue"></div>
+              <div class="activity-body">
+                <span class="activity-text">6 novas anomalias detectadas</span>
+                <span class="activity-time">há 32 min</span>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot bg-purple"></div>
+              <div class="activity-body">
+                <span class="activity-text">RFM atualizado: 48 novos clientes VIP</span>
+                <span class="activity-time">há 1h</span>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot bg-green"></div>
+              <div class="activity-body">
+                <span class="activity-text">Relatório semanal exportado com sucesso</span>
+                <span class="activity-time">há 2h</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard mini-charts -->
+      <div class="grid-2col mt-24">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-chart-area"></i> Vendas — Últimos 7 dias</h3>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap"><canvas id="dashSalesChart"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-chart-donut"></i> Mix de Categorias</h3>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap"><canvas id="dashCategoryChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: PREVISAO
+         ============================== -->
+    <section class="content-area section-page" id="section-previsao">
+      <div class="section-loading" id="loading-previsao">
+        <div class="spinner"></div><span>Carregando previsões...</span>
+      </div>
+      <div id="content-previsao" class="hidden">
+        <div class="forecast-grid" id="forecastCards">
+          <!-- cards injected by JS -->
+        </div>
+        <div class="card mt-24">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-chart-line"></i> Curva de Previsão vs Real</h3>
+            <div class="card-actions">
+              <select class="select-sm" id="forecastRange">
+                <option value="7">7 dias</option>
+                <option value="14">14 dias</option>
+                <option value="30">30 dias</option>
+              </select>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap chart-tall"><canvas id="forecastChart"></canvas></div>
+          </div>
+        </div>
+        <div class="card mt-24">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-table"></i> Detalhe por Categoria</h3>
+          </div>
+          <div class="card-body">
+            <table class="data-table" id="forecastTable">
+              <thead><tr><th>Categoria</th><th>Previsto</th><th>Realizado</th><th>Desvio</th><th>Assertividade</th></tr></thead>
+              <tbody><!-- injected --></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: ESTOQUE & PERDAS
+         ============================== -->
+    <section class="content-area section-page" id="section-estoque">
+      <div class="section-loading" id="loading-estoque">
+        <div class="spinner"></div><span>Carregando dados de estoque...</span>
+      </div>
+      <div id="content-estoque" class="hidden">
+        <div class="grid-3col">
+          <div class="kpi-card kpi-card-wide">
+            <div class="kpi-icon kpi-red"><i class="fas fa-arrow-trend-down"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Taxa de Perda Atual</span>
+              <span class="kpi-value" id="estoque-taxa">—</span>
+              <span class="kpi-delta" id="estoque-taxa-meta">meta: &lt; 2%</span>
+            </div>
+          </div>
+          <div class="kpi-card kpi-card-wide">
+            <div class="kpi-icon kpi-orange"><i class="fas fa-triangle-exclamation"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Produtos em Risco</span>
+              <span class="kpi-value" id="estoque-risco">—</span>
+              <span class="kpi-delta">itens críticos</span>
+            </div>
+          </div>
+          <div class="kpi-card kpi-card-wide">
+            <div class="kpi-icon kpi-purple"><i class="fas fa-boxes-stacked"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">SKUs Monitorados</span>
+              <span class="kpi-value" id="estoque-skus">—</span>
+              <span class="kpi-delta">ativos</span>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2col mt-24">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-chart-pie"></i> Perdas por Categoria</h3>
+            </div>
+            <div class="card-body">
+              <div class="chart-wrap"><canvas id="perdasChart"></canvas></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-ranking-star"></i> Top 10 Produtos com Perda</h3>
+            </div>
+            <div class="card-body">
+              <table class="data-table" id="perdasTable">
+                <thead><tr><th>#</th><th>Produto</th><th>Perda %</th><th>Valor</th><th>Status</th></tr></thead>
+                <tbody><!-- injected --></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: CLIENTES RFM
+         ============================== -->
+    <section class="content-area section-page" id="section-clientes">
+      <div class="section-loading" id="loading-clientes">
+        <div class="spinner"></div><span>Carregando análise RFM...</span>
+      </div>
+      <div id="content-clientes" class="hidden">
+        <div class="rfm-segments" id="rfmSegments"><!-- injected --></div>
+        <div class="grid-2col mt-24">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-chart-bar"></i> Distribuição RFM</h3>
+            </div>
+            <div class="card-body">
+              <div class="chart-wrap"><canvas id="rfmChart"></canvas></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-star"></i> Top Clientes VIP</h3>
+            </div>
+            <div class="card-body">
+              <table class="data-table" id="clientesTable">
+                <thead><tr><th>Cliente</th><th>Recência</th><th>Frequência</th><th>Valor</th><th>Segmento</th></tr></thead>
+                <tbody><!-- injected --></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: CROSS-SELL
+         ============================== -->
+    <section class="content-area section-page" id="section-crosssell">
+      <div class="section-loading" id="loading-crosssell">
+        <div class="spinner"></div><span>Carregando recomendações...</span>
+      </div>
+      <div id="content-crosssell" class="hidden">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-link"></i> Pares Recomendados</h3>
+            <div class="card-actions">
+              <select class="select-sm" id="crossCategory">
+                <option value="bebidas">Bebidas</option>
+                <option value="laticinios">Laticínios</option>
+                <option value="padaria">Padaria</option>
+                <option value="snacks">Snacks</option>
+              </select>
+            </div>
+          </div>
+          <div class="card-body" id="crossSellList"><!-- injected --></div>
+        </div>
+        <div class="card mt-24">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-fire"></i> Oportunidades de Venda Cruzada</h3>
+          </div>
+          <div class="card-body">
+            <table class="data-table" id="crossSellTable">
+              <thead><tr><th>Produto A</th><th>Produto B</th><th>Afinidade</th><th>Lift</th><th>Confiança</th><th>Ação</th></tr></thead>
+              <tbody><!-- injected --></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: ANOMALIAS
+         ============================== -->
+    <section class="content-area section-page" id="section-anomalias">
+      <div class="section-loading" id="loading-anomalias">
+        <div class="spinner"></div><span>Carregando anomalias...</span>
+      </div>
+      <div id="content-anomalias" class="hidden">
+        <div class="grid-3col" id="anomaliaKpis"><!-- injected --></div>
+        <div class="grid-2col mt-24">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-chart-bar"></i> Por Tipo e Severidade</h3>
+            </div>
+            <div class="card-body">
+              <div class="chart-wrap"><canvas id="anomaliaChart"></canvas></div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-list-check"></i> Anomalias Recentes</h3>
+            </div>
+            <div class="card-body">
+              <table class="data-table" id="anomaliasTable">
+                <thead><tr><th>Produto</th><th>Tipo</th><th>Desvio</th><th>Severidade</th><th>Data</th></tr></thead>
+                <tbody><!-- injected --></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: ALERTAS
+         ============================== -->
+    <section class="content-area section-page" id="section-alertas">
+      <div class="section-loading" id="loading-alertas">
+        <div class="spinner"></div><span>Carregando alertas...</span>
+      </div>
+      <div id="content-alertas" class="hidden">
+        <div class="alerts-toolbar">
+          <div class="filter-tabs" id="alertTabs">
+            <button class="filter-tab active" data-filter="all">Todos</button>
+            <button class="filter-tab" data-filter="critico">Crítico</button>
+            <button class="filter-tab" data-filter="alto">Alto</button>
+            <button class="filter-tab" data-filter="medio">Médio</button>
+          </div>
+        </div>
+        <div class="alerts-list" id="alertsList"><!-- injected --></div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: RELATÓRIOS
+         ============================== -->
+    <section class="content-area section-page" id="section-relatorios">
+      <div class="reports-grid">
+        <div class="report-card" data-action="export-vendas">
+          <div class="report-icon"><i class="fas fa-file-csv"></i></div>
+          <h4>Vendas Detalhadas</h4>
+          <p>Exportar CSV com todas as transações do período</p>
+          <button class="btn btn-primary">Exportar CSV</button>
+        </div>
+        <div class="report-card" data-action="export-perdas">
+          <div class="report-icon"><i class="fas fa-file-excel"></i></div>
+          <h4>Relatório de Perdas</h4>
+          <p>Análise completa de perdas por produto e categoria</p>
+          <button class="btn btn-primary">Exportar Excel</button>
+        </div>
+        <div class="report-card" data-action="export-rfm">
+          <div class="report-icon"><i class="fas fa-users"></i></div>
+          <h4>Base RFM</h4>
+          <p>Segmentação completa de clientes para campanhas</p>
+          <button class="btn btn-primary">Exportar CSV</button>
+        </div>
+        <div class="report-card" data-action="export-previsao">
+          <div class="report-icon"><i class="fas fa-chart-line"></i></div>
+          <h4>Previsões</h4>
+          <p>Histórico de previsões e índice de assertividade</p>
+          <button class="btn btn-primary">Exportar PDF</button>
+        </div>
+        <div class="report-card" data-action="export-anomalias">
+          <div class="report-icon"><i class="fas fa-magnifying-glass-chart"></i></div>
+          <h4>Anomalias Detectadas</h4>
+          <p>Log completo de anomalias com contexto e ações</p>
+          <button class="btn btn-primary">Exportar CSV</button>
+        </div>
+        <div class="report-card" data-action="export-crosssell">
+          <div class="report-icon"><i class="fas fa-diagram-project"></i></div>
+          <h4>Cross-Sell Insights</h4>
+          <p>Mapa de associações e oportunidades de receita</p>
+          <button class="btn btn-primary">Exportar PDF</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/charts.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

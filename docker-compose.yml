@@ -1,80 +1,62 @@
-version: '3.8'
+# ============================================================
+# Easy Market - Docker Compose
+# Local development environment
+# ============================================================
+
+version: "3.9"
 
 services:
-  # Easy Market Backend
+  # ----------------------------------------------------------
+  # Backend: Node.js API
+  # ----------------------------------------------------------
   backend:
     build:
       context: .
       dockerfile: Dockerfile
+      target: production
     container_name: easy-market-backend
+    restart: unless-stopped
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
-      NODE_ENV: production
-      PORT: 3000
-      API_PREFIX: /api/v1
-
-      # Supabase
-      SUPABASE_URL: ${SUPABASE_URL:-https://qfkwqfrnemqregjqxkcr.supabase.co}
-      SUPABASE_KEY: ${SUPABASE_KEY:-sb_publishable_vBAVB5lBnPY18GbnJxRlkA_fxMYrUmQ}
-      SUPABASE_HOST: ${SUPABASE_HOST:-qfkwqfrnemqregjqxkcr.supabase.co}
-      SUPABASE_DB: ${SUPABASE_DB:-postgres}
-      SUPABASE_USER: ${SUPABASE_USER:-postgres}
-      SUPABASE_PASSWORD: ${SUPABASE_PASSWORD}
-      SUPABASE_PORT: ${SUPABASE_PORT:-5432}
-
-      # Redis
-      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
-
-      # JWT
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
-
-      # CORS
-      CORS_ORIGIN: ${CORS_ORIGIN:-*}
-
-      # Twilio (WhatsApp/SMS)
-      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
-      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
-      TWILIO_WHATSAPP_NUMBER: ${TWILIO_WHATSAPP_NUMBER}
-      TWILIO_SMS_NUMBER: ${TWILIO_SMS_NUMBER}
-
-      # Email
-      EMAIL_USER: ${EMAIL_USER}
-      EMAIL_PASS: ${EMAIL_PASS}
-
-      # Claude API (Revisor)
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-
-    depends_on:
-      redis:
-        condition: service_healthy
-
+      - NODE_ENV=development
+      - PORT=3000
     volumes:
-      - ./backend/src:/app/backend/src
-
+      # Hot reload: mount source for development
+      - ./backend/src:/app/src:ro
     networks:
-      - easy-market
-
-  # Redis (Cache + Scheduler)
-  redis:
-    image: redis:7-alpine
-    container_name: easy-market-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis-data:/data
+      - easy-market-network
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    depends_on: []
+
+  # ----------------------------------------------------------
+  # Frontend: Nginx serving static files
+  # ----------------------------------------------------------
+  frontend:
+    image: nginx:alpine
+    container_name: easy-market-frontend
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     networks:
-      - easy-market
+      - easy-market-network
+    depends_on:
+      - backend
 
-volumes:
-  redis-data:
-
+# ----------------------------------------------------------
+# Networks
+# ----------------------------------------------------------
 networks:
-  easy-market:
+  easy-market-network:
     driver: bridge
+    name: easy-market-network

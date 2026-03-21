@@ -1,250 +1,279 @@
-const { pool } = require('../config/database');
-const redis = require('../config/redis');
-const logger = require('../config/logger');
-const Joi = require('joi');
+/**
+ * Rotas de Alertas
+ * Easy Market - Gestão de Alertas de Loja
+ */
 
-// Validation schema
-const alertaSchema = Joi.object({
-  loja_id: Joi.string().required(),
-  sku: Joi.string(),
-  categoria: Joi.string(),
-  tipo: Joi.string().valid('desperdicio', 'falta_estoque', 'preco_anormal', 'vencimento_proximo').required(),
-  urgencia: Joi.string().valid('alta', 'média', 'baixa').default('média'),
-  titulo: Joi.string().required(),
-  mensagem: Joi.string(),
-  dados_json: Joi.object().default({})
-});
+const express = require('express');
+const router = express.Router();
 
-async function routes(fastify, options) {
+// ============================================
+// POST /
+// Criar novo alerta
+// ============================================
+router.post('/', async (req, res) => {
+  try {
+    const {
+      loja_id,
+      sku,
+      categoria,
+      tipo,
+      urgencia = 'média',
+      titulo,
+      mensagem,
+      dados_json = {}
+    } = req.body;
 
-  // POST /api/v1/alertas - Create alert
-  fastify.post('/', async (request, reply) => {
-    try {
-      const { error, value } = alertaSchema.validate(request.body);
-      if (error) {
-        return reply.code(400).send({
-          error: 'validation_error',
-          details: error.details
-        });
-      }
+    // Manual validation
+    if (!loja_id) {
+      return res.status(400).json({ error: 'validation_error', details: 'loja_id é obrigatório' });
+    }
+    if (!tipo || !['desperdicio', 'falta_estoque', 'preco_anormal', 'vencimento_proximo'].includes(tipo)) {
+      return res.status(400).json({
+        error: 'validation_error',
+        details: 'tipo inválido. Use: desperdicio, falta_estoque, preco_anormal, vencimento_proximo'
+      });
+    }
+    if (!titulo) {
+      return res.status(400).json({ error: 'validation_error', details: 'titulo é obrigatório' });
+    }
+    if (!['alta', 'média', 'baixa'].includes(urgencia)) {
+      return res.status(400).json({
+        error: 'validation_error',
+        details: 'urgencia inválida. Use: alta, média, baixa'
+      });
+    }
 
-      const {
+    const supabase = req.supabase;
+
+    // Verify loja exists
+    const { data: loja, error: lojaError } = await supabase
+      .from('lojas')
+      .select('loja_id')
+      .eq('loja_id', loja_id)
+      .single();
+
+    if (lojaError || !loja) {
+      return res.status(404).json({ error: 'loja_not_found' });
+    }
+
+    // Calculate ROI estimate based on alert type
+    let roiEstimado = 0;
+    if (tipo === 'desperdicio') {
+      roiEstimado = (dados_json.quantidade_comprometida * dados_json.preco_unitario) || 0;
+    } else if (tipo === 'falta_estoque') {
+      roiEstimado = (dados_json.dias_sem_estoque * dados_json.faturamento_diario) || 0;
+    }
+
+    const { data: novoAlerta, error: insertError } = await supabase
+      .from('alertas')
+      .insert({
         loja_id,
-        sku,
-        categoria,
+        sku: sku || null,
+        categoria: categoria || null,
         tipo,
         urgencia,
         titulo,
-        mensagem,
-        dados_json
-      } = value;
+        mensagem: mensagem || null,
+        dados_json,
+        roi_estimado: roiEstimado,
+        status: 'aberto'
+      })
+      .select()
+      .single();
 
-      // Verify loja exists
-      const lojaResult = await pool.query('SELECT * FROM lojas WHERE loja_id = $1', [loja_id]);
-      if (lojaResult.rows.length === 0) {
-        return reply.code(404).send({ error: 'loja_not_found' });
-      }
-
-      // Calculate ROI estimate based on alert type
-      let roiEstimado = 0;
-      if (tipo === 'desperdicio') {
-        roiEstimado = dados_json.quantidade_comprometida * dados_json.preco_unitario || 0;
-      } else if (tipo === 'falta_estoque') {
-        roiEstimado = dados_json.dias_sem_estoque * dados_json.faturamento_diario || 0;
-      }
-
-      const insertResult = await pool.query(
-        `INSERT INTO alertas (
-          loja_id, sku, categoria, tipo, urgencia, titulo, mensagem,
-          dados_json, roi_estimado, status
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'aberto')
-        RETURNING *`,
-        [
-          loja_id,
-          sku || null,
-          categoria || null,
-          tipo,
-          urgencia,
-          titulo,
-          mensagem || null,
-          JSON.stringify(dados_json),
-          roiEstimado
-        ]
-      );
-
-      // Invalidate cache
-      await redis.del(`alertas:${loja_id}`);
-
-      logger.info(`Alert created: ${tipo} for ${loja_id}`);
-
-      return reply.code(201).send(insertResult.rows[0]);
-
-    } catch (err) {
-      logger.error('Error creating alert:', err);
-      return reply.code(500).send({
-        error: 'internal_server_error',
-        message: err.message
-      });
+    if (insertError) {
+      console.error('Error inserting alert:', insertError);
+      return res.status(500).json({ error: 'internal_server_error', message: insertError.message });
     }
-  });
 
-  // GET /api/v1/alertas/:loja_id - Get alerts for store
-  fastify.get('/:loja_id', async (request, reply) => {
-    try {
-      const { loja_id } = request.params;
-      const { status = 'aberto', tipo, limit = 50, offset = 0 } = request.query;
+    console.log(`Alert created: ${tipo} for ${loja_id}`);
 
-      // Try cache first
-      const cacheKey = `alertas:${loja_id}:${status}`;
-      const cached = await redis.get(cacheKey);
-      if (cached) {
-        return reply.send(JSON.parse(cached));
-      }
+    return res.status(201).json(novoAlerta);
 
-      let query = `
-        SELECT *
-        FROM alertas
-        WHERE loja_id = $1
-      `;
-      const params = [loja_id];
+  } catch (err) {
+    console.error('Error creating alert:', err);
+    return res.status(500).json({
+      error: 'internal_server_error',
+      message: err.message
+    });
+  }
+});
 
-      if (status) {
-        query += ` AND status = $${params.length + 1}`;
-        params.push(status);
-      }
+// ============================================
+// GET /:loja_id
+// Listar alertas da loja
+// ============================================
+router.get('/:loja_id', async (req, res) => {
+  try {
+    const { loja_id } = req.params;
+    const { status = 'aberto', tipo, limit = 50, offset = 0 } = req.query;
 
-      if (tipo) {
-        query += ` AND tipo = $${params.length + 1}`;
-        params.push(tipo);
-      }
+    const supabase = req.supabase;
 
-      query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-      params.push(limit, offset);
+    let query = supabase
+      .from('alertas')
+      .select('*')
+      .eq('loja_id', loja_id)
+      .order('created_at', { ascending: false })
+      .range(parseInt(offset), parseInt(offset) + parseInt(limit) - 1);
 
-      const result = await pool.query(query, params);
-
-      const response = {
-        loja_id,
-        total: result.rows.length,
-        alertas: result.rows
-      };
-
-      // Cache for 5 minutes
-      await redis.setex(cacheKey, 300, JSON.stringify(response));
-
-      return reply.send(response);
-
-    } catch (err) {
-      logger.error('Error fetching alerts:', err);
-      return reply.code(500).send({
-        error: 'internal_server_error'
-      });
+    if (status) {
+      query = query.eq('status', status);
     }
-  });
 
-  // GET /api/v1/alertas/:loja_id/criticos - Critical alerts
-  fastify.get('/:loja_id/criticos', async (request, reply) => {
-    try {
-      const { loja_id } = request.params;
-
-      const result = await pool.query(
-        `SELECT *
-         FROM alertas
-         WHERE loja_id = $1
-         AND urgencia IN ('alta', 'média')
-         AND status IN ('aberto', 'em_acao')
-         ORDER BY urgencia = 'alta' DESC, created_at DESC
-         LIMIT 10`,
-        [loja_id]
-      );
-
-      return reply.send({
-        loja_id,
-        criticos: result.rows
-      });
-
-    } catch (err) {
-      logger.error('Error fetching critical alerts:', err);
-      return reply.code(500).send({
-        error: 'internal_server_error'
-      });
+    if (tipo) {
+      query = query.eq('tipo', tipo);
     }
-  });
 
-  // PUT /api/v1/alertas/:id - Update alert status
-  fastify.put('/:id', async (request, reply) => {
-    try {
-      const { id } = request.params;
-      const { status, resolucao_sugerida } = request.body;
+    const { data: alertas, error } = await query;
 
-      if (!['aberto', 'em_acao', 'resolvido'].includes(status)) {
-        return reply.code(400).send({
-          error: 'invalid_status'
-        });
+    if (error) {
+      console.error('Error fetching alerts:', error);
+      return res.status(500).json({ error: 'internal_server_error' });
+    }
+
+    return res.status(200).json({
+      loja_id,
+      total: alertas.length,
+      alertas
+    });
+
+  } catch (err) {
+    console.error('Error fetching alerts:', err);
+    return res.status(500).json({ error: 'internal_server_error' });
+  }
+});
+
+// ============================================
+// GET /:loja_id/criticos
+// Alertas críticos da loja
+// ============================================
+router.get('/:loja_id/criticos', async (req, res) => {
+  try {
+    const { loja_id } = req.params;
+
+    const supabase = req.supabase;
+
+    const { data: criticos, error } = await supabase
+      .from('alertas')
+      .select('*')
+      .eq('loja_id', loja_id)
+      .in('urgencia', ['alta', 'média'])
+      .in('status', ['aberto', 'em_acao'])
+      .order('urgencia', { ascending: true }) // 'alta' comes before 'média' alphabetically — secondary sort by date
+      .order('created_at', { ascending: false })
+      .limit(10);
+
+    if (error) {
+      console.error('Error fetching critical alerts:', error);
+      return res.status(500).json({ error: 'internal_server_error' });
+    }
+
+    return res.status(200).json({
+      loja_id,
+      criticos
+    });
+
+  } catch (err) {
+    console.error('Error fetching critical alerts:', err);
+    return res.status(500).json({ error: 'internal_server_error' });
+  }
+});
+
+// ============================================
+// PUT /:id
+// Atualizar status do alerta
+// ============================================
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status, resolucao_sugerida } = req.body;
+
+    if (!['aberto', 'em_acao', 'resolvido'].includes(status)) {
+      return res.status(400).json({ error: 'invalid_status' });
+    }
+
+    const supabase = req.supabase;
+
+    const updateData = {
+      status,
+      resolucao_sugerida: resolucao_sugerida || null
+    };
+
+    if (status === 'resolvido') {
+      updateData.resolved_at = new Date().toISOString();
+    }
+
+    const { data: alerta, error } = await supabase
+      .from('alertas')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !alerta) {
+      if (error && error.code === 'PGRST116') {
+        return res.status(404).json({ error: 'alert_not_found' });
       }
+      console.error('Error updating alert:', error);
+      return res.status(500).json({ error: 'internal_server_error' });
+    }
 
-      const result = await pool.query(
-        `UPDATE alertas
-         SET status = $1, resolucao_sugerida = $2, resolved_at = CASE
-           WHEN $1 = 'resolvido' THEN NOW()
-           ELSE resolved_at
-         END
-         WHERE id = $3
-         RETURNING *`,
-        [status, resolucao_sugerida || null, id]
-      );
+    console.log(`Alert ${id} updated to status: ${status}`);
 
-      if (result.rows.length === 0) {
-        return reply.code(404).send({ error: 'alert_not_found' });
+    return res.status(200).json(alerta);
+
+  } catch (err) {
+    console.error('Error updating alert:', err);
+    return res.status(500).json({ error: 'internal_server_error' });
+  }
+});
+
+// ============================================
+// GET /:loja_id/resumo
+// Resumo de alertas para o dashboard
+// ============================================
+router.get('/:loja_id/resumo', async (req, res) => {
+  try {
+    const { loja_id } = req.params;
+
+    const supabase = req.supabase;
+
+    const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: alertas, error } = await supabase
+      .from('alertas')
+      .select('tipo, status, roi_estimado')
+      .eq('loja_id', loja_id)
+      .gte('created_at', since);
+
+    if (error) {
+      console.error('Error fetching alert summary:', error);
+      return res.status(500).json({ error: 'internal_server_error' });
+    }
+
+    // Group by tipo + status manually (replicating the SQL GROUP BY)
+    const grupos = {};
+    for (const row of alertas) {
+      const key = `${row.tipo}__${row.status}`;
+      if (!grupos[key]) {
+        grupos[key] = { tipo: row.tipo, status: row.status, total: 0, roi_total: 0 };
       }
-
-      // Invalidate cache
-      const alert = result.rows[0];
-      await redis.del(`alertas:${alert.loja_id}`);
-
-      logger.info(`Alert ${id} updated to status: ${status}`);
-
-      return reply.send(result.rows[0]);
-
-    } catch (err) {
-      logger.error('Error updating alert:', err);
-      return reply.code(500).send({
-        error: 'internal_server_error'
-      });
+      grupos[key].total += 1;
+      grupos[key].roi_total += parseFloat(row.roi_estimado) || 0;
     }
-  });
 
-  // GET /api/v1/alertas/:loja_id/resumo - Alert summary dashboard
-  fastify.get('/:loja_id/resumo', async (request, reply) => {
-    try {
-      const { loja_id } = request.params;
+    const resumo = Object.values(grupos);
 
-      const result = await pool.query(
-        `SELECT
-          tipo,
-          status,
-          COUNT(*) as total,
-          SUM(roi_estimado) as roi_total
-         FROM alertas
-         WHERE loja_id = $1
-         AND created_at >= NOW() - INTERVAL '7 days'
-         GROUP BY tipo, status`,
-        [loja_id]
-      );
+    return res.status(200).json({
+      loja_id,
+      resumo
+    });
 
-      return reply.send({
-        loja_id,
-        resumo: result.rows
-      });
+  } catch (err) {
+    console.error('Error fetching alert summary:', err);
+    return res.status(500).json({ error: 'internal_server_error' });
+  }
+});
 
-    } catch (err) {
-      logger.error('Error fetching alert summary:', err);
-      return reply.code(500).send({
-        error: 'internal_server_error'
-      });
-    }
-  });
-
-}
-
-module.exports = routes;
+module.exports = router;

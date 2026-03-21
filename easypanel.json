@@ -1,0 +1,47 @@
+{
+  "name": "easy-market",
+  "version": "3.0.0",
+  "description": "Easy Market - Plataforma de gestão comercial",
+  "services": {
+    "backend": {
+      "type": "app",
+      "source": {
+        "type": "dockerfile"
+      },
+      "build": {
+        "dockerfile": "Dockerfile",
+        "context": "."
+      },
+      "deploy": {
+        "replicas": 1,
+        "restartPolicy": "unless-stopped"
+      },
+      "env": [
+        "PORT=3000",
+        "NODE_ENV=production",
+        "SUPABASE_URL=",
+        "SUPABASE_SERVICE_KEY=",
+        "JWT_SECRET=",
+        "ALLOWED_ORIGINS="
+      ],
+      "ports": [
+        {
+          "published": 3000,
+          "target": 3000,
+          "protocol": "tcp"
+        }
+      ],
+      "healthCheck": {
+        "path": "/health",
+        "interval": 30,
+        "timeout": 10,
+        "retries": 3,
+        "startPeriod": 20
+      },
+      "resources": {
+        "memory": "512m",
+        "cpu": "0.5"
+      }
+    }
+  }
+}

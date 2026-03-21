@@ -3,6 +3,9 @@
  * Easy Market - Rastreamento de Desperdício
  */
 
+const express = require('express');
+const router = express.Router();
+
 const {
   calcularTaxaPerda,
   calcularReducaoPerda,
@@ -12,194 +15,187 @@ const {
   analisarMotivosPerdas
 } = require('../services/perdas');
 
-const logger = require('../config/logger');
+// ============================================
+// GET /taxa-atual/:loja_id
+// Calcular taxa de perda atual
+// ============================================
+router.get('/taxa-atual/:loja_id', async (req, res) => {
+  try {
+    const { loja_id } = req.params;
+    const { periodo = '30' } = req.query;
 
-module.exports = function (fastify, opts, done) {
+    const resultado = await calcularTaxaPerda(loja_id, periodo);
 
-  // ============================================
-  // GET /taxa-atual
-  // Calcular taxa de perda atual
-  // ============================================
-  fastify.get('/taxa-atual/:loja_id', async (request, reply) => {
-    try {
-      const { loja_id } = request.params;
-      const { periodo = '30' } = request.query;
+    return res.status(200).json({
+      sucesso: true,
+      data: resultado,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Erro em GET /taxa-atual:', error);
+    return res.status(500).json({ erro: error.message });
+  }
+});
 
-      const resultado = await calcularTaxaPerda(loja_id, periodo);
+// ============================================
+// GET /reducao/:loja_id
+// Comparar redução de perdas entre períodos
+// ============================================
+router.get('/reducao/:loja_id', async (req, res) => {
+  try {
+    const { loja_id } = req.params;
 
-      return reply.code(200).send({
-        sucesso: true,
-        data: resultado,
-        timestamp: new Date().toISOString()
+    const resultado = await calcularReducaoPerda(loja_id);
+
+    return res.status(200).json({
+      sucesso: true,
+      data: resultado,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Erro em GET /reducao:', error);
+    return res.status(500).json({ erro: error.message });
+  }
+});
+
+// ============================================
+// GET /produtos-maior-perda/:loja_id
+// Listar produtos com maior perda
+// ============================================
+router.get('/produtos-maior-perda/:loja_id', async (req, res) => {
+  try {
+    const { loja_id } = req.params;
+    const { limite = 10 } = req.query;
+
+    const resultado = await listarProdutosComMaiorPerda(loja_id, parseInt(limite));
+
+    return res.status(200).json({
+      sucesso: true,
+      data: resultado,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Erro em GET /produtos-maior-perda:', error);
+    return res.status(500).json({ erro: error.message });
+  }
+});
+
+// ============================================
+// GET /por-categoria/:loja_id
+// Análise de perdas por categoria
+// ============================================
+router.get('/por-categoria/:loja_id', async (req, res) => {
+  try {
+    const { loja_id } = req.params;
+
+    const resultado = await analisarPerdasPorCategoria(loja_id);
+
+    return res.status(200).json({
+      sucesso: true,
+      data: resultado,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Erro em GET /por-categoria:', error);
+    return res.status(500).json({ erro: error.message });
+  }
+});
+
+// ============================================
+// GET /motivos/:loja_id
+// Análise de motivos de perdas
+// ============================================
+router.get('/motivos/:loja_id', async (req, res) => {
+  try {
+    const { loja_id } = req.params;
+
+    const resultado = await analisarMotivosPerdas(loja_id);
+
+    return res.status(200).json({
+      sucesso: true,
+      data: resultado,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Erro em GET /motivos:', error);
+    return res.status(500).json({ erro: error.message });
+  }
+});
+
+// ============================================
+// POST /registrar
+// Registrar nova perda de produto
+// ============================================
+router.post('/registrar', async (req, res) => {
+  try {
+    const { loja_id, produto_id, quantidade_perdida, motivo, observacoes } = req.body;
+
+    if (!loja_id || !produto_id || !quantidade_perdida || !motivo) {
+      return res.status(400).json({
+        erro: 'Campos obrigatórios: loja_id, produto_id, quantidade_perdida, motivo'
       });
-    } catch (error) {
-      logger.error('Erro em GET /taxa-atual:', error);
-      return reply.code(500).send({ erro: error.message });
     }
-  });
 
-  // ============================================
-  // GET /reducao
-  // Comparar redução de perdas entre períodos
-  // ============================================
-  fastify.get('/reducao/:loja_id', async (request, reply) => {
-    try {
-      const { loja_id } = request.params;
+    const resultado = await registrarPerda(
+      loja_id,
+      produto_id,
+      parseInt(quantidade_perdida),
+      motivo,
+      observacoes || ''
+    );
 
-      const resultado = await calcularReducaoPerda(loja_id);
+    return res.status(201).json({
+      sucesso: true,
+      data: resultado,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Erro em POST /registrar:', error);
+    return res.status(500).json({ erro: error.message });
+  }
+});
 
-      return reply.code(200).send({
-        sucesso: true,
-        data: resultado,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      logger.error('Erro em GET /reducao:', error);
-      return reply.code(500).send({ erro: error.message });
-    }
-  });
+// ============================================
+// GET /relatorio-completo/:loja_id
+// Relatório completo de perdas da loja
+// ============================================
+router.get('/relatorio-completo/:loja_id', async (req, res) => {
+  try {
+    const { loja_id } = req.params;
 
-  // ============================================
-  // GET /produtos-maior-perda
-  // Listar produtos com maior perda
-  // ============================================
-  fastify.get('/produtos-maior-perda/:loja_id', async (request, reply) => {
-    try {
-      const { loja_id } = request.params;
-      const { limite = 10 } = request.query;
+    const [taxaAtual, reducao, produtosPerda, categorias, motivos] = await Promise.all([
+      calcularTaxaPerda(loja_id, '30'),
+      calcularReducaoPerda(loja_id),
+      listarProdutosComMaiorPerda(loja_id, 5),
+      analisarPerdasPorCategoria(loja_id),
+      analisarMotivosPerdas(loja_id)
+    ]);
 
-      const resultado = await listarProdutosComMaiorPerda(loja_id, parseInt(limite));
-
-      return reply.code(200).send({
-        sucesso: true,
-        data: resultado,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      logger.error('Erro em GET /produtos-maior-perda:', error);
-      return reply.code(500).send({ erro: error.message });
-    }
-  });
-
-  // ============================================
-  // GET /por-categoria
-  // Análise de perdas por categoria
-  // ============================================
-  fastify.get('/por-categoria/:loja_id', async (request, reply) => {
-    try {
-      const { loja_id } = request.params;
-
-      const resultado = await analisarPerdasPorCategoria(loja_id);
-
-      return reply.code(200).send({
-        sucesso: true,
-        data: resultado,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      logger.error('Erro em GET /por-categoria:', error);
-      return reply.code(500).send({ erro: error.message });
-    }
-  });
-
-  // ============================================
-  // GET /motivos
-  // Análise de motivos de perdas
-  // ============================================
-  fastify.get('/motivos/:loja_id', async (request, reply) => {
-    try {
-      const { loja_id } = request.params;
-
-      const resultado = await analisarMotivosPerdas(loja_id);
-
-      return reply.code(200).send({
-        sucesso: true,
-        data: resultado,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      logger.error('Erro em GET /motivos:', error);
-      return reply.code(500).send({ erro: error.message });
-    }
-  });
-
-  // ============================================
-  // POST /registrar
-  // Registrar nova perda de produto
-  // ============================================
-  fastify.post('/registrar', async (request, reply) => {
-    try {
-      const { loja_id, produto_id, quantidade_perdida, motivo, observacoes } = request.body;
-
-      if (!loja_id || !produto_id || !quantidade_perdida || !motivo) {
-        return reply.code(400).send({
-          erro: 'Campos obrigatórios: loja_id, produto_id, quantidade_perdida, motivo'
-        });
-      }
-
-      const resultado = await registrarPerda(
-        loja_id,
-        produto_id,
-        parseInt(quantidade_perdida),
-        motivo,
-        observacoes || ''
-      );
-
-      return reply.code(201).send({
-        sucesso: true,
-        data: resultado,
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      logger.error('Erro em POST /registrar:', error);
-      return reply.code(500).send({ erro: error.message });
-    }
-  });
-
-  // ============================================
-  // GET /relatorio-completo
-  // Relatório completo de perdas da loja
-  // ============================================
-  fastify.get('/relatorio-completo/:loja_id', async (request, reply) => {
-    try {
-      const { loja_id } = request.params;
-
-      const [taxaAtual, reducao, produtosPerda, categorias, motivos] = await Promise.all([
-        calcularTaxaPerda(loja_id, '30'),
-        calcularReducaoPerda(loja_id),
-        listarProdutosComMaiorPerda(loja_id, 5),
-        analisarPerdasPorCategoria(loja_id),
-        analisarMotivosPerdas(loja_id)
-      ]);
-
-      return reply.code(200).send({
-        sucesso: true,
-        loja_id: loja_id,
-        data: {
-          taxa_atual: taxaAtual,
-          reducao_comparativa: reducao,
-          top_produtos_perda: produtosPerda,
-          perdas_por_categoria: categorias,
-          perdas_por_motivo: motivos,
-          resumo_executivo: {
-            taxa_perda_pct: taxaAtual.taxa_perda_percentual,
-            valor_perdido_30d: taxaAtual.valor_total_perdido,
-            tendencia: reducao.tendencia,
-            reducao_pct: reducao.reducao_percentual,
-            produtos_afetados: taxaAtual.produtos_afetados,
-            status_geral: determinarStatusGeral(taxaAtual, reducao)
-          }
-        },
-        timestamp: new Date().toISOString()
-      });
-    } catch (error) {
-      logger.error('Erro em GET /relatorio-completo:', error);
-      return reply.code(500).send({ erro: error.message });
-    }
-  });
-
-  done();
-};
+    return res.status(200).json({
+      sucesso: true,
+      loja_id: loja_id,
+      data: {
+        taxa_atual: taxaAtual,
+        reducao_comparativa: reducao,
+        top_produtos_perda: produtosPerda,
+        perdas_por_categoria: categorias,
+        perdas_por_motivo: motivos,
+        resumo_executivo: {
+          taxa_perda_pct: taxaAtual.taxa_perda_percentual,
+          valor_perdido_30d: taxaAtual.valor_total_perdido,
+          tendencia: reducao.tendencia,
+          reducao_pct: reducao.reducao_percentual,
+          produtos_afetados: taxaAtual.produtos_afetados,
+          status_geral: determinarStatusGeral(taxaAtual, reducao)
+        }
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Erro em GET /relatorio-completo:', error);
+    return res.status(500).json({ erro: error.message });
+  }
+});
 
 // ============================================
 // FUNÇÃO AUXILIAR
@@ -215,3 +211,5 @@ function determinarStatusGeral(taxa, reducao) {
     return 'NORMAL - Sob monitoramento';
   }
 }
+
+module.exports = router;
