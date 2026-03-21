@@ -1,4 +1,5 @@
 require('dotenv').config();
+const env = require('./config/env');
 
 const fastify = require('fastify');
 const cors = require('@fastify/cors');
@@ -18,14 +19,14 @@ const app = fastify({
 // Plugins
 // ============================================
 app.register(cors, {
-  origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3001'],
+  origin: env.CORS_ORIGIN,
   credentials: true
 });
 
 app.register(jwt, {
-  secret: process.env.JWT_SECRET || 'change-me-in-production',
+  secret: env.JWT_SECRET,
   sign: {
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d'
+    expiresIn: env.JWT_EXPIRES_IN
   }
 });
 
@@ -97,12 +98,12 @@ app.get('/', async (request, reply) => {
     endpoints: {
       health: '/health',
       api: {
-        lojas: `${process.env.API_PREFIX}/lojas`,
-        vendas: `${process.env.API_PREFIX}/vendas`,
-        dashboard: `${process.env.API_PREFIX}/dashboard`,
-        predicoes: `${process.env.API_PREFIX}/predicoes`,
-        alertas: `${process.env.API_PREFIX}/alertas`,
-        clientes: `${process.env.API_PREFIX}/clientes`
+        lojas: `${env.API_PREFIX}/lojas`,
+        vendas: `${env.API_PREFIX}/vendas`,
+        dashboard: `${env.API_PREFIX}/dashboard`,
+        predicoes: `${env.API_PREFIX}/predicoes`,
+        alertas: `${env.API_PREFIX}/alertas`,
+        clientes: `${env.API_PREFIX}/clientes`
       }
     },
     by: 'Seven Xperts',
@@ -111,35 +112,35 @@ app.get('/', async (request, reply) => {
 });
 
 // Lojas Routes
-app.register(require('./routes/lojas'), { prefix: `${process.env.API_PREFIX}/lojas` });
+app.register(require('./routes/lojas'), { prefix: `${env.API_PREFIX}/lojas` });
 
 // Vendas Routes (Ingestão de dados)
-app.register(require('./routes/vendas'), { prefix: `${process.env.API_PREFIX}/vendas` });
+app.register(require('./routes/vendas'), { prefix: `${env.API_PREFIX}/vendas` });
 
 // Dashboard Routes
-app.register(require('./routes/dashboard'), { prefix: `${process.env.API_PREFIX}/dashboard` });
+app.register(require('./routes/dashboard'), { prefix: `${env.API_PREFIX}/dashboard` });
 
 // Predições Routes
-app.register(require('./routes/predicoes'), { prefix: `${process.env.API_PREFIX}/predicoes` });
+app.register(require('./routes/predicoes'), { prefix: `${env.API_PREFIX}/predicoes` });
 
 // Alertas Routes
-app.register(require('./routes/alertas'), { prefix: `${process.env.API_PREFIX}/alertas` });
+app.register(require('./routes/alertas'), { prefix: `${env.API_PREFIX}/alertas` });
 
 // Inventario Routes
-app.register(require('./routes/inventario'), { prefix: `${process.env.API_PREFIX}/inventario` });
+app.register(require('./routes/inventario'), { prefix: `${env.API_PREFIX}/inventario` });
 
 // Relatorios Routes
-app.register(require('./routes/relatorios'), { prefix: `${process.env.API_PREFIX}/relatorios` });
+app.register(require('./routes/relatorios'), { prefix: `${env.API_PREFIX}/relatorios` });
 
 // PDV Integration Routes
-app.register(require('./routes/integracao-pdv'), { prefix: `${process.env.API_PREFIX}/integracao-pdv` });
+app.register(require('./routes/integracao-pdv'), { prefix: `${env.API_PREFIX}/integracao-pdv` });
 
 // Clientes Routes (Fidelidade e LTV)
-app.register(require('./routes/clientes'), { prefix: `${process.env.API_PREFIX}/clientes` });
+app.register(require('./routes/clientes'), { prefix: `${env.API_PREFIX}/clientes` });
 
 // Notificações Routes (TODO: fix db import)
-// app.register(require('./routes/notificacoes'), { prefix: `${process.env.API_PREFIX}/notificacoes` });
-// app.register(require('./routes/notificacao-contatos'), { prefix: `${process.env.API_PREFIX}/notificacao-contatos` });
+// app.register(require('./routes/notificacoes'), { prefix: `${env.API_PREFIX}/notificacoes` });
+// app.register(require('./routes/notificacao-contatos'), { prefix: `${env.API_PREFIX}/notificacao-contatos` });
 
 // ============================================
 // Error Handling
@@ -221,8 +222,8 @@ const start = async () => {
     try { schedulerService.init(); } catch(e) { logger.warn('Scheduler init failed:', e.message); }
 
     // Start server
-    await app.listen({ port: process.env.PORT || 3000, host: '0.0.0.0' });
-    logger.info(`✓ Server running on http://0.0.0.0:${process.env.PORT || 3000}`);
+    await app.listen({ port: env.PORT || 3000, host: '0.0.0.0' });
+    logger.info(`✓ Server running on http://0.0.0.0:${env.PORT || 3000}`);
 
   } catch (err) {
     logger.error('Failed to start server:', err);
