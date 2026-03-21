@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ============================================================
-# Easy Market — EasyPanel Deployment Script
+# Smart Market — EasyPanel Deployment Script
 # ============================================================
 # Usage: ./scripts/deploy-easypanel.sh [--tag <version>]
 # ============================================================
@@ -10,7 +10,7 @@ set -euo pipefail
 # --------------------------------------------------------
 # Configuration
 # --------------------------------------------------------
-APP_NAME="easy-market"
+APP_NAME="smart-market"
 DEFAULT_TAG="3.0.0"
 IMAGE_NAME="${APP_NAME}-backend"
 ENV_FILE=".env"
@@ -119,13 +119,13 @@ tag_image() {
 print_instructions() {
   echo ""
   echo -e "${GREEN}============================================================${NC}"
-  echo -e "${GREEN}  Easy Market v${TAG} — EasyPanel Deployment Instructions${NC}"
+  echo -e "${GREEN}  Smart Market v${TAG} — EasyPanel Deployment Instructions${NC}"
   echo -e "${GREEN}============================================================${NC}"
   echo ""
   echo -e "${BLUE}1. Acesse seu painel EasyPanel${NC}"
   echo "   https://seu-servidor:3000"
   echo ""
-  echo -e "${BLUE}2. Crie ou selecione o projeto 'easy-market'${NC}"
+  echo -e "${BLUE}2. Crie ou selecione o projeto 'smart-market'${NC}"
   echo "   Apps > New App > Docker Image"
   echo ""
   echo -e "${BLUE}3. Configure a imagem${NC}"
@@ -152,7 +152,7 @@ print_rollback() {
   echo ""
   echo "  Em caso de falha, para reverter para a versão anterior:"
   echo ""
-  echo "  1. No EasyPanel, vá em Apps > easy-market > Deployments"
+  echo "  1. No EasyPanel, vá em Apps > smart-market > Deployments"
   echo "  2. Localize o deploy anterior na lista"
   echo "  3. Clique em 'Redeploy' no deployment anterior"
   echo ""
@@ -169,7 +169,7 @@ print_rollback() {
 # --------------------------------------------------------
 main() {
   echo ""
-  log_info "Starting Easy Market deployment pipeline — v${TAG}"
+  log_info "Starting Smart Market deployment pipeline — v${TAG}"
   echo ""
 
   validate_env

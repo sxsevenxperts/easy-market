@@ -1,5 +1,5 @@
 /**
- * Jest Configuration — Easy Market Backend
+ * Jest Configuration — Smart Market Backend
  */
 
 'use strict';
