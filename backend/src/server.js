@@ -159,6 +159,9 @@ app.register(require('./routes/perdas'), { prefix: `${env.API_PREFIX}/perdas` })
 // Otimização de Gôndolas Routes (Posicionamento Estratégico)
 app.register(require('./routes/otimizacao-gondolas'), { prefix: `${env.API_PREFIX}/otimizacao-gondolas` });
 
+// Otimização Nutricional Routes (% Gordura, Calorias, Proteína, etc)
+app.register(require('./routes/otimizacao-nutricional'), { prefix: `${env.API_PREFIX}/otimizacao-nutricional` });
+
 // Debug Routes (Diagnostics only - remove in production)
 app.register(require('./routes/debug'), { prefix: `${env.API_PREFIX}/debug` });
 
