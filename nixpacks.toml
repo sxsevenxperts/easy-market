@@ -10,14 +10,7 @@ cmds = []
 [start]
 cmd = "cd backend && npm start"
 
-# Supabase Database Configuration
 [env]
-DB_HOST = "db.qfkwqfrnemqregjqxkcr.supabase.co"
-DB_PORT = "5432"
-DB_NAME = "postgres"
-DB_USER = "postgres"
-DB_PASSWORD = "Jacyara.10davimaria"
-DB_SSL = "true"
 NODE_ENV = "production"
 PORT = "3000"
 API_PREFIX = "/api/v1"
