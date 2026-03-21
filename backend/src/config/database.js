@@ -3,15 +3,15 @@ const logger = require('./logger');
 
 const pool = new Pool({
   host: (() => {
-    const h = process.env.SUPABASE_HOST || process.env.DATABASE_HOST || 'localhost';
+    const h = process.env.DB_HOST || process.env.SUPABASE_HOST || process.env.DATABASE_HOST || 'localhost';
     // Supabase direct PostgreSQL requires db. prefix
     if (h.includes('.supabase.co') && !h.startsWith('db.')) return 'db.' + h;
     return h;
   })(),
-  port: parseInt(process.env.SUPABASE_PORT || process.env.DATABASE_PORT || '5432'),
-  user: process.env.SUPABASE_USER || process.env.DATABASE_USER || 'postgres',
-  password: process.env.SUPABASE_PASSWORD || process.env.DATABASE_PASSWORD || 'postgres',
-  database: process.env.SUPABASE_DB || process.env.DATABASE_NAME || 'postgres',
+  port: parseInt(process.env.DB_PORT || process.env.SUPABASE_PORT || process.env.DATABASE_PORT || '5432'),
+  user: process.env.DB_USER || process.env.SUPABASE_USER || process.env.DATABASE_USER || 'postgres',
+  password: process.env.DB_PASSWORD || process.env.SUPABASE_PASSWORD || process.env.DATABASE_PASSWORD || 'postgres',
+  database: process.env.DB_NAME || process.env.SUPABASE_DB || process.env.DATABASE_NAME || 'postgres',
   ssl: { rejectUnauthorized: false },
   max: 10,
   idleTimeoutMillis: 30000,
