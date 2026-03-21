@@ -57,3 +57,4 @@ ENV/
 *.tmp
 *.temp
 .cache/
+backend/.env
