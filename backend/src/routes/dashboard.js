@@ -75,7 +75,7 @@ async function routes(fastify, options) {
 
       // Get heat matrix (sales by hour/day)
       const matrizResult = await pool.query(
-        `SELECT 
+        `SELECT
           EXTRACT(HOUR FROM time)::INT as hora,
           EXTRACT(DOW FROM time)::INT as dia_semana,
           AVG(quantidade) as quantidade_media
@@ -83,6 +83,34 @@ async function routes(fastify, options) {
         WHERE loja_id = $1 ${dateRange}
         GROUP BY hora, dia_semana
         ORDER BY dia_semana, hora`,
+        [loja_id]
+      );
+
+      // Get customer loyalty metrics
+      const fidelidadeResult = await pool.query(
+        `SELECT
+          COUNT(*) as total_clientes,
+          COUNT(CASE WHEN status = 'ativo' THEN 1 END) as clientes_ativos,
+          COUNT(CASE WHEN status = 'inativo' THEN 1 END) as clientes_inativos,
+          COUNT(CASE WHEN status = 'churn' THEN 1 END) as clientes_churn,
+          COUNT(CASE WHEN categoria_cliente = 'VIP' THEN 1 END) as clientes_vip,
+          ROUND(AVG(taxa_fidelidade_percentual)::NUMERIC, 2) as taxa_fidelidade_media,
+          SUM(ltv_estimado) as ltv_total,
+          ROUND(AVG(ltv_estimado)::NUMERIC, 2) as ltv_medio
+        FROM clientes
+        WHERE loja_id = $1`,
+        [loja_id]
+      );
+
+      // Get new vs churn customers (last period)
+      const movimentoClientesResult = await pool.query(
+        `SELECT
+          COUNT(CASE WHEN primeira_compra::DATE > NOW()::DATE - INTERVAL '${periodo === 'semana' ? '7 days' : periodo === 'mes' ? '30 days' : '1 day'}'::INTERVAL THEN 1 END) as novos_clientes,
+          COUNT(CASE WHEN status = 'churn' AND ultima_compra::DATE > NOW()::DATE - INTERVAL '${periodo === 'semana' ? '7 days' : periodo === 'mes' ? '30 days' : '1 day'}'::INTERVAL THEN 1 END) as churn_clientes,
+          ROUND((COUNT(CASE WHEN primeira_compra::DATE > NOW()::DATE - INTERVAL '${periodo === 'semana' ? '7 days' : periodo === 'mes' ? '30 days' : '1 day'}'::INTERVAL THEN 1 END)::NUMERIC / NULLIF(COUNT(*), 0) * 100)::NUMERIC, 2) as taxa_novos_percentual,
+          ROUND((COUNT(CASE WHEN status = 'churn' AND ultima_compra::DATE > NOW()::DATE - INTERVAL '${periodo === 'semana' ? '7 days' : periodo === 'mes' ? '30 days' : '1 day'}'::INTERVAL THEN 1 END)::NUMERIC / NULLIF(COUNT(*), 0) * 100)::NUMERIC, 2) as taxa_churn_percentual
+        FROM clientes
+        WHERE loja_id = $1`,
         [loja_id]
       );
 
@@ -111,6 +139,22 @@ async function routes(fastify, options) {
           itens_vendidos: parseInt(summary.itens_vendidos || 0),
           ticket_medio: parseFloat(summary.ticket_medio || 0),
           categorias: parseInt(summary.categorias_vendidas || 0)
+        },
+        fidelidade: {
+          total_clientes: parseInt(fidelidadeResult.rows[0].total_clientes || 0),
+          clientes_ativos: parseInt(fidelidadeResult.rows[0].clientes_ativos || 0),
+          clientes_inativos: parseInt(fidelidadeResult.rows[0].clientes_inativos || 0),
+          clientes_churn: parseInt(fidelidadeResult.rows[0].clientes_churn || 0),
+          clientes_vip: parseInt(fidelidadeResult.rows[0].clientes_vip || 0),
+          taxa_fidelidade_media_percentual: parseFloat(fidelidadeResult.rows[0].taxa_fidelidade_media || 0),
+          ltv_total: parseFloat(fidelidadeResult.rows[0].ltv_total || 0),
+          ltv_medio: parseFloat(fidelidadeResult.rows[0].ltv_medio || 0)
+        },
+        movimento_clientes: {
+          novos_clientes: parseInt(movimentoClientesResult.rows[0].novos_clientes || 0),
+          churn_clientes: parseInt(movimentoClientesResult.rows[0].churn_clientes || 0),
+          taxa_novos_percentual: parseFloat(movimentoClientesResult.rows[0].taxa_novos_percentual || 0),
+          taxa_churn_percentual: parseFloat(movimentoClientesResult.rows[0].taxa_churn_percentual || 0)
         },
         alertas: alertasResult.rows.map(a => ({
           id: a.id,
