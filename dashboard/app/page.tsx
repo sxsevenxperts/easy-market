@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Activity, AlertCircle, Package, TrendingUp } from 'lucide-react';
+import { Activity, AlertCircle, Package, TrendingUp, Users, Target, UserPlus, LogOut } from 'lucide-react';
 import DashboardCard from '@/components/DashboardCard';
 import SalesChart from '@/components/charts/SalesChart';
 import AlertsPanel from '@/components/AlertsPanel';
@@ -47,7 +47,8 @@ export default function DashboardHome() {
     );
   }
 
-  if (error) {
+  // Don't show error if data loaded partially
+  if (error && !data) {
     return (
       <div className="p-6">
         <div className="alert alert-danger">
@@ -59,10 +60,12 @@ export default function DashboardHome() {
   }
 
   const resumo = data?.resumo || {};
+  const fidelidade = data?.fidelidade || {};
+  const movimento = data?.movimento_clientes || {};
 
   return (
     <div className="p-6 space-y-6">
-      {/* KPI Cards */}
+      {/* KPI Cards - Vendas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <DashboardCard
           title="Faturamento"
@@ -100,6 +103,52 @@ export default function DashboardHome() {
           trend="+3.8%"
         />
       </div>
+
+      {/* KPI Cards - Fidelidade e LTV */}
+      {fidelidade.total_clientes > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <DashboardCard
+            title="Taxa de Fidelidade"
+            value={`${(fidelidade.taxa_fidelidade_media_percentual || 0).toFixed(1)}%`}
+            subtitle={`${fidelidade.clientes_ativos || 0} clientes ativos`}
+            icon={<Target className="text-success" size={24} />}
+            trend=""
+          />
+
+          <DashboardCard
+            title="LTV Médio"
+            value={`R$ ${(fidelidade.ltv_medio || 0).toLocaleString('pt-BR', {
+              minimumFractionDigits: 2,
+            })}`}
+            subtitle="Lifetime Value"
+            icon={<TrendingUp className="text-accent" size={24} />}
+            trend=""
+          />
+
+          <DashboardCard
+            title="Taxa de Clientes Novos"
+            value={`${(movimento.taxa_novos_percentual || 0).toFixed(1)}%`}
+            subtitle={`${movimento.novos_clientes || 0} novos`}
+            icon={<UserPlus className="text-info" size={24} />}
+            trend=""
+          />
+
+          <DashboardCard
+            title="Taxa de Churn"
+            value={`${(movimento.taxa_churn_percentual || 0).toFixed(1)}%`}
+            subtitle={`${movimento.churn_clientes || 0} clientes`}
+            icon={<LogOut className="text-danger" size={24} />}
+            trend=""
+          />
+        </div>
+      ) : (
+        <div className="card bg-blue-900/20 border-blue-700 p-4">
+          <p className="text-sm text-blue-300">
+            ℹ️ Dados de fidelidade e LTV estarão disponíveis após sincronização de clientes.
+            Use: <code className="bg-black/30 px-2 py-1 rounded">POST /api/v1/clientes/:loja_id/sincronizar</code>
+          </p>
+        </div>
+      )}
 
       {/* Main Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
