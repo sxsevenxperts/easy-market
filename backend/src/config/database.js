@@ -2,7 +2,12 @@ const { Pool } = require('pg');
 const logger = require('./logger');
 
 const pool = new Pool({
-  host: process.env.SUPABASE_HOST || process.env.DATABASE_HOST || 'localhost',
+  host: (() => {
+    const h = process.env.SUPABASE_HOST || process.env.DATABASE_HOST || 'localhost';
+    // Supabase direct PostgreSQL requires db. prefix
+    if (h.includes('.supabase.co') && !h.startsWith('db.')) return 'db.' + h;
+    return h;
+  })(),
   port: parseInt(process.env.SUPABASE_PORT || process.env.DATABASE_PORT || '5432'),
   user: process.env.SUPABASE_USER || process.env.DATABASE_USER || 'postgres',
   password: process.env.SUPABASE_PASSWORD || process.env.DATABASE_PASSWORD || 'postgres',
