@@ -10,6 +10,9 @@ cmds = []
 [start]
 cmd = "cd backend && npm start"
 
+# Build-time environment variables
+# Database credentials MUST be set in EasyPanel console!
+# Never commit sensitive data here
 [env]
 NODE_ENV = "production"
 PORT = "3000"
@@ -17,3 +20,4 @@ API_PREFIX = "/api/v1"
 CORS_ORIGIN = "https://diversos-easymarket.yuhqmc.easypanel.host,http://localhost:3001"
 JWT_SECRET = "change-me-in-production"
 JWT_EXPIRES_IN = "7d"
+LOG_LEVEL = "info"
