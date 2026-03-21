@@ -153,6 +153,9 @@ app.register(require('./routes/integracao-pdv'), { prefix: `${env.API_PREFIX}/in
 // Clientes Routes (Fidelidade e LTV)
 app.register(require('./routes/clientes'), { prefix: `${env.API_PREFIX}/clientes` });
 
+// Perdas Routes (Rastreamento de Desperdício)
+app.register(require('./routes/perdas'), { prefix: `${env.API_PREFIX}/perdas` });
+
 // Debug Routes (Diagnostics only - remove in production)
 app.register(require('./routes/debug'), { prefix: `${env.API_PREFIX}/debug` });
 
