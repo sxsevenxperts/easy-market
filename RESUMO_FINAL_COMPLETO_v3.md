@@ -1,4 +1,4 @@
-# 🎉 EASY MARKET v3.0 — PROJETO COMPLETO
+# 🎉 SMART MARKET v3.0 — PROJETO COMPLETO
 
 **Data:** 21/03/2026  
 **Status:** ✅ 100% PRONTO PARA PRODUÇÃO  
@@ -110,14 +110,14 @@
 **EasyPanel:**
 - ✅ `easypanel.json` — Configuração de deploy
 - ✅ `scripts/deploy-easypanel.sh` — Script automatizado
-- ✅ `DEPLOY_QUICKSTART.md` — Guia PT-BR passo a passo
+- ✅ `DEPLOY_EASYPANEL_PRONTO.md` — Guia PT-BR passo a passo
 
 ---
 
 ### 5️⃣ Documentação (4 arquivos)
 
 - ✅ `START.md` — Guia rápido de início (este!)
-- ✅ `DEPLOY_QUICKSTART.md` — Deployment detalhado
+- ✅ `DEPLOY_EASYPANEL_PRONTO.md` — Deployment detalhado
 - ✅ `.env.example` — Variáveis de referência
 - ✅ `RESUMO_FINAL_COMPLETO_v3.md` — Este arquivo
 
@@ -130,7 +130,7 @@
 ```
 1. Acesse: https://app.supabase.com
 2. Vá para: SQL Editor
-3. Cole o arquivo: /tmp/easy-market/backend/src/migrations/000_run_all_migrations.sql
+3. Cole o arquivo: /tmp/smart-market/backend/src/migrations/000_run_all_migrations.sql
 4. Clique "Execute"
 5. Aguarde "Success"
 ```
@@ -138,7 +138,7 @@
 ### Passo 2: Iniciar Backend
 
 ```bash
-cd /tmp/easy-market/backend
+cd /tmp/smart-market/backend
 npm start
 ```
 
@@ -153,10 +153,10 @@ Esperado:
 
 ```bash
 # Opção 1: Direto no browser
-open /tmp/easy-market/frontend/index.html
+open /tmp/smart-market/frontend/index.html
 
 # Opção 2: Servidor HTTP
-cd /tmp/easy-market/frontend
+cd /tmp/smart-market/frontend
 python3 -m http.server 3001
 # Abra http://localhost:3001
 ```
@@ -232,7 +232,7 @@ Situação Inicial:
 ├─ Perdas: 6-8%
 └─ Lucro operacional: 5%
 
-Com Easy Market (30 dias):
+Com Smart Market (30 dias):
 ├─ Margem: 20% (+5 pontos = +R$ 50k/mês)
 ├─ Perdas: 1-2% (-5 pontos = +R$ 40k/mês)
 └─ Lucro operacional: 12% (+140%)
@@ -245,7 +245,7 @@ ROI: 12.67x em 30 dias
 ## 🛠️ ESTRUTURA DO PROJETO
 
 ```
-/tmp/easy-market/
+/tmp/smart-market/
 ├─ backend/
 │   ├─ src/
 │   │   ├─ index.js ✅
@@ -273,7 +273,7 @@ ROI: 12.67x em 30 dias
 ├─ scripts/deploy-easypanel.sh ✅
 │
 ├─ START.md ✅
-├─ DEPLOY_QUICKSTART.md ✅
+├─ DEPLOY_EASYPANEL_PRONTO.md ✅
 └─ RESUMO_FINAL_COMPLETO_v3.md ✅ (este)
 ```
 
@@ -302,7 +302,7 @@ npm run db:seed         # Seed data
 
 ## 🔐 Variáveis de Ambiente
 
-Todas preenchidas em `/tmp/easy-market/backend/.env`:
+Todas preenchidas em `/tmp/smart-market/backend/.env`:
 
 ```
 # Supabase (PREENCHIDO)
@@ -321,7 +321,7 @@ PORT=3000
 NODE_ENV=development
 
 # JWT
-JWT_SECRET=easy-market-secret-2026-super-seguro
+JWT_SECRET=smart-market-secret-2026-super-seguro
 
 # CORS
 CORS_ORIGIN=http://localhost:3001,http://localhost:3000
@@ -372,7 +372,7 @@ LOG_LEVEL=info
 ```
 ╔═══════════════════════════════════════════════════════╗
 ║                                                       ║
-║  ✅ EASY MARKET v3.0 — 100% COMPLETO & FUNCIONAL    ║
+║  ✅ SMART MARKET v3.0 — 100% COMPLETO & FUNCIONAL   ║
 ║                                                       ║
 ║  Pronto para: Desenvolvimento, Testes, Produção    ║
 ║  Endpoints funcionais: 115                          ║
