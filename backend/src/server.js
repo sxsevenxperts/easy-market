@@ -86,6 +86,30 @@ app.addHook('onResponse', async (request, reply) => {
 // Routes
 // ============================================
 
+// Root Route - Welcome & API Info
+app.get('/', async (request, reply) => {
+  return {
+    name: 'Easy Market API',
+    version: '1.0.0',
+    status: 'online',
+    timestamp: new Date().toISOString(),
+    documentation: 'https://docs.easymarket.local',
+    endpoints: {
+      health: '/health',
+      api: {
+        lojas: `${process.env.API_PREFIX}/lojas`,
+        vendas: `${process.env.API_PREFIX}/vendas`,
+        dashboard: `${process.env.API_PREFIX}/dashboard`,
+        predicoes: `${process.env.API_PREFIX}/predicoes`,
+        alertas: `${process.env.API_PREFIX}/alertas`,
+        clientes: `${process.env.API_PREFIX}/clientes`
+      }
+    },
+    by: 'Seven Xperts',
+    message: 'Bem-vindo ao Easy Market - Sistema de Inteligência Retail'
+  };
+});
+
 // Lojas Routes
 app.register(require('./routes/lojas'), { prefix: `${process.env.API_PREFIX}/lojas` });
 
