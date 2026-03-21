@@ -10,10 +10,6 @@ cmds = []
 [start]
 cmd = "cd backend && npm start"
 
-# ⚠️ SECURITY WARNING: Database credentials below should be moved to EasyPanel console ASAP
-# After system is working, access https://console.easypanel.io and set these variables there
-# THEN remove them from this file and ROTATE the password in Supabase
-# This is temporary to unblock deployment
 [env]
 NODE_ENV = "production"
 PORT = "3000"
@@ -21,9 +17,3 @@ API_PREFIX = "/api/v1"
 CORS_ORIGIN = "https://diversos-easymarket.yuhqmc.easypanel.host,http://localhost:3001"
 JWT_SECRET = "change-me-in-production"
 JWT_EXPIRES_IN = "7d"
-DB_HOST = "db.qfkwqfrnemqregjqxkcr.supabase.co"
-DB_PORT = "5432"
-DB_NAME = "postgres"
-DB_USER = "postgres"
-DB_PASSWORD = "Jacyara.10davimaria"
-DB_SSL = "true"

@@ -1,39 +1,33 @@
-const winston = require('winston');
+/**
+ * Logger usando Pino (nativo do Fastify)
+ * Compatível com Fastify logger nativo
+ */
 
-const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  format: winston.format.combine(
-    winston.format.timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss'
-    }),
-    winston.format.errors({ stack: true }),
-    winston.format.printf(info => {
-      if (info.stack) {
-        return `${info.timestamp} ${info.level}: ${info.message}\n${info.stack}`;
+const pino = require('pino');
+
+const logLevel = process.env.LOG_LEVEL || 'info';
+
+// Logger Pino com pretty-print em desenvolvimento
+const logger = pino(
+  {
+    level: logLevel,
+    timestamp: pino.stdTimeFunctions.isoTime,
+    formatters: {
+      level: (label) => {
+        return { level: label };
       }
-      return `${info.timestamp} ${info.level}: ${JSON.stringify(info)}`;
-    })
-  ),
-  transports: [
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.printf(info => {
-          if (info.stack) {
-            return `${info.timestamp} ${info.level}: ${info.message}\n${info.stack}`;
-          }
-          return `${info.timestamp} ${info.level}: ${info.message}`;
-        })
-      )
-    }),
-    new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error'
-    }),
-    new winston.transports.File({
-      filename: 'logs/combined.log'
-    })
-  ]
-});
+    }
+  },
+  process.env.NODE_ENV === 'production'
+    ? pino.destination() // Escreve em stdout em produção
+    : pino.transport({
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'SYS:standard',
+          ignore: 'pid,hostname'
+        }
+      })
+);
 
 module.exports = logger;
