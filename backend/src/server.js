@@ -165,6 +165,9 @@ app.register(require('./routes/otimizacao-nutricional'), { prefix: `${env.API_PR
 // Otimização de Compras Routes (Quantidade ótima com taxa de segurança/gordura)
 app.register(require('./routes/otimizacao-compras'), { prefix: `${env.API_PREFIX}/otimizacao-compras` });
 
+// Configuração de Segurança Routes (Taxa de segurança por loja/categoria/produto)
+app.register(require('./routes/configuracao-seguranca'), { prefix: `${env.API_PREFIX}/configuracao-seguranca` });
+
 // Debug Routes (Diagnostics only - remove in production)
 app.register(require('./routes/debug'), { prefix: `${env.API_PREFIX}/debug` });
 
