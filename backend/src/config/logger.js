@@ -1,33 +1,45 @@
 /**
- * Logger usando Pino (nativo do Fastify)
- * Compatível com Fastify logger nativo
+ * Logger simples - compatível com Fastify
+ * Não usa dependências externas (pino será adicionado depois via package.json)
+ * Por enquanto usa console.log para evitar dependências faltando no EasyPanel
  */
 
-const pino = require('pino');
+const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
+const LOG_LEVELS = { debug: 0, info: 1, warn: 2, error: 3, fatal: 4 };
+const currentLevel = LOG_LEVELS[LOG_LEVEL] || 1;
 
-const logLevel = process.env.LOG_LEVEL || 'info';
-
-// Logger Pino com pretty-print em desenvolvimento
-const logger = pino(
-  {
-    level: logLevel,
-    timestamp: pino.stdTimeFunctions.isoTime,
-    formatters: {
-      level: (label) => {
-        return { level: label };
+const logger = {
+  debug: (msg, meta = {}) => {
+    if (currentLevel <= 0) {
+      console.log(`[DEBUG] ${msg}`, meta);
+    }
+  },
+  info: (msg, meta = {}) => {
+    if (currentLevel <= 1) {
+      console.log(`[INFO] ${msg}`, typeof meta === 'string' ? meta : JSON.stringify(meta));
+    }
+  },
+  warn: (msg, meta = {}) => {
+    if (currentLevel <= 2) {
+      console.warn(`[WARN] ${msg}`, typeof meta === 'string' ? meta : JSON.stringify(meta));
+    }
+  },
+  error: (msg, err = null) => {
+    if (currentLevel <= 3) {
+      if (err && err.message) {
+        console.error(`[ERROR] ${msg}:`, err.message);
+        if (err.stack && process.env.NODE_ENV !== 'production') {
+          console.error(err.stack);
+        }
+      } else {
+        console.error(`[ERROR] ${msg}`, typeof err === 'string' ? err : JSON.stringify(err));
       }
     }
   },
-  process.env.NODE_ENV === 'production'
-    ? pino.destination() // Escreve em stdout em produção
-    : pino.transport({
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'SYS:standard',
-          ignore: 'pid,hostname'
-        }
-      })
-);
+  fatal: (msg, err = null) => {
+    console.error(`[FATAL] ${msg}`, err);
+    process.exit(1);
+  }
+};
 
 module.exports = logger;
