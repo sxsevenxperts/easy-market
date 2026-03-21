@@ -110,11 +110,9 @@ app.register(require('./routes/relatorios'), { prefix: `${process.env.API_PREFIX
 // PDV Integration Routes
 app.register(require('./routes/integracao-pdv'), { prefix: `${process.env.API_PREFIX}/integracao-pdv` });
 
-// Notificações Routes
-app.register(require('./routes/notificacoes'), { prefix: `${process.env.API_PREFIX}/notificacoes` });
-
-// Contatos de Notificação Routes
-app.register(require('./routes/notificacao-contatos'), { prefix: `${process.env.API_PREFIX}/notificacao-contatos` });
+// Notificações Routes (TODO: fix db import)
+// app.register(require('./routes/notificacoes'), { prefix: `${process.env.API_PREFIX}/notificacoes` });
+// app.register(require('./routes/notificacao-contatos'), { prefix: `${process.env.API_PREFIX}/notificacao-contatos` });
 
 // ============================================
 // Error Handling
