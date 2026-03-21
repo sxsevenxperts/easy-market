@@ -1,6 +1,21 @@
 const { Pool } = require('pg');
 const logger = require('./logger');
-const env = require('./env');
+
+// Load env with fallback
+let env;
+try {
+  env = require('./env');
+} catch (e) {
+  logger.warn('Failed to load env module, using process.env directly');
+  env = {
+    DB_HOST: process.env.DB_HOST || 'localhost',
+    DB_PORT: parseInt(process.env.DB_PORT || '5432'),
+    DB_USER: process.env.DB_USER || 'postgres',
+    DB_PASSWORD: process.env.DB_PASSWORD || 'postgres',
+    DB_NAME: process.env.DB_NAME || 'postgres',
+    DB_SSL: (process.env.DB_SSL || 'false').toLowerCase() === 'true'
+  };
+}
 
 const pool = new Pool({
   host: (() => {
