@@ -42,10 +42,10 @@ app.get('/health', async (request, reply) => {
     return {
       status: 'ok',
       timestamp: new Date().toISOString(),
-      scheduler: Object.keys(schedulerService.jobs).length > 0 ? 'rodando' : 'parado',
+      scheduler: Object.keys(schedulerService.jobs || {}).length > 0 ? 'rodando' : 'parado',
       checks: {
         database: dbCheck ? 'ok' : 'error',
-        redis: redisCheck === 'PONG' ? 'ok' : 'error',
+        redis: redisCheck === 'PONG' ? 'ok' : 'indisponivel',
         uptime: process.uptime()
       }
     };
@@ -86,9 +86,6 @@ app.addHook('onResponse', async (request, reply) => {
 // Routes
 // ============================================
 
-// Auth Routes
-app.register(require('./routes/auth'), { prefix: `${process.env.API_PREFIX}/auth` });
-
 // Lojas Routes
 app.register(require('./routes/lojas'), { prefix: `${process.env.API_PREFIX}/lojas` });
 
@@ -98,17 +95,11 @@ app.register(require('./routes/vendas'), { prefix: `${process.env.API_PREFIX}/ve
 // Dashboard Routes
 app.register(require('./routes/dashboard'), { prefix: `${process.env.API_PREFIX}/dashboard` });
 
-// Previsões Routes
-app.register(require('./routes/previsoes'), { prefix: `${process.env.API_PREFIX}/previsoes` });
-
-// Eventos Routes
-app.register(require('./routes/eventos'), { prefix: `${process.env.API_PREFIX}/eventos` });
+// Predições Routes
+app.register(require('./routes/predicoes'), { prefix: `${process.env.API_PREFIX}/predicoes` });
 
 // Alertas Routes
 app.register(require('./routes/alertas'), { prefix: `${process.env.API_PREFIX}/alertas` });
-
-// Produtos Routes
-app.register(require('./routes/produtos'), { prefix: `${process.env.API_PREFIX}/produtos` });
 
 // Inventario Routes
 app.register(require('./routes/inventario'), { prefix: `${process.env.API_PREFIX}/inventario` });
@@ -118,6 +109,12 @@ app.register(require('./routes/relatorios'), { prefix: `${process.env.API_PREFIX
 
 // PDV Integration Routes
 app.register(require('./routes/integracao-pdv'), { prefix: `${process.env.API_PREFIX}/integracao-pdv` });
+
+// Notificações Routes
+app.register(require('./routes/notificacoes'), { prefix: `${process.env.API_PREFIX}/notificacoes` });
+
+// Contatos de Notificação Routes
+app.register(require('./routes/notificacao-contatos'), { prefix: `${process.env.API_PREFIX}/notificacao-contatos` });
 
 // ============================================
 // Error Handling
@@ -174,7 +171,7 @@ signals.forEach(signal => {
     schedulerService.stop();
     await app.close();
     await pool.end();
-    await redis.quit();
+    await redis.quit().catch(() => {});
 
     process.exit(0);
   });
@@ -189,9 +186,8 @@ const start = async () => {
     await pool.query('SELECT NOW()');
     logger.info('✓ Database connected');
 
-    // Test Redis connection
-    await redis.ping();
-    logger.info('✓ Redis connected');
+    // Connect Redis (optional)
+    await redis.connect();
 
     // Initialize 4-Block Automation Scheduler
     schedulerService.init();

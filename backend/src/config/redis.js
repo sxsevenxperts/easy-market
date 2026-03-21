@@ -1,38 +1,40 @@
-const redis = require('redis');
-const logger = require('./logger');
+const { createClient } = require('redis');
 
-const client = redis.createClient({
-  host: process.env.REDIS_HOST || 'localhost',
-  port: process.env.REDIS_PORT || 6379,
-  password: process.env.REDIS_PASSWORD || undefined,
-  retryStrategy: (options) => {
-    if (options.error && options.error.code === 'ECONNREFUSED') {
-      return new Error('End of retry');
-    }
-    if (options.total_retry_time > 1000 * 60 * 60) {
-      return new Error('Retry time exhausted');
-    }
-    if (options.attempt > 10) {
-      return undefined;
-    }
-    return Math.min(options.attempt * 100, 3000);
+let client = null;
+let connected = false;
+
+const connect = async () => {
+  try {
+    const redisUrl = process.env.REDIS_URL || `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || 6379}`;
+    client = createClient({ url: redisUrl });
+    client.on('error', (err) => console.error('Redis error:', err));
+    await client.connect();
+    connected = true;
+    console.log('Redis connected');
+  } catch (err) {
+    console.warn('Redis not available, running without cache:', err.message);
+    client = null;
+    connected = false;
   }
-});
+};
 
-client.on('error', (err) => {
-  logger.error('Redis Client Error', err);
-});
+const ping = async () => {
+  if (!connected || !client) return 'UNAVAILABLE';
+  return await client.ping();
+};
 
-client.on('connect', () => {
-  logger.info('Redis Client Connected');
-});
+const get = async (key) => {
+  if (!connected || !client) return null;
+  return await client.get(key);
+};
 
-client.on('ready', () => {
-  logger.info('Redis Client Ready');
-});
+const set = async (key, value, options) => {
+  if (!connected || !client) return null;
+  return await client.set(key, value, options);
+};
 
-client.on('reconnecting', () => {
-  logger.warn('Redis Client Reconnecting');
-});
+const quit = async () => {
+  if (connected && client) await client.quit();
+};
 
-module.exports = client;
+module.exports = { connect, ping, get, set, quit };
