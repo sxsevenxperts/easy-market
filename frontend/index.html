@@ -33,20 +33,32 @@
         </li>
         <li>
           <a href="#" class="nav-item" data-section="previsao">
-            <i class="fas fa-crystal-ball"></i>
-            <span>Previsão de Vendas</span>
+            <i class="fas fa-brain"></i>
+            <span>Previsao IA</span>
           </a>
         </li>
         <li>
           <a href="#" class="nav-item" data-section="estoque">
             <i class="fas fa-boxes-stacked"></i>
-            <span>Estoque &amp; Perdas</span>
+            <span>Estoque</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-section="perdas">
+            <i class="fas fa-trash-can"></i>
+            <span>Perdas</span>
           </a>
         </li>
         <li>
           <a href="#" class="nav-item" data-section="clientes">
             <i class="fas fa-users"></i>
-            <span>Clientes (RFM)</span>
+            <span>Clientes</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-section="base-clientes">
+            <i class="fas fa-address-book"></i>
+            <span>Base Clientes</span>
           </a>
         </li>
         <li>
@@ -64,14 +76,32 @@
         <li>
           <a href="#" class="nav-item" data-section="alertas">
             <i class="fas fa-bell"></i>
-            <span class="nav-label">Alertas</span>
+            <span>Alertas</span>
             <span class="nav-badge" id="alertBadge">3</span>
           </a>
         </li>
         <li>
+          <a href="#" class="nav-item" data-section="clima">
+            <i class="fas fa-cloud-sun"></i>
+            <span>Clima</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-section="shelf">
+            <i class="fas fa-store"></i>
+            <span>Shelf</span>
+          </a>
+        </li>
+        <li>
           <a href="#" class="nav-item" data-section="relatorios">
-            <i class="fas fa-chart-line"></i>
-            <span>Relatórios</span>
+            <i class="fas fa-file-export"></i>
+            <span>Relatorios</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-section="config">
+            <i class="fas fa-gear"></i>
+            <span>Config</span>
           </a>
         </li>
       </ul>
@@ -87,6 +117,7 @@
         </select>
       </div>
       <div class="last-update" id="lastUpdate">Atualizado agora</div>
+      <div class="powered-by">Powered By <strong>Seven Xperts</strong><br><span>CNPJ 32.794.007/0001-19</span></div>
     </div>
   </aside>
 
@@ -100,7 +131,7 @@
         </button>
         <div class="page-title" id="pageTitle">
           <h1>Dashboard</h1>
-          <p>Visão geral da operação</p>
+          <p>Visao geral em tempo real</p>
         </div>
       </div>
       <div class="topbar-right">
@@ -132,7 +163,7 @@
         <div class="kpi-card">
           <div class="kpi-icon kpi-green"><i class="fas fa-percent"></i></div>
           <div class="kpi-body">
-            <span class="kpi-label">Margem Média</span>
+            <span class="kpi-label">Margem Media</span>
             <span class="kpi-value" id="kpi-margem">—%</span>
             <span class="kpi-delta neutral" id="kpi-margem-delta">0%</span>
           </div>
@@ -155,6 +186,9 @@
         </div>
       </div>
 
+      <!-- Dashboard Insights -->
+      <div id="dashboard-insights"></div>
+
       <!-- System Status + Recent Activity -->
       <div class="grid-2col mt-24">
         <div class="card">
@@ -169,7 +203,7 @@
             </div>
             <div class="status-row">
               <span class="status-dot status-green"></span>
-              <span class="status-label">Motor de Previsão</span>
+              <span class="status-label">Motor de Previsao</span>
               <span class="status-value text-green">Ativo</span>
             </div>
             <div class="status-row">
@@ -179,12 +213,12 @@
             </div>
             <div class="status-row">
               <span class="status-dot status-yellow"></span>
-              <span class="status-label">Sincronização ERP</span>
+              <span class="status-label">Sincronizacao ERP</span>
               <span class="status-value text-yellow">Pendente</span>
             </div>
             <div class="status-row">
               <span class="status-dot status-green"></span>
-              <span class="status-label">Alertas Automáticos</span>
+              <span class="status-label">Alertas Automaticos</span>
               <span class="status-value text-green">Rodando</span>
             </div>
           </div>
@@ -197,36 +231,36 @@
             <div class="activity-item">
               <div class="activity-dot bg-green"></div>
               <div class="activity-body">
-                <span class="activity-text">Previsão do dia gerada com 94% assertividade</span>
-                <span class="activity-time">há 2 min</span>
+                <span class="activity-text">Previsao do dia gerada com 94% assertividade</span>
+                <span class="activity-time">ha 2 min</span>
               </div>
             </div>
             <div class="activity-item">
               <div class="activity-dot bg-yellow"></div>
               <div class="activity-body">
-                <span class="activity-text">Alerta: estoque crítico em Refrigerantes</span>
-                <span class="activity-time">há 15 min</span>
+                <span class="activity-text">Alerta: estoque critico em Refrigerantes</span>
+                <span class="activity-time">ha 15 min</span>
               </div>
             </div>
             <div class="activity-item">
               <div class="activity-dot bg-blue"></div>
               <div class="activity-body">
                 <span class="activity-text">6 novas anomalias detectadas</span>
-                <span class="activity-time">há 32 min</span>
+                <span class="activity-time">ha 32 min</span>
               </div>
             </div>
             <div class="activity-item">
               <div class="activity-dot bg-purple"></div>
               <div class="activity-body">
                 <span class="activity-text">RFM atualizado: 48 novos clientes VIP</span>
-                <span class="activity-time">há 1h</span>
+                <span class="activity-time">ha 1h</span>
               </div>
             </div>
             <div class="activity-item">
               <div class="activity-dot bg-green"></div>
               <div class="activity-body">
-                <span class="activity-text">Relatório semanal exportado com sucesso</span>
-                <span class="activity-time">há 2h</span>
+                <span class="activity-text">Relatorio semanal exportado com sucesso</span>
+                <span class="activity-time">ha 2h</span>
               </div>
             </div>
           </div>
@@ -237,7 +271,7 @@
       <div class="grid-2col mt-24">
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-chart-area"></i> Vendas — Últimos 7 dias</h3>
+            <h3 class="card-title"><i class="fas fa-chart-area"></i> Vendas — Ultimos 7 dias</h3>
           </div>
           <div class="card-body">
             <div class="chart-wrap"><canvas id="dashSalesChart"></canvas></div>
@@ -259,15 +293,17 @@
          ============================== -->
     <section class="content-area section-page" id="section-previsao">
       <div class="section-loading" id="loading-previsao">
-        <div class="spinner"></div><span>Carregando previsões...</span>
+        <div class="spinner"></div><span>Carregando previsoes...</span>
       </div>
       <div id="content-previsao" class="hidden">
+        <div id="previsao-assertividade"></div>
         <div class="forecast-grid" id="forecastCards">
           <!-- cards injected by JS -->
         </div>
+        <div id="previsao-insights"></div>
         <div class="card mt-24">
           <div class="card-header">
-            <h3 class="card-title"><i class="fas fa-chart-line"></i> Curva de Previsão vs Real</h3>
+            <h3 class="card-title"><i class="fas fa-chart-line"></i> Curva de Previsao vs Real</h3>
             <div class="card-actions">
               <select class="select-sm" id="forecastRange">
                 <option value="7">7 dias</option>
@@ -291,11 +327,12 @@
             </table>
           </div>
         </div>
+        <div id="previsao-metodologia"></div>
       </div>
     </section>
 
     <!-- ==============================
-         SECTION: ESTOQUE & PERDAS
+         SECTION: ESTOQUE
          ============================== -->
     <section class="content-area section-page" id="section-estoque">
       <div class="section-loading" id="loading-estoque">
@@ -304,22 +341,6 @@
       <div id="content-estoque" class="hidden">
         <div class="grid-3col">
           <div class="kpi-card kpi-card-wide">
-            <div class="kpi-icon kpi-red"><i class="fas fa-arrow-trend-down"></i></div>
-            <div class="kpi-body">
-              <span class="kpi-label">Taxa de Perda Atual</span>
-              <span class="kpi-value" id="estoque-taxa">—</span>
-              <span class="kpi-delta" id="estoque-taxa-meta">meta: &lt; 2%</span>
-            </div>
-          </div>
-          <div class="kpi-card kpi-card-wide">
-            <div class="kpi-icon kpi-orange"><i class="fas fa-triangle-exclamation"></i></div>
-            <div class="kpi-body">
-              <span class="kpi-label">Produtos em Risco</span>
-              <span class="kpi-value" id="estoque-risco">—</span>
-              <span class="kpi-delta">itens críticos</span>
-            </div>
-          </div>
-          <div class="kpi-card kpi-card-wide">
             <div class="kpi-icon kpi-purple"><i class="fas fa-boxes-stacked"></i></div>
             <div class="kpi-body">
               <span class="kpi-label">SKUs Monitorados</span>
@@ -327,11 +348,94 @@
               <span class="kpi-delta">ativos</span>
             </div>
           </div>
+          <div class="kpi-card kpi-card-wide">
+            <div class="kpi-icon kpi-orange"><i class="fas fa-triangle-exclamation"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Baixo Estoque</span>
+              <span class="kpi-value" id="estoque-risco">—</span>
+              <span class="kpi-delta">itens criticos</span>
+            </div>
+          </div>
+          <div class="kpi-card kpi-card-wide">
+            <div class="kpi-icon kpi-red"><i class="fas fa-clock"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Vencendo em Breve</span>
+              <span class="kpi-value" id="estoque-taxa">—</span>
+              <span class="kpi-delta" id="estoque-taxa-meta">vencendo em 7 dias</span>
+            </div>
+          </div>
         </div>
+
+        <div id="estoque-insights" class="mt-24"></div>
+
         <div class="grid-2col mt-24">
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-chart-pie"></i> Perdas por Categoria</h3>
+              <h3 class="card-title"><i class="fas fa-arrow-trend-down"></i> Produtos com Baixo Estoque</h3>
+            </div>
+            <div class="card-body">
+              <table class="data-table" id="estoqueBaixoTable">
+                <thead><tr><th>#</th><th>Produto</th><th>Estoque</th><th>Minimo</th><th>Categoria</th><th>Status</th></tr></thead>
+                <tbody><!-- injected --></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-calendar-xmark"></i> Vencendo em 7 Dias</h3>
+            </div>
+            <div class="card-body">
+              <table class="data-table" id="estoqueVencTable">
+                <thead><tr><th>#</th><th>Produto</th><th>Validade</th><th>Dias Restantes</th><th>Categoria</th></tr></thead>
+                <tbody><!-- injected --></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: PERDAS
+         ============================== -->
+    <section class="content-area section-page" id="section-perdas">
+      <div class="section-loading" id="loading-perdas">
+        <div class="spinner"></div><p>Carregando...</p>
+      </div>
+      <div id="content-perdas" class="hidden">
+        <div class="grid-3col">
+          <div class="kpi-card kpi-card-wide">
+            <div class="kpi-icon kpi-red"><i class="fas fa-arrow-trend-down"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Taxa de Perda Atual</span>
+              <span class="kpi-value" id="perdas-taxa">—</span>
+              <span class="kpi-delta" id="perdas-meta">meta: &lt; 2%</span>
+            </div>
+          </div>
+          <div class="kpi-card kpi-card-wide">
+            <div class="kpi-icon kpi-orange"><i class="fas fa-money-bill-wave"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Valor Perdido (mes)</span>
+              <span class="kpi-value" id="perdas-valor">—</span>
+              <span class="kpi-delta">acumulado</span>
+            </div>
+          </div>
+          <div class="kpi-card kpi-card-wide">
+            <div class="kpi-icon kpi-yellow"><i class="fas fa-box-open"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Itens Afetados</span>
+              <span class="kpi-value" id="perdas-total">—</span>
+              <span class="kpi-delta">produtos com perda</span>
+            </div>
+          </div>
+        </div>
+
+        <div id="perdas-insights" class="mt-24"></div>
+
+        <div class="grid-2col mt-24">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-chart-bar"></i> Perdas por Categoria</h3>
             </div>
             <div class="card-body">
               <div class="chart-wrap"><canvas id="perdasChart"></canvas></div>
@@ -339,11 +443,11 @@
           </div>
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-ranking-star"></i> Top 10 Produtos com Perda</h3>
+              <h3 class="card-title"><i class="fas fa-ranking-star"></i> Produtos Criticos</h3>
             </div>
             <div class="card-body">
-              <table class="data-table" id="perdasTable">
-                <thead><tr><th>#</th><th>Produto</th><th>Perda %</th><th>Valor</th><th>Status</th></tr></thead>
+              <table class="data-table" id="perdasProdTable">
+                <thead><tr><th>#</th><th>Produto</th><th>Perda %</th><th>Valor</th><th>Motivo</th><th>Status</th></tr></thead>
                 <tbody><!-- injected --></tbody>
               </table>
             </div>
@@ -357,14 +461,17 @@
          ============================== -->
     <section class="content-area section-page" id="section-clientes">
       <div class="section-loading" id="loading-clientes">
-        <div class="spinner"></div><span>Carregando análise RFM...</span>
+        <div class="spinner"></div><span>Carregando analise RFM...</span>
       </div>
       <div id="content-clientes" class="hidden">
-        <div class="rfm-segments" id="rfmSegments"><!-- injected --></div>
+        <div id="rfmSegments"><!-- injected --></div>
+
+        <div id="clientes-insights" class="mt-24"></div>
+
         <div class="grid-2col mt-24">
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-chart-bar"></i> Distribuição RFM</h3>
+              <h3 class="card-title"><i class="fas fa-chart-bar"></i> Distribuicao RFM</h3>
             </div>
             <div class="card-body">
               <div class="chart-wrap"><canvas id="rfmChart"></canvas></div>
@@ -376,7 +483,7 @@
             </div>
             <div class="card-body">
               <table class="data-table" id="clientesTable">
-                <thead><tr><th>Cliente</th><th>Recência</th><th>Frequência</th><th>Valor</th><th>Segmento</th></tr></thead>
+                <thead><tr><th>Cliente</th><th>Recencia</th><th>Frequencia</th><th>Valor</th><th>Segmento</th></tr></thead>
                 <tbody><!-- injected --></tbody>
               </table>
             </div>
@@ -386,34 +493,167 @@
     </section>
 
     <!-- ==============================
+         SECTION: BASE DE CLIENTES
+         ============================== -->
+    <section class="content-area section-page" id="section-base-clientes">
+      <div class="section-loading" id="loading-base-clientes">
+        <div class="spinner"></div><span>Carregando base de clientes...</span>
+      </div>
+      <div id="content-base-clientes" class="hidden">
+
+        <!-- KPIs -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-green"><i class="fas fa-user-plus"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Novos Clientes (mes)</span>
+              <span class="kpi-value" id="bc-novos">—</span>
+              <span class="kpi-delta positive" id="bc-novos-delta">+0%</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-blue"><i class="fas fa-coins"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">LTV Medio</span>
+              <span class="kpi-value" id="bc-ltv-medio">—</span>
+              <span class="kpi-delta">por cliente</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-purple"><i class="fas fa-trophy"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Maior LTV</span>
+              <span class="kpi-value" id="bc-ltv-max">—</span>
+              <span class="kpi-delta" id="bc-ltv-max-nome">cliente VIP</span>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-yellow"><i class="fas fa-fire"></i></div>
+            <div class="kpi-body">
+              <span class="kpi-label">Produto Mais Vendido</span>
+              <span class="kpi-value" id="bc-top-produto" style="font-size:1rem;">—</span>
+              <span class="kpi-delta" id="bc-top-unidades">— unidades</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Novos Clientes -->
+        <div class="card mt-24">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-user-plus"></i> Novos Clientes Cadastrados</h3>
+            <div class="card-actions">
+              <select class="select-sm" id="bcNovosPeriodo">
+                <option value="mes">Este mes</option>
+                <option value="semana">Esta semana</option>
+                <option value="hoje">Hoje</option>
+                <option value="semestre">Semestre</option>
+                <option value="ano">Ano</option>
+              </select>
+            </div>
+          </div>
+          <div class="card-body">
+            <table class="data-table" id="bcNovosTable">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Nome</th>
+                  <th>Cadastro</th>
+                  <th>Canal</th>
+                  <th>1ª Compra</th>
+                  <th>LTV Atual</th>
+                  <th>Segmento</th>
+                </tr>
+              </thead>
+              <tbody><!-- injected --></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- LTV Ranking -->
+        <div class="grid-2col mt-24">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-ranking-star"></i> Ranking LTV — Top 20</h3>
+            </div>
+            <div class="card-body">
+              <table class="data-table" id="bcLtvTable">
+                <thead>
+                  <tr>
+                    <th>Pos</th>
+                    <th>Cliente</th>
+                    <th>Desde</th>
+                    <th>Visitas</th>
+                    <th>Ticket Medio</th>
+                    <th>LTV Total</th>
+                    <th>Segmento</th>
+                  </tr>
+                </thead>
+                <tbody><!-- injected --></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-fire"></i> Produtos Mais Comprados</h3>
+              <div class="card-actions">
+                <select class="select-sm" id="bcProdPeriodo">
+                  <option value="mes">Este mes</option>
+                  <option value="semana">Esta semana</option>
+                  <option value="hoje">Hoje</option>
+                  <option value="semestre">Semestre</option>
+                  <option value="ano">Ano</option>
+                </select>
+              </div>
+            </div>
+            <div class="card-body">
+              <table class="data-table" id="bcProdTable">
+                <thead>
+                  <tr>
+                    <th>Pos</th>
+                    <th>Produto</th>
+                    <th>Categoria</th>
+                    <th>Unidades</th>
+                    <th>Receita</th>
+                    <th>% do Total</th>
+                  </tr>
+                </thead>
+                <tbody><!-- injected --></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Insights -->
+        <div id="base-clientes-insights" class="mt-24"></div>
+
+      </div>
+    </section>
+
+    <!-- ==============================
          SECTION: CROSS-SELL
          ============================== -->
     <section class="content-area section-page" id="section-crosssell">
       <div class="section-loading" id="loading-crosssell">
-        <div class="spinner"></div><span>Carregando recomendações...</span>
+        <div class="spinner"></div><span>Carregando recomendacoes...</span>
       </div>
       <div id="content-crosssell" class="hidden">
         <div class="card">
           <div class="card-header">
             <h3 class="card-title"><i class="fas fa-link"></i> Pares Recomendados</h3>
-            <div class="card-actions">
-              <select class="select-sm" id="crossCategory">
-                <option value="bebidas">Bebidas</option>
-                <option value="laticinios">Laticínios</option>
-                <option value="padaria">Padaria</option>
-                <option value="snacks">Snacks</option>
-              </select>
-            </div>
           </div>
           <div class="card-body" id="crossSellList"><!-- injected --></div>
         </div>
+
+        <div id="crosssell-insights" class="mt-24"></div>
+
         <div class="card mt-24">
           <div class="card-header">
             <h3 class="card-title"><i class="fas fa-fire"></i> Oportunidades de Venda Cruzada</h3>
           </div>
           <div class="card-body">
             <table class="data-table" id="crossSellTable">
-              <thead><tr><th>Produto A</th><th>Produto B</th><th>Afinidade</th><th>Lift</th><th>Confiança</th><th>Ação</th></tr></thead>
+              <thead><tr><th>Produto A</th><th>Produto B</th><th>Suporte</th><th>Lift</th><th>Confianca</th><th>Acao</th></tr></thead>
               <tbody><!-- injected --></tbody>
             </table>
           </div>
@@ -430,6 +670,11 @@
       </div>
       <div id="content-anomalias" class="hidden">
         <div class="grid-3col" id="anomaliaKpis"><!-- injected --></div>
+
+        <div id="anomalias-insights" class="mt-24"></div>
+
+        <div id="anomalias-cards" class="mt-24"></div>
+
         <div class="grid-2col mt-24">
           <div class="card">
             <div class="card-header">
@@ -465,9 +710,9 @@
         <div class="alerts-toolbar">
           <div class="filter-tabs" id="alertTabs">
             <button class="filter-tab active" data-filter="all">Todos</button>
-            <button class="filter-tab" data-filter="critico">Crítico</button>
+            <button class="filter-tab" data-filter="critico">Critico</button>
             <button class="filter-tab" data-filter="alto">Alto</button>
-            <button class="filter-tab" data-filter="medio">Médio</button>
+            <button class="filter-tab" data-filter="medio">Medio</button>
           </div>
         </div>
         <div class="alerts-list" id="alertsList"><!-- injected --></div>
@@ -475,46 +720,333 @@
     </section>
 
     <!-- ==============================
-         SECTION: RELATÓRIOS
+         SECTION: CLIMA
+         ============================== -->
+    <section class="content-area section-page" id="section-clima">
+      <div id="content-clima">
+        <div class="demo-card">
+          <i class="fas fa-cloud-sun-rain"></i>
+          <h3>Impacto Climatico</h3>
+          <p>Integracao com Open-Meteo em desenvolvimento. Preview: Temperatura 34 graus C hoje em Fortaleza — historico mostra +15% em bebidas em dias acima de 32 graus C.</p>
+        </div>
+        <div class="insight-card mt-24">
+          <h3><i class="fas fa-lightbulb"></i> Insights Climaticos (Preview)</h3>
+          <ul class="insight-list">
+            <li class="trend">Dias com temperatura acima de 32 graus registram aumento medio de 15% na categoria Bebidas.</li>
+            <li class="trend">Chuvas fortes correlacionam com queda de 20% no fluxo de loja, mas aumento de 35% em delivery.</li>
+            <li class="action">Recomendacao futura: ajustar pedidos de Sorvetes e Agua automaticamente com base na previsao do tempo.</li>
+            <li>Dados historicos de 6 meses serao usados para calibrar o modelo clima x vendas.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: SHELF
+         ============================== -->
+    <section class="content-area section-page" id="section-shelf">
+      <div id="content-shelf">
+        <div class="demo-card">
+          <i class="fas fa-store"></i>
+          <h3>Shelf Intelligence</h3>
+          <p>Shelf Intelligence em desenvolvimento. Preview: Posicionamento de Cerveja ao lado de Gelo aumentou vendas em 23% (dados cross-sell).</p>
+        </div>
+        <div class="insight-card mt-24">
+          <h3><i class="fas fa-lightbulb"></i> Insights de Gondola (Preview)</h3>
+          <ul class="insight-list">
+            <li class="success">Posicionamento Cerveja + Gelo gerou aumento de 23% em vendas conjuntas.</li>
+            <li class="trend">Produtos na altura dos olhos vendem em media 35% mais que prateleiras inferiores.</li>
+            <li class="action">Recomendacao futura: usar dados de cross-sell para otimizar layout automaticamente.</li>
+            <li>Pontas de gondola com promocao geram 4x mais conversao que prateleira regular.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: RELATORIOS
          ============================== -->
     <section class="content-area section-page" id="section-relatorios">
       <div class="reports-grid">
         <div class="report-card" data-action="export-vendas">
           <div class="report-icon"><i class="fas fa-file-csv"></i></div>
           <h4>Vendas Detalhadas</h4>
-          <p>Exportar CSV com todas as transações do período</p>
+          <p>Exportar CSV com todas as transacoes do periodo</p>
           <button class="btn btn-primary">Exportar CSV</button>
         </div>
         <div class="report-card" data-action="export-perdas">
           <div class="report-icon"><i class="fas fa-file-excel"></i></div>
-          <h4>Relatório de Perdas</h4>
-          <p>Análise completa de perdas por produto e categoria</p>
+          <h4>Relatorio de Perdas</h4>
+          <p>Analise completa de perdas por produto e categoria</p>
           <button class="btn btn-primary">Exportar Excel</button>
         </div>
         <div class="report-card" data-action="export-rfm">
           <div class="report-icon"><i class="fas fa-users"></i></div>
           <h4>Base RFM</h4>
-          <p>Segmentação completa de clientes para campanhas</p>
+          <p>Segmentacao completa de clientes para campanhas</p>
           <button class="btn btn-primary">Exportar CSV</button>
         </div>
         <div class="report-card" data-action="export-previsao">
           <div class="report-icon"><i class="fas fa-chart-line"></i></div>
-          <h4>Previsões</h4>
-          <p>Histórico de previsões e índice de assertividade</p>
+          <h4>Previsoes</h4>
+          <p>Historico de previsoes e indice de assertividade</p>
           <button class="btn btn-primary">Exportar PDF</button>
         </div>
         <div class="report-card" data-action="export-anomalias">
           <div class="report-icon"><i class="fas fa-magnifying-glass-chart"></i></div>
           <h4>Anomalias Detectadas</h4>
-          <p>Log completo de anomalias com contexto e ações</p>
+          <p>Log completo de anomalias com contexto e acoes</p>
           <button class="btn btn-primary">Exportar CSV</button>
         </div>
         <div class="report-card" data-action="export-crosssell">
           <div class="report-icon"><i class="fas fa-diagram-project"></i></div>
           <h4>Cross-Sell Insights</h4>
-          <p>Mapa de associações e oportunidades de receita</p>
+          <p>Mapa de associacoes e oportunidades de receita</p>
           <button class="btn btn-primary">Exportar PDF</button>
         </div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: CONFIG
+         ============================== -->
+    <section class="content-area section-page" id="section-config">
+      <div id="content-config">
+
+        <!-- Config Tabs -->
+        <div class="filter-tabs" id="configTabs" style="margin-bottom:1.5rem;">
+          <button class="filter-tab active" data-config-tab="perfil">Perfil da Loja</button>
+          <button class="filter-tab" data-config-tab="assinatura">Assinatura</button>
+          <button class="filter-tab" data-config-tab="sistema">Sistema</button>
+        </div>
+
+        <!-- TAB: Perfil da Loja -->
+        <div id="config-tab-perfil">
+          <div class="grid-2col">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-store"></i> Dados da Empresa</h3>
+              </div>
+              <div class="card-body">
+                <div class="config-form">
+                  <div class="config-field">
+                    <label>Razao Social</label>
+                    <input type="text" id="cfg-razao-social" placeholder="Ex: Supermercado Bom Preco LTDA" />
+                  </div>
+                  <div class="config-field">
+                    <label>Nome Fantasia</label>
+                    <input type="text" id="cfg-nome-fantasia" placeholder="Ex: Bom Preco" />
+                  </div>
+                  <div class="config-field">
+                    <label>CNPJ</label>
+                    <input type="text" id="cfg-cnpj" placeholder="00.000.000/0001-00" />
+                  </div>
+                  <div class="config-field">
+                    <label>Segmento</label>
+                    <select id="cfg-segmento">
+                      <option>Supermercado</option>
+                      <option>Mercado de Bairro</option>
+                      <option>Atacarejo</option>
+                      <option>Hortifruti</option>
+                      <option>Padaria</option>
+                      <option>Farmacia</option>
+                      <option>Outro</option>
+                    </select>
+                  </div>
+                  <div class="config-field">
+                    <label>Numero de Lojas</label>
+                    <input type="number" id="cfg-num-lojas" value="1" min="1" />
+                  </div>
+                  <div class="config-field">
+                    <label>Faturamento Mensal Estimado (R$)</label>
+                    <input type="text" id="cfg-faturamento" placeholder="Ex: 150.000,00" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-address-card"></i> Contato e Responsavel</h3>
+              </div>
+              <div class="card-body">
+                <div class="config-form">
+                  <div class="config-field">
+                    <label>Nome do Responsavel</label>
+                    <input type="text" id="cfg-responsavel" placeholder="Ex: Joao Silva" />
+                  </div>
+                  <div class="config-field">
+                    <label>Cargo</label>
+                    <input type="text" id="cfg-cargo" placeholder="Ex: Gerente / Proprietario" />
+                  </div>
+                  <div class="config-field">
+                    <label>E-mail</label>
+                    <input type="email" id="cfg-email" placeholder="contato@suaempresa.com.br" />
+                  </div>
+                  <div class="config-field">
+                    <label>Telefone / WhatsApp</label>
+                    <input type="text" id="cfg-telefone" placeholder="(00) 9 0000-0000" />
+                  </div>
+                  <div class="config-field">
+                    <label>Cidade / UF</label>
+                    <input type="text" id="cfg-cidade" placeholder="Ex: Fortaleza / CE" />
+                  </div>
+                  <div class="config-field">
+                    <label>Endereco da Loja Principal</label>
+                    <input type="text" id="cfg-endereco" placeholder="Rua, numero, bairro" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:1.5rem; display:flex; gap:1rem;">
+            <button class="btn btn-primary" onclick="salvarPerfil()"><i class="fas fa-save"></i> Salvar Perfil</button>
+            <button class="btn btn-ghost" onclick="carregarPerfil()"><i class="fas fa-rotate-right"></i> Restaurar</button>
+          </div>
+        </div>
+
+        <!-- TAB: Assinatura -->
+        <div id="config-tab-assinatura" style="display:none;">
+          <div class="grid-2col">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-crown"></i> Plano Atual</h3>
+              </div>
+              <div class="card-body">
+                <div class="assinatura-plano">
+                  <div class="plano-badge">SMART MARKET PRO</div>
+                  <div class="plano-status"><span class="status-dot status-green"></span> Ativo</div>
+                  <div class="plano-grid">
+                    <div class="plano-item">
+                      <span class="plano-label">Plano</span>
+                      <span class="plano-valor">Smart Market Pro</span>
+                    </div>
+                    <div class="plano-item">
+                      <span class="plano-label">Inicio</span>
+                      <span class="plano-valor">01/03/2026</span>
+                    </div>
+                    <div class="plano-item">
+                      <span class="plano-label">Renovacao</span>
+                      <span class="plano-valor">01/04/2026</span>
+                    </div>
+                    <div class="plano-item">
+                      <span class="plano-label">Usuarios</span>
+                      <span class="plano-valor">5 licencas</span>
+                    </div>
+                    <div class="plano-item">
+                      <span class="plano-label">Valor Mensal</span>
+                      <span class="plano-valor text-green">R$ 497,00</span>
+                    </div>
+                    <div class="plano-item">
+                      <span class="plano-label">Suporte</span>
+                      <span class="plano-valor">Prioritario — WhatsApp</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title"><i class="fas fa-check-circle"></i> Funcionalidades Inclusas</h3>
+              </div>
+              <div class="card-body">
+                <ul class="funcionalidades-lista">
+                  <li class="success"><i class="fas fa-check"></i> Dashboard em tempo real</li>
+                  <li class="success"><i class="fas fa-check"></i> Previsao de vendas com IA</li>
+                  <li class="success"><i class="fas fa-check"></i> Segmentacao RFM de clientes</li>
+                  <li class="success"><i class="fas fa-check"></i> Deteccao de anomalias (Z-score)</li>
+                  <li class="success"><i class="fas fa-check"></i> Cross-sell e analise de cesta</li>
+                  <li class="success"><i class="fas fa-check"></i> Base de clientes com LTV</li>
+                  <li class="success"><i class="fas fa-check"></i> Controle de perdas e estoque</li>
+                  <li class="success"><i class="fas fa-check"></i> Shelf Intelligence</li>
+                  <li class="success"><i class="fas fa-check"></i> Correlacao climatica</li>
+                  <li class="success"><i class="fas fa-check"></i> Exportacao de relatorios</li>
+                  <li class="success"><i class="fas fa-check"></i> Alertas automaticos</li>
+                  <li class="success"><i class="fas fa-check"></i> Suporte prioritario Seven Xperts</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="card mt-24">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-headset"></i> Suporte Seven Xperts</h3>
+            </div>
+            <div class="card-body">
+              <div class="suporte-grid">
+                <div class="suporte-item">
+                  <i class="fab fa-whatsapp" style="color:#25d366; font-size:1.8rem;"></i>
+                  <div>
+                    <strong>WhatsApp Prioritario</strong>
+                    <span>Resposta em ate 2 horas uteis</span>
+                  </div>
+                </div>
+                <div class="suporte-item">
+                  <i class="fas fa-envelope" style="color:var(--color-primary); font-size:1.8rem;"></i>
+                  <div>
+                    <strong>E-mail</strong>
+                    <span>suporte@sevenxperts.com.br</span>
+                  </div>
+                </div>
+                <div class="suporte-item">
+                  <i class="fas fa-building" style="color:var(--color-text-dim); font-size:1.8rem;"></i>
+                  <div>
+                    <strong>Seven Xperts</strong>
+                    <span>CNPJ 32.794.007/0001-19</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB: Sistema -->
+        <div id="config-tab-sistema" style="display:none;">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-gear"></i> Preferencias do Sistema</h3>
+            </div>
+            <div class="card-body">
+              <div class="config-form" style="max-width:540px;">
+                <div class="config-field">
+                  <label>Nome da Loja Ativa</label>
+                  <input type="text" value="Loja 001 - Centro" id="cfg-nome-loja" />
+                </div>
+                <div class="config-field">
+                  <label>API URL</label>
+                  <input type="text" value="http://localhost:3000/api/v1" id="cfg-api-url" />
+                </div>
+                <div class="config-field">
+                  <label>Intervalo de Atualizacao (segundos)</label>
+                  <input type="number" value="30" min="10" max="300" id="cfg-refresh" />
+                </div>
+                <div class="config-field">
+                  <label>Tema</label>
+                  <select id="cfg-tema">
+                    <option selected>Verde Escuro (padrao)</option>
+                    <option>Verde Claro</option>
+                    <option>Escuro Total</option>
+                  </select>
+                </div>
+                <div class="config-field">
+                  <label>Notificacoes Sonoras</label>
+                  <select id="cfg-notif">
+                    <option>Ativadas</option>
+                    <option>Somente alertas criticos</option>
+                    <option>Desativadas</option>
+                  </select>
+                </div>
+                <div style="margin-top:1rem; display:flex; gap:1rem;">
+                  <button class="btn btn-primary"><i class="fas fa-save"></i> Salvar Configuracoes</button>
+                  <button class="btn btn-ghost"><i class="fas fa-rotate-right"></i> Restaurar Padrao</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
 
