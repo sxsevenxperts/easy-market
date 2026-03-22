@@ -5,7 +5,12 @@
 
 const API_BASE = window.location.port === '3001' ? 'http://localhost:3000/api/v1' : window.location.origin + '/api/v1';
 let currentSection = 'dashboard';
+let previousSection = 'dashboard';
 let currentStore = 'loja_001';
+
+function voltarSecao() {
+  loadSection(previousSection || 'dashboard');
+}
 
 /**
  * Initialize Application
@@ -59,10 +64,377 @@ function initializeEventListeners() {
   });
 }
 
+// ====================================================================
+// SUB-PANEL NAVIGATION
+// ====================================================================
+
+/**
+ * Show a sub-panel and hide the matching content div
+ */
+function showSubPanel(panelId) {
+  var panel = document.getElementById(panelId);
+  if (!panel) return;
+  // Determine the parent section and its main content div
+  var section = panel.closest('.section-page');
+  if (section) {
+    var contentDiv = section.querySelector('[id^="content-"]');
+    if (contentDiv) contentDiv.style.display = 'none';
+    var loadingDiv = section.querySelector('[id^="loading-"]');
+    if (loadingDiv) loadingDiv.style.display = 'none';
+  }
+  panel.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+/**
+ * Hide a sub-panel and restore the matching content div
+ */
+function hideSubPanel(panelId) {
+  var panel = document.getElementById(panelId);
+  if (!panel) return;
+  panel.classList.remove('active');
+  var section = panel.closest('.section-page');
+  if (section) {
+    var contentDiv = section.querySelector('[id^="content-"]');
+    if (contentDiv) contentDiv.style.display = '';
+  }
+  window.scrollTo(0, 0);
+}
+
+// ====================================================================
+// ESTOQUE — SKU Full List
+// ====================================================================
+
+var skuMockData = [
+  { sku: 'SKU-0001', produto: 'Refrigerante Cola 2L',        categoria: 'Bebidas',    estoque: 5,   minimo: 30,  custo: 3.80,  venda: 6.50,  margem: 41.5, giro: 4,  status: 'critico' },
+  { sku: 'SKU-0002', produto: 'Leite Integral 1L',           categoria: 'Laticinios', estoque: 8,   minimo: 50,  custo: 3.20,  venda: 4.99,  margem: 35.9, giro: 5,  status: 'critico' },
+  { sku: 'SKU-0003', produto: 'Pao Frances (kg)',             categoria: 'Padaria',    estoque: 3,   minimo: 20,  custo: 4.50,  venda: 8.00,  margem: 43.8, giro: 1,  status: 'vencendo' },
+  { sku: 'SKU-0004', produto: 'Cerveja Lata 350ml',          categoria: 'Bebidas',    estoque: 12,  minimo: 60,  custo: 2.80,  venda: 4.50,  margem: 37.8, giro: 7,  status: 'baixo' },
+  { sku: 'SKU-0005', produto: 'Iogurte Natural 170g',        categoria: 'Laticinios', estoque: 4,   minimo: 25,  custo: 1.90,  venda: 3.49,  margem: 45.6, giro: 3,  status: 'vencendo' },
+  { sku: 'SKU-0006', produto: 'Arroz Tipo 1 5kg',            categoria: 'Alimentos',  estoque: 87,  minimo: 40,  custo: 14.00, venda: 22.90, margem: 38.9, giro: 12, status: 'ok' },
+  { sku: 'SKU-0007', produto: 'Feijao Preto 1kg',            categoria: 'Alimentos',  estoque: 54,  minimo: 30,  custo: 4.20,  venda: 6.99,  margem: 39.9, giro: 10, status: 'ok' },
+  { sku: 'SKU-0008', produto: 'Oleo de Soja 900ml',          categoria: 'Alimentos',  estoque: 66,  minimo: 25,  custo: 5.10,  venda: 8.49,  margem: 39.9, giro: 8,  status: 'ok' },
+  { sku: 'SKU-0009', produto: 'Acucar Cristal 2kg',          categoria: 'Alimentos',  estoque: 112, minimo: 50,  custo: 4.80,  venda: 7.49,  margem: 35.9, giro: 9,  status: 'ok' },
+  { sku: 'SKU-0010', produto: 'Macarrao Espaguete 500g',     categoria: 'Alimentos',  estoque: 95,  minimo: 40,  custo: 2.50,  venda: 4.29,  margem: 41.7, giro: 11, status: 'ok' },
+  { sku: 'SKU-0011', produto: 'Molho de Tomate 340g',        categoria: 'Alimentos',  estoque: 78,  minimo: 35,  custo: 1.80,  venda: 3.29,  margem: 45.3, giro: 10, status: 'ok' },
+  { sku: 'SKU-0012', produto: 'Manteiga com Sal 200g',       categoria: 'Laticinios', estoque: 18,  minimo: 20,  custo: 4.60,  venda: 7.99,  margem: 42.4, giro: 6,  status: 'baixo' },
+  { sku: 'SKU-0013', produto: 'Queijo Mussarela 500g',       categoria: 'Frios',      estoque: 22,  minimo: 15,  custo: 9.50,  venda: 16.90, margem: 43.8, giro: 7,  status: 'ok' },
+  { sku: 'SKU-0014', produto: 'Presunto Fatiado 200g',       categoria: 'Frios',      estoque: 9,   minimo: 12,  custo: 7.80,  venda: 13.90, margem: 43.9, giro: 5,  status: 'vencendo' },
+  { sku: 'SKU-0015', produto: 'Frango Inteiro Resfriado (kg)',categoria: 'Frios',      estoque: 35,  minimo: 20,  custo: 9.90,  venda: 15.90, margem: 37.7, giro: 8,  status: 'ok' },
+  { sku: 'SKU-0016', produto: 'Banana Prata (kg)',            categoria: 'Hortifruti', estoque: 42,  minimo: 30,  custo: 1.80,  venda: 3.99,  margem: 54.9, giro: 3,  status: 'ok' },
+  { sku: 'SKU-0017', produto: 'Tomate (kg)',                  categoria: 'Hortifruti', estoque: 28,  minimo: 20,  custo: 2.50,  venda: 5.49,  margem: 54.5, giro: 4,  status: 'ok' },
+  { sku: 'SKU-0018', produto: 'Alface Crespa (un)',           categoria: 'Hortifruti', estoque: 6,   minimo: 15,  custo: 1.20,  venda: 2.49,  margem: 51.8, giro: 2,  status: 'vencendo' },
+  { sku: 'SKU-0019', produto: 'Laranja Pera (kg)',            categoria: 'Hortifruti', estoque: 55,  minimo: 25,  custo: 1.90,  venda: 3.99,  margem: 52.4, giro: 5,  status: 'ok' },
+  { sku: 'SKU-0020', produto: 'Sabao em Po 1kg',             categoria: 'Higiene',    estoque: 74,  minimo: 30,  custo: 4.20,  venda: 7.99,  margem: 47.4, giro: 14, status: 'ok' },
+  { sku: 'SKU-0021', produto: 'Shampoo 400ml',               categoria: 'Higiene',    estoque: 48,  minimo: 20,  custo: 5.50,  venda: 10.99, margem: 49.9, giro: 18, status: 'ok' },
+  { sku: 'SKU-0022', produto: 'Papel Higienico 12 rolos',    categoria: 'Higiene',    estoque: 63,  minimo: 25,  custo: 8.90,  venda: 14.99, margem: 40.6, giro: 12, status: 'ok' },
+  { sku: 'SKU-0023', produto: 'Detergente Liq. 500ml',       categoria: 'Higiene',    estoque: 91,  minimo: 35,  custo: 1.50,  venda: 2.99,  margem: 49.5, giro: 15, status: 'ok' },
+  { sku: 'SKU-0024', produto: 'Agua Mineral 1.5L',           categoria: 'Bebidas',    estoque: 144, minimo: 60,  custo: 1.20,  venda: 2.49,  margem: 51.8, giro: 6,  status: 'ok' },
+  { sku: 'SKU-0025', produto: 'Suco de Laranja 1L',          categoria: 'Bebidas',    estoque: 32,  minimo: 20,  custo: 3.80,  venda: 6.99,  margem: 45.6, giro: 9,  status: 'ok' },
+  { sku: 'SKU-0026', produto: 'Iogurte Morango 170g',        categoria: 'Laticinios', estoque: 7,   minimo: 25,  custo: 1.90,  venda: 3.49,  margem: 45.6, giro: 3,  status: 'vencendo' },
+  { sku: 'SKU-0027', produto: 'Queijo Minas Frescal 500g',   categoria: 'Laticinios', estoque: 11,  minimo: 12,  custo: 8.50,  venda: 15.90, margem: 46.5, giro: 4,  status: 'baixo' },
+  { sku: 'SKU-0028', produto: 'Cafe Torrado Moido 500g',     categoria: 'Alimentos',  estoque: 85,  minimo: 40,  custo: 7.20,  venda: 12.99, margem: 44.6, giro: 10, status: 'ok' },
+  { sku: 'SKU-0029', produto: 'Biscoito Recheado 130g',      categoria: 'Alimentos',  estoque: 120, minimo: 50,  custo: 1.60,  venda: 2.99,  margem: 46.5, giro: 8,  status: 'ok' },
+  { sku: 'SKU-0030', produto: 'Cenoura (kg)',                 categoria: 'Hortifruti', estoque: 19,  minimo: 15,  custo: 2.00,  venda: 3.99,  margem: 49.9, giro: 3,  status: 'ok' },
+  { sku: 'SKU-0031', produto: 'Batata Inglesa (kg)',          categoria: 'Hortifruti', estoque: 45,  minimo: 20,  custo: 2.30,  venda: 4.49,  margem: 48.8, giro: 5,  status: 'ok' },
+  { sku: 'SKU-0032', produto: 'Linguica Defumada 500g',      categoria: 'Frios',      estoque: 14,  minimo: 10,  custo: 8.20,  venda: 14.90, margem: 44.9, giro: 7,  status: 'ok' },
+  { sku: 'SKU-0033', produto: 'Mortadela Fatiada 200g',      categoria: 'Frios',      estoque: 6,   minimo: 10,  custo: 5.80,  venda: 9.99,  margem: 41.9, giro: 5,  status: 'critico' },
+  { sku: 'SKU-0034', produto: 'Sabonete Barra 90g',          categoria: 'Higiene',    estoque: 200, minimo: 60,  custo: 0.90,  venda: 1.99,  margem: 54.8, giro: 20, status: 'ok' },
+  { sku: 'SKU-0035', produto: 'Energetico 250ml',            categoria: 'Bebidas',    estoque: 38,  minimo: 24,  custo: 3.20,  venda: 5.99,  margem: 46.6, giro: 11, status: 'ok' },
+  { sku: 'SKU-0036', produto: 'Farinha de Trigo 1kg',        categoria: 'Alimentos',  estoque: 67,  minimo: 30,  custo: 3.10,  venda: 5.49,  margem: 43.5, giro: 9,  status: 'ok' },
+  { sku: 'SKU-0037', produto: 'Extrato de Tomate 340g',      categoria: 'Alimentos',  estoque: 88,  minimo: 40,  custo: 1.50,  venda: 2.79,  margem: 46.2, giro: 12, status: 'ok' },
+  { sku: 'SKU-0038', produto: 'Creme de Leite 200g',         categoria: 'Laticinios', estoque: 41,  minimo: 20,  custo: 2.30,  venda: 4.29,  margem: 46.4, giro: 8,  status: 'ok' },
+  { sku: 'SKU-0039', produto: 'Maionese Cremosa 500g',       categoria: 'Alimentos',  estoque: 33,  minimo: 15,  custo: 5.40,  venda: 9.49,  margem: 43.1, giro: 10, status: 'ok' },
+  { sku: 'SKU-0040', produto: 'Refrigerante Guarana 2L',     categoria: 'Bebidas',    estoque: 10,  minimo: 30,  custo: 3.60,  venda: 6.29,  margem: 42.8, giro: 4,  status: 'baixo' },
+];
+
+function mostrarSKUs() {
+  loadSection('skus');
+}
+
+function loadSKUs() {
+  renderSKUTable(skuMockData);
+  document.getElementById('skuCount').textContent = skuMockData.length + ' SKUs exibidos';
+}
+
+function renderSKUTable(data) {
+  var tbody = document.getElementById('skuFullBody');
+  if (!tbody) return;
+  var statusLabels = { ok: 'Normal', baixo: 'Baixo Estoque', critico: 'Critico', vencendo: 'Vencendo' };
+  var statusColors = { ok: 'var(--color-success)', baixo: 'var(--color-warning)', critico: 'var(--color-danger)', vencendo: '#f97316' };
+  tbody.innerHTML = data.map(function(s) {
+    return '<tr>' +
+      '<td style="font-family:monospace; font-size:0.8rem;">' + s.sku + '</td>' +
+      '<td>' + s.produto + '</td>' +
+      '<td style="color:var(--color-text-dim);">' + s.categoria + '</td>' +
+      '<td class="' + (s.estoque <= s.minimo ? 'text-red' : 'text-green') + '">' + s.estoque + '</td>' +
+      '<td>' + s.minimo + '</td>' +
+      '<td>' + fmtCurrency(s.custo) + '</td>' +
+      '<td>' + fmtCurrency(s.venda) + '</td>' +
+      '<td>' + s.margem.toFixed(1) + '%</td>' +
+      '<td>' + s.giro + ' dias</td>' +
+      '<td><span style="color:' + (statusColors[s.status] || 'var(--color-text-dim)') + '; font-weight:600;">' + (statusLabels[s.status] || s.status) + '</span></td>' +
+      '</tr>';
+  }).join('');
+  var countEl = document.getElementById('skuCount');
+  if (countEl) countEl.textContent = data.length + ' SKUs exibidos';
+}
+
+function filtrarSKUs() {
+  var search = (document.getElementById('skuSearch').value || '').toLowerCase();
+  var categoria = document.getElementById('skuCategoria').value;
+  var status = document.getElementById('skuStatus').value;
+  var filtered = skuMockData.filter(function(s) {
+    var matchSearch = !search || s.produto.toLowerCase().includes(search) || s.sku.toLowerCase().includes(search);
+    var matchCat = !categoria || s.categoria === categoria;
+    var matchStatus = !status || s.status === status;
+    return matchSearch && matchCat && matchStatus;
+  });
+  renderSKUTable(filtered);
+}
+
+// ====================================================================
+// PERDAS — Multi-unit toggle + tabs
+// ====================================================================
+
+var unidadePerda = 'pct';
+
+function setUnidadePerda(unit, btn) {
+  unidadePerda = unit;
+  document.querySelectorAll('.metric-btn').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+
+  // Highlight active column headers
+  var colMap = { pct: ['col-pct', 'scol-pct'], kg: ['col-kg', 'scol-kg'], brl: ['col-brl', 'scol-brl'] };
+  ['col-pct','col-kg','col-brl','scol-pct','scol-kg','scol-brl'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.color = '';
+  });
+  var activeIds = colMap[unit] || [];
+  activeIds.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.style.color = 'var(--color-primary)';
+  });
+
+  // Highlight triple KPI values
+  document.querySelectorAll('.perda-metric-val').forEach(function(el) { el.classList.remove('highlight'); });
+  var valId = { pct: 'perdas-taxa-pct', kg: 'perdas-taxa-kg', brl: 'perdas-taxa-brl' }[unit];
+  var valEl = document.getElementById(valId);
+  if (valEl) valEl.classList.add('highlight');
+}
+
+function switchPerdasTab(tab, btn) {
+  document.querySelectorAll('.perdas-tab-view').forEach(function(el) { el.classList.remove('active'); });
+  var target = document.getElementById('perdas-tab-' + tab);
+  if (target) target.classList.add('active');
+  document.querySelectorAll('#perdasTabs .filter-tab').forEach(function(b) { b.classList.remove('active'); });
+  if (btn) btn.classList.add('active');
+}
+
+// ====================================================================
+// CROSS-SELL — Criar Combo
+// ====================================================================
+
+var comboProducts = [
+  { nome: 'Cerveja Lata 350ml',        preco: 4.50,  margem: 37.8 },
+  { nome: 'Gelo 5kg',                  preco: 8.99,  margem: 52.0 },
+  { nome: 'Pao Frances (kg)',           preco: 8.00,  margem: 43.8 },
+  { nome: 'Manteiga com Sal 200g',      preco: 7.99,  margem: 42.4 },
+  { nome: 'Macarrao Espaguete 500g',    preco: 4.29,  margem: 41.7 },
+  { nome: 'Molho de Tomate 340g',       preco: 3.29,  margem: 45.3 },
+  { nome: 'Refrigerante Cola 2L',       preco: 6.50,  margem: 41.5 },
+  { nome: 'Salgadinho 100g',           preco: 3.99,  margem: 48.0 },
+  { nome: 'Cafe Torrado Moido 500g',   preco: 12.99, margem: 44.6 },
+  { nome: 'Acucar Cristal 2kg',        preco: 7.49,  margem: 35.9 },
+  { nome: 'Leite Integral 1L',         preco: 4.99,  margem: 35.9 },
+  { nome: 'Iogurte Natural 170g',      preco: 3.49,  margem: 45.6 },
+  { nome: 'Queijo Mussarela 500g',     preco: 16.90, margem: 43.8 },
+  { nome: 'Presunto Fatiado 200g',     preco: 13.90, margem: 43.9 },
+  { nome: 'Frango Inteiro (kg)',        preco: 15.90, margem: 37.7 },
+  { nome: 'Arroz Tipo 1 5kg',          preco: 22.90, margem: 38.9 },
+  { nome: 'Feijao Preto 1kg',          preco: 6.99,  margem: 39.9 },
+  { nome: 'Oleo de Soja 900ml',        preco: 8.49,  margem: 39.9 },
+  { nome: 'Banana Prata (kg)',          preco: 3.99,  margem: 54.9 },
+  { nome: 'Tomate (kg)',                preco: 5.49,  margem: 54.5 },
+  { nome: 'Agua Mineral 1.5L',         preco: 2.49,  margem: 51.8 },
+  { nome: 'Suco de Laranja 1L',        preco: 6.99,  margem: 45.6 },
+  { nome: 'Energetico 250ml',          preco: 5.99,  margem: 46.6 },
+  { nome: 'Biscoito Recheado 130g',    preco: 2.99,  margem: 46.5 },
+  { nome: 'Sabao em Po 1kg',           preco: 7.99,  margem: 47.4 },
+  { nome: 'Papel Higienico 12 rolos',  preco: 14.99, margem: 40.6 },
+  { nome: 'Farinha de Trigo 1kg',      preco: 5.49,  margem: 43.5 },
+  { nome: 'Maionese Cremosa 500g',     preco: 9.49,  margem: 43.1 },
+  { nome: 'Creme de Leite 200g',       preco: 4.29,  margem: 46.4 },
+  { nome: 'Extrato de Tomate 340g',    preco: 2.79,  margem: 46.2 },
+];
+
+var combosAtivos = [
+  { combo: 'Cerveja + Gelo', desconto: '15%', posicao: 'Entrada da Loja',    validade: '30/03/2026', vendas: 284, receita_extra: 'R$ 1.240,00', status: 'Ativo' },
+  { combo: 'Pao + Manteiga', desconto: '10%', posicao: 'Setor do Produto A',  validade: '31/03/2026', vendas: 192, receita_extra: 'R$ 680,00',   status: 'Ativo' },
+  { combo: 'Macarrao + Molho', desconto: '12%', posicao: 'Corredor Principal', validade: '28/03/2026', vendas: 145, receita_extra: 'R$ 490,00',   status: 'Ativo' },
+  { combo: 'Refrigerante + Salgadinho', desconto: '8%', posicao: 'Ponta de Gondola', validade: '25/03/2026', vendas: 98, receita_extra: 'R$ 310,00', status: 'Expirando' },
+];
+
+function populateComboDropdowns() {
+  var opts = comboProducts.map(function(p, i) {
+    return '<option value="' + i + '">' + p.nome + ' — R$ ' + p.preco.toFixed(2) + '</option>';
+  }).join('');
+  var selA = document.getElementById('combo-prod-a');
+  var selB = document.getElementById('combo-prod-b');
+  if (selA) selA.innerHTML = opts;
+  if (selB) {
+    selB.innerHTML = opts;
+    selB.selectedIndex = 1;
+  }
+}
+
+function abrirCriarCombo(prodA, prodB, lift) {
+  loadSection('criar-combo');
+  setTimeout(() => initCriarCombo(prodA, prodB, lift), 50);
+}
+
+function loadCriarCombo() {
+  initCriarCombo('', '', null);
+}
+
+function initCriarCombo(prodA, prodB, lift) {
+  populateComboDropdowns();
+
+  // Pre-select products if provided
+  if (prodA && prodB) {
+    var selA = document.getElementById('combo-prod-a');
+    var selB = document.getElementById('combo-prod-b');
+    if (selA) {
+      for (var i = 0; i < selA.options.length; i++) {
+        if (selA.options[i].text.toLowerCase().includes(prodA.toLowerCase())) {
+          selA.selectedIndex = i;
+          break;
+        }
+      }
+    }
+    if (selB) {
+      for (var j = 0; j < selB.options.length; j++) {
+        if (selB.options[j].text.toLowerCase().includes(prodB.toLowerCase())) {
+          selB.selectedIndex = j;
+          break;
+        }
+      }
+    }
+  }
+
+  // Default validade to 7 days from now
+  var dt = new Date();
+  dt.setDate(dt.getDate() + 7);
+  var valEl = document.getElementById('combo-validade');
+  if (valEl) valEl.value = dt.toISOString().split('T')[0];
+
+  atualizarPreviewCombo(lift);
+  renderCombosAtivos();
+}
+
+function atualizarPreviewCombo(liftHint) {
+  var selA = document.getElementById('combo-prod-a');
+  var selB = document.getElementById('combo-prod-b');
+  var descontoEl = document.getElementById('combo-desconto');
+  if (!selA || !selB) return;
+
+  var idxA = parseInt(selA.value) || 0;
+  var idxB = parseInt(selB.value) || 1;
+  var desconto = parseFloat(descontoEl ? descontoEl.value : 10) || 10;
+
+  var prodA = comboProducts[idxA] || comboProducts[0];
+  var prodB = comboProducts[idxB] || comboProducts[1];
+
+  var lift = liftHint || (1.5 + Math.random() * 2.0).toFixed(1);
+  lift = parseFloat(lift);
+  var aumentoA = Math.round(lift * 18);
+  var aumentoB = Math.round(lift * 14);
+  var receitaExtra = Math.round((prodA.preco + prodB.preco) * (1 - desconto / 100) * lift * 42);
+  var margemComDesconto = ((prodA.margem + prodB.margem) / 2 - desconto / 2).toFixed(1);
+  var roi = ((receitaExtra * 12) / 500).toFixed(0);
+
+  const previewBody = document.getElementById('combo-preview-body');
+  if (previewBody) {
+    previewBody.innerHTML = `
+      <div class="combo-preview-card">
+        <div class="preview-row"><span>Lift esperado</span><span class="text-green">${lift}x</span></div>
+        <div class="preview-row"><span>Aumento em vendas de ${prodA.nome}</span><span class="text-green">+${aumentoA}%</span></div>
+        <div class="preview-row"><span>Aumento em vendas de ${prodB.nome}</span><span class="text-green">+${aumentoB}%</span></div>
+        <div class="preview-row"><span>Receita adicional est./mes</span><span class="text-green">${fmtCurrency(receitaExtra)}</span></div>
+        <div class="preview-row"><span>Margem com desconto</span><span>${margemComDesconto}%</span></div>
+        <div class="preview-row"><span>ROI estimado anual</span><span class="text-green">${roi}x</span></div>
+      </div>
+      <div class="insight-card" style="margin-top:1rem;">
+        <h3><i class="fas fa-lightbulb"></i> Analise do Par</h3>
+        <ul class="insight-list">
+          <li>Par <strong>${prodA.nome}</strong> + <strong>${prodB.nome}</strong> tem alta afinidade de compra conjunta.</li>
+          <li class="success">Com desconto de ${desconto}% o combo ainda mantem margem de ${margemComDesconto}%.</li>
+          <li class="trend">Lift de ${lift}x indica que clientes que compram o produto A tem ${lift}x mais chance de comprar B.</li>
+          <li class="action">Receita adicional estimada de ${fmtCurrency(receitaExtra)}/mes com o combo ativo — ROI de ${roi}x ao ano.</li>
+        </ul>
+      </div>`;
+  }
+}
+
+function renderCombosAtivos() {
+  var tbody = document.getElementById('combosAtivosBody');
+  if (!tbody) return;
+  var saved = [];
+  try { saved = JSON.parse(localStorage.getItem('sm_combos') || '[]'); } catch(e) {}
+  var all = combosAtivos.concat(saved);
+  tbody.innerHTML = all.map(function(c) {
+    var statusColor = c.status === 'Ativo' ? 'var(--color-success)' : c.status === 'Expirando' ? 'var(--color-warning)' : 'var(--color-text-dim)';
+    return '<tr>' +
+      '<td><strong>' + c.combo + '</strong></td>' +
+      '<td class="text-green">' + c.desconto + '</td>' +
+      '<td style="color:var(--color-text-dim);">' + c.posicao + '</td>' +
+      '<td>' + c.validade + '</td>' +
+      '<td>' + (c.vendas || 0) + ' un</td>' +
+      '<td class="text-green">' + c.receita_extra + '</td>' +
+      '<td><span style="color:' + statusColor + '; font-weight:600;">' + c.status + '</span></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function salvarCombo() {
+  var selA = document.getElementById('combo-prod-a');
+  var selB = document.getElementById('combo-prod-b');
+  if (!selA || !selB) return;
+  var prodA = comboProducts[parseInt(selA.value) || 0];
+  var prodB = comboProducts[parseInt(selB.value) || 1];
+  var desconto = document.getElementById('combo-desconto').value + '%';
+  var posicao = document.getElementById('combo-posicao').value;
+  var validade = document.getElementById('combo-validade').value || '';
+  var obs = document.getElementById('combo-obs').value;
+
+  // Format validade to pt-BR
+  var validadeFmt = validade ? validade.split('-').reverse().join('/') : '—';
+
+  var novoCombo = {
+    combo: prodA.nome + ' + ' + prodB.nome,
+    desconto: desconto,
+    posicao: posicao,
+    validade: validadeFmt,
+    vendas: 0,
+    receita_extra: 'R$ 0,00',
+    status: 'Ativo',
+    obs: obs
+  };
+
+  var saved = [];
+  try { saved = JSON.parse(localStorage.getItem('sm_combos') || '[]'); } catch(e) {}
+  saved.push(novoCombo);
+  localStorage.setItem('sm_combos', JSON.stringify(saved));
+
+  showToast('Combo salvo com sucesso!', 'success');
+  renderCombosAtivos();
+}
+
 /**
  * Load Section
  */
 function loadSection(section) {
+  if (section !== currentSection) previousSection = currentSection;
   currentSection = section;
 
   // Update navigation
@@ -73,9 +445,18 @@ function loadSection(section) {
     }
   });
 
-  // Hide all sections
+  // Hide all sections and close any open sub-panels
   document.querySelectorAll('.section-page').forEach(el => {
     el.classList.remove('active');
+  });
+  document.querySelectorAll('.sub-panel.active').forEach(function(panel) {
+    panel.classList.remove('active');
+    // Restore content div inline style if needed
+    var section = panel.closest('.section-page');
+    if (section) {
+      var contentDiv = section.querySelector('[id^="content-"]');
+      if (contentDiv) contentDiv.style.display = '';
+    }
   });
 
   // Show selected section
@@ -92,6 +473,10 @@ function loadSection(section) {
     perdas: { title: 'Controle de Perdas', sub: 'Rastreamento e reducao de desperdicio' },
     clientes: { title: 'Segmentacao RFM', sub: 'Analise de comportamento de clientes' },
     'base-clientes': { title: 'Base de Clientes', sub: 'Novos clientes, LTV e produtos mais comprados' },
+    skus: { title: 'Inventario Completo', sub: 'Todos os SKUs cadastrados — busca, filtro e status' },
+    'criar-combo': { title: 'Criar Combo Promocional', sub: 'Configure pares de produtos e calcule o impacto esperado' },
+    'plano-perdas': { title: 'Plano de Reducao de Perdas', sub: 'Checklist de acoes sugeridas pela IA para reduzir a taxa de perdas' },
+    'plano-faturamento': { title: 'Plano de Crescimento', sub: 'Checklist de acoes para aumentar o faturamento da loja' },
     crosssell: { title: 'Cross-Sell Intelligence', sub: 'Oportunidades de venda cruzada' },
     anomalias: { title: 'Deteccao de Anomalias', sub: 'Identificacao de padroes atipicos' },
     alertas: { title: 'Central de Alertas', sub: 'Notificacoes e acoes pendentes' },
@@ -112,6 +497,10 @@ function loadSection(section) {
     perdas: loadPerdas,
     clientes: loadClientes,
     'base-clientes': loadBaseClientes,
+    skus: loadSKUs,
+    'criar-combo': loadCriarCombo,
+    'plano-perdas': loadPlanoPerdas,
+    'plano-faturamento': loadPlanoFaturamento,
     crosssell: loadCrossSell,
     anomalias: loadAnomalias,
     alertas: loadAlertas,
@@ -477,6 +866,31 @@ async function loadEstoque() {
 // ====================================================================
 // PERDAS
 // ====================================================================
+var perdasIndividualData = [
+  { produto: 'Pao Frances (kg)',       categoria: 'Padaria',    perda_pct: 8.5, perda_kg: 42.5, perda_brl: 680, motivo: 'Vencimento',     status: 'critico' },
+  { produto: 'Iogurte Morango 170g',   categoria: 'Laticinios', perda_pct: 6.2, perda_kg: 31.0, perda_brl: 420, motivo: 'Vencimento',     status: 'critico' },
+  { produto: 'Banana Prata (kg)',       categoria: 'Hortifruti', perda_pct: 5.8, perda_kg: 87.0, perda_brl: 350, motivo: 'Amadurecimento', status: 'alto' },
+  { produto: 'Presunto Fatiado 200g',  categoria: 'Frios',      perda_pct: 4.1, perda_kg: 12.3, perda_brl: 310, motivo: 'Vencimento',     status: 'alto' },
+  { produto: 'Tomate (kg)',             categoria: 'Hortifruti', perda_pct: 3.9, perda_kg: 65.0, perda_brl: 280, motivo: 'Avaria',         status: 'medio' },
+  { produto: 'Queijo Minas 500g',      categoria: 'Laticinios', perda_pct: 3.5, perda_kg: 17.5, perda_brl: 260, motivo: 'Vencimento',     status: 'medio' },
+  { produto: 'Leite UHT 1L',           categoria: 'Laticinios', perda_pct: 2.8, perda_kg: 56.0, perda_brl: 196, motivo: 'Vencimento',     status: 'medio' },
+  { produto: 'Frango Inteiro (kg)',     categoria: 'Frios',      perda_pct: 2.2, perda_kg: 22.0, perda_brl: 418, motivo: 'Vencimento',     status: 'medio' },
+  { produto: 'Alface Crespa (un)',      categoria: 'Hortifruti', perda_pct: 4.5, perda_kg: 18.0, perda_brl: 81,  motivo: 'Murcha/Avaria',  status: 'alto' },
+  { produto: 'Macarrao 500g',          categoria: 'Alimentos',  perda_pct: 1.2, perda_kg: 30.0, perda_brl: 120, motivo: 'Embalagem',      status: 'baixo' },
+  { produto: 'Cerveja Lata 350ml',     categoria: 'Bebidas',    perda_pct: 0.8, perda_kg: 8.0,  perda_brl: 56,  motivo: 'Quebra',         status: 'baixo' },
+  { produto: 'Manteiga 200g',          categoria: 'Laticinios', perda_pct: 1.9, perda_kg: 9.5,  perda_brl: 95,  motivo: 'Vencimento',     status: 'baixo' },
+];
+
+var perdasSetorialData = [
+  { categoria: 'Padaria',    produtos_afetados: 8,  taxa_pct: 6.8, volume_kg: 145.2, valor_brl: 1700, motivo_principal: 'Vencimento diario', tendencia: 'alta' },
+  { categoria: 'Laticinios', produtos_afetados: 12, taxa_pct: 4.3, volume_kg: 114.0, valor_brl: 1200, motivo_principal: 'Vencimento',        tendencia: 'queda' },
+  { categoria: 'Hortifruti', produtos_afetados: 15, taxa_pct: 4.7, volume_kg: 312.0, valor_brl: 890,  motivo_principal: 'Amadurecimento',    tendencia: 'estavel' },
+  { categoria: 'Frios',      produtos_afetados: 6,  taxa_pct: 3.2, volume_kg: 54.0,  valor_brl: 620,  motivo_principal: 'Vencimento',        tendencia: 'queda' },
+  { categoria: 'Bebidas',    produtos_afetados: 3,  taxa_pct: 0.9, volume_kg: 24.0,  valor_brl: 440,  motivo_principal: 'Quebra',            tendencia: 'estavel' },
+  { categoria: 'Alimentos',  produtos_afetados: 4,  taxa_pct: 1.1, volume_kg: 68.0,  valor_brl: 195,  motivo_principal: 'Embalagem',         tendencia: 'estavel' },
+  { categoria: 'Higiene',    produtos_afetados: 2,  taxa_pct: 0.4, volume_kg: 6.0,   valor_brl: 105,  motivo_principal: 'Avaria',            tendencia: 'estavel' },
+];
+
 async function loadPerdas() {
   const loading = document.getElementById('loading-perdas');
   const content = document.getElementById('content-perdas');
@@ -495,6 +909,14 @@ async function loadPerdas() {
     document.getElementById('perdas-valor').textContent = fmtCurrency(valorPerdido);
     document.getElementById('perdas-total').textContent = data.total_itens || 47;
 
+    // Triple KPI values
+    const tPct = document.getElementById('perdas-taxa-pct');
+    const tKg = document.getElementById('perdas-taxa-kg');
+    const tBrl = document.getElementById('perdas-taxa-brl');
+    if (tPct) tPct.textContent = fmtPct(taxa);
+    if (tKg) tKg.textContent = '847 kg';
+    if (tBrl) tBrl.textContent = fmtCurrency(valorPerdido);
+
     // Insights
     const insightsContainer = document.getElementById('perdas-insights');
     if (insightsContainer) {
@@ -509,43 +931,19 @@ async function loadPerdas() {
     }
 
     // Chart
-    const porCategoria = data.por_categoria || [
-      { categoria: 'Padaria', valor: 1700 },
-      { categoria: 'Laticinios', valor: 1200 },
-      { categoria: 'Hortifruti', valor: 890 },
-      { categoria: 'Frios', valor: 620 },
-      { categoria: 'Bebidas', valor: 440 },
-    ];
+    const porCategoria = data.por_categoria || perdasSetorialData.map(function(s) {
+      return { categoria: s.categoria, valor: s.valor_brl };
+    });
     renderPerdasChart(
       porCategoria.map(c => c.categoria || c.nome),
       porCategoria.map(c => c.valor || c.total)
     );
 
-    // Table
-    const produtosCriticos = data.produtos_criticos || data.produtos || [
-      { produto: 'Pao Frances (kg)', perda_pct: 8.5, valor: 680, motivo: 'Vencimento', status: 'critico' },
-      { produto: 'Iogurte Morango 170g', perda_pct: 6.2, valor: 420, motivo: 'Vencimento', status: 'critico' },
-      { produto: 'Banana Prata (kg)', perda_pct: 5.8, valor: 350, motivo: 'Amadurecimento', status: 'alto' },
-      { produto: 'Presunto Fatiado 200g', perda_pct: 4.1, valor: 310, motivo: 'Vencimento', status: 'alto' },
-      { produto: 'Tomate (kg)', perda_pct: 3.9, valor: 280, motivo: 'Avaria', status: 'medio' },
-      { produto: 'Queijo Minas 500g', perda_pct: 3.5, valor: 260, motivo: 'Vencimento', status: 'medio' },
-    ];
+    // Individual table
+    renderTabelaPerdasIndividual();
 
-    const tbody = document.querySelector('#perdasProdTable tbody');
-    if (tbody) {
-      tbody.innerHTML = produtosCriticos.map((p, i) => {
-        const statusColor = p.status === 'critico' ? 'var(--color-danger)' : p.status === 'alto' ? 'var(--color-warning)' : 'var(--color-primary)';
-        return `
-          <tr>
-            <td>${i + 1}</td>
-            <td>${p.produto || p.nome}</td>
-            <td class="text-red">${p.perda_pct}%</td>
-            <td>${fmtCurrency(p.valor)}</td>
-            <td>${p.motivo}</td>
-            <td><span style="color:${statusColor}; font-weight:600;">${p.status}</span></td>
-          </tr>`;
-      }).join('');
-    }
+    // Setorial table
+    renderTabelaPerdasSetorial();
 
     loading.style.display = 'none';
     content.classList.remove('hidden');
@@ -553,7 +951,58 @@ async function loadPerdas() {
     console.error('Error loading perdas:', error);
     loading.style.display = 'none';
     content.classList.remove('hidden');
+    // Render with mock data anyway
+    renderTabelaPerdasIndividual();
+    renderTabelaPerdasSetorial();
   }
+}
+
+function renderTabelaPerdasIndividual() {
+  var tbody = document.getElementById('perdasIndividualBody');
+  if (!tbody) return;
+  var statusColor = function(s) {
+    return s === 'critico' ? 'var(--color-danger)' : s === 'alto' ? 'var(--color-warning)' : s === 'medio' ? 'var(--color-primary)' : 'var(--color-text-dim)';
+  };
+  tbody.innerHTML = perdasIndividualData.map(function(p, i) {
+    var isHighPct = unidadePerda === 'pct';
+    var isHighKg  = unidadePerda === 'kg';
+    var isHighBrl = unidadePerda === 'brl';
+    return '<tr>' +
+      '<td>' + (i + 1) + '</td>' +
+      '<td>' + p.produto + '</td>' +
+      '<td style="color:var(--color-text-dim);">' + p.categoria + '</td>' +
+      '<td class="text-red" style="' + (isHighPct ? 'font-weight:700;' : 'opacity:0.7;') + '">' + p.perda_pct + '%</td>' +
+      '<td style="' + (isHighKg ? 'font-weight:700; color:var(--color-warning);' : 'opacity:0.7;') + '">' + p.perda_kg + ' kg</td>' +
+      '<td style="' + (isHighBrl ? 'font-weight:700; color:var(--color-danger);' : 'opacity:0.7;') + '">' + fmtCurrency(p.perda_brl) + '</td>' +
+      '<td style="color:var(--color-text-dim);">' + p.motivo + '</td>' +
+      '<td><span style="color:' + statusColor(p.status) + '; font-weight:600;">' + p.status + '</span></td>' +
+      '</tr>';
+  }).join('');
+}
+
+function renderTabelaPerdasSetorial() {
+  var tbody = document.getElementById('perdasSetorialBody');
+  if (!tbody) return;
+  var trendClass = function(t) {
+    return 'tendencia-' + (t || 'estavel');
+  };
+  var trendIcon = function(t) {
+    return t === 'alta' ? '\u2191' : t === 'queda' ? '\u2193' : '\u2192';
+  };
+  tbody.innerHTML = perdasSetorialData.map(function(s) {
+    var isHighPct = unidadePerda === 'pct';
+    var isHighKg  = unidadePerda === 'kg';
+    var isHighBrl = unidadePerda === 'brl';
+    return '<tr>' +
+      '<td><strong>' + s.categoria + '</strong></td>' +
+      '<td>' + s.produtos_afetados + '</td>' +
+      '<td style="' + (isHighPct ? 'font-weight:700; color:var(--color-danger);' : 'opacity:0.7;') + '">' + s.taxa_pct + '%</td>' +
+      '<td style="' + (isHighKg ? 'font-weight:700; color:var(--color-warning);' : 'opacity:0.7;') + '">' + s.volume_kg + ' kg</td>' +
+      '<td style="' + (isHighBrl ? 'font-weight:700; color:var(--color-danger);' : 'opacity:0.7;') + '">' + fmtCurrency(s.valor_brl) + '</td>' +
+      '<td style="color:var(--color-text-dim);">' + s.motivo_principal + '</td>' +
+      '<td><span class="' + trendClass(s.tendencia) + '">' + trendIcon(s.tendencia) + ' ' + s.tendencia + '</span></td>' +
+      '</tr>';
+  }).join('');
 }
 
 // ====================================================================
@@ -713,7 +1162,7 @@ async function loadCrossSell() {
         <td>${(p.suporte * 100).toFixed(1)}%</td>
         <td><strong>${p.lift}</strong></td>
         <td>${(p.confianca * 100).toFixed(1)}%</td>
-        <td><button class="btn btn-primary" style="padding:4px 12px; font-size:0.75rem;">Criar Combo</button></td>
+        <td><button class="btn btn-primary" style="padding:4px 12px; font-size:0.75rem;" onclick="abrirCriarCombo('${p.produto_a}', '${p.produto_b}', ${p.lift})">Criar Combo</button></td>
       </tr>`).join('');
 
     loading.style.display = 'none';
@@ -1040,6 +1489,206 @@ async function loadBaseClientes() {
 // ====================================================================
 function loadClima() {
   // Static content already in HTML, nothing to load
+}
+
+// ====================================================================
+// PLANO DE REDUCAO DE PERDAS — Checklist Interativo
+// ====================================================================
+
+const planoPerdaItems = [
+  {
+    categoria: 'Controle de Validade',
+    cor: '#ef4444',
+    icone: 'fa-calendar-xmark',
+    acoes: [
+      { id: 'pp1',  texto: 'Implantar rotina FIFO rigorosa em todos os setores (Primeiro que Vence, Primeiro que Sai)', impacto: 'Alto', economia: 'R$ 820/mes' },
+      { id: 'pp2',  texto: 'Criar etiquetas de alerta coloridas para produtos com validade em menos de 5 dias', impacto: 'Alto', economia: 'R$ 480/mes' },
+      { id: 'pp3',  texto: 'Estabelecer contagem fisica de vencimentos toda segunda e quinta-feira', impacto: 'Medio', economia: 'R$ 310/mes' },
+      { id: 'pp4',  texto: 'Aplicar desconto progressivo: 20% com 3 dias, 40% com 1 dia de validade', impacto: 'Alto', economia: 'R$ 640/mes' },
+    ]
+  },
+  {
+    categoria: 'Gestao de Estoque',
+    cor: '#f59e0b',
+    icone: 'fa-boxes-stacked',
+    acoes: [
+      { id: 'pp5',  texto: 'Negociar lotes menores de Laticinios com fornecedor para reduzir excedente', impacto: 'Alto', economia: 'R$ 520/mes' },
+      { id: 'pp6',  texto: 'Cadastrar estoque minimo e maximo para todos os 1.543 SKUs no sistema', impacto: 'Medio', economia: 'R$ 280/mes' },
+      { id: 'pp7',  texto: 'Implementar pedido automatico baseado em giro medio de estoque por produto', impacto: 'Alto', economia: 'R$ 730/mes' },
+      { id: 'pp8',  texto: 'Reduzir estoque de seguranca de Padaria para max 4 horas de producao', impacto: 'Medio', economia: 'R$ 390/mes' },
+    ]
+  },
+  {
+    categoria: 'Padaria e Hortifruti',
+    cor: '#22c55e',
+    icone: 'fa-wheat-awn',
+    acoes: [
+      { id: 'pp9',  texto: 'Calcular producao de paes por horario baseado no historico de vendas por turno', impacto: 'Muito Alto', economia: 'R$ 950/mes' },
+      { id: 'pp10', texto: 'Implantar mini-promocao "Fim do Dia" para paes nao vendidos apos 18h', impacto: 'Alto', economia: 'R$ 420/mes' },
+      { id: 'pp11', texto: 'Controlar temperatura de camara fria de Hortifruti 3x ao dia com registro', impacto: 'Medio', economia: 'R$ 260/mes' },
+      { id: 'pp12', texto: 'Receber Hortifruti em dias alternados para reducao de estoque parado', impacto: 'Alto', economia: 'R$ 340/mes' },
+    ]
+  },
+  {
+    categoria: 'Monitoramento e Alertas',
+    cor: '#3b82f6',
+    icone: 'fa-bell',
+    acoes: [
+      { id: 'pp13', texto: 'Ativar alertas automaticos no sistema para estoque proximo do vencimento', impacto: 'Medio', economia: 'R$ 190/mes' },
+      { id: 'pp14', texto: 'Gerar relatorio semanal de perdas por categoria com responsavel identificado', impacto: 'Medio', economia: 'R$ 150/mes' },
+      { id: 'pp15', texto: 'Capacitar equipe: treinamento mensal de 30min sobre controle de perdas', impacto: 'Alto', economia: 'R$ 400/mes' },
+      { id: 'pp16', texto: 'Estabelecer meta mensal de perda por setor e bonificar equipe ao atingir', impacto: 'Alto', economia: 'R$ 700/mes' },
+    ]
+  }
+];
+
+function loadPlanoPerdas() {
+  const container = document.getElementById('plano-perdas-cols');
+  if (!container) return;
+  const saved = getSavedChecklist('plano_perdas');
+  container.innerHTML = planoPerdaItems.map(grupo => `
+    <div class="plano-grupo">
+      <div class="plano-grupo-header" style="border-left-color:${grupo.cor};">
+        <i class="fas ${grupo.icone}" style="color:${grupo.cor};"></i>
+        <span>${grupo.categoria}</span>
+      </div>
+      <div class="plano-acoes">
+        ${grupo.acoes.map(a => {
+          const checked = saved.includes(a.id);
+          return `
+            <div class="plano-item ${checked ? 'done' : ''}" id="pi-${a.id}">
+              <label class="plano-check-label">
+                <input type="checkbox" class="plano-check" data-id="${a.id}" data-plan="plano_perdas" ${checked ? 'checked' : ''} onchange="togglePlanoItem(this, 'pp-progress-bar', 'pp-progress-pct', 'pp-concluidas', 'pp-total', planoPerdaItems)" />
+                <span class="plano-texto">${a.texto}</span>
+              </label>
+              <div class="plano-meta">
+                <span class="plano-impacto" style="color:${a.impacto === 'Muito Alto' ? '#ef4444' : a.impacto === 'Alto' ? '#f59e0b' : '#22c55e'};">${a.impacto}</span>
+                <span class="plano-economia">${a.economia}</span>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+
+  atualizarProgressoPlano('pp-progress-bar', 'pp-progress-pct', 'pp-concluidas', 'pp-total', planoPerdaItems, 'plano_perdas');
+}
+
+// ====================================================================
+// PLANO DE CRESCIMENTO DE FATURAMENTO — Checklist Interativo
+// ====================================================================
+
+const planoFaturamentoItems = [
+  {
+    categoria: 'Cross-Sell e Combos',
+    cor: '#22c55e',
+    icone: 'fa-cart-plus',
+    acoes: [
+      { id: 'pf1',  texto: 'Criar os top 3 combos sugeridos pela IA (Cerveja+Gelo, Pao+Manteiga, Macarrao+Molho)', impacto: 'Muito Alto', potencial: '+R$ 3.200/mes' },
+      { id: 'pf2',  texto: 'Reposicionar Salgadinhos ao lado de Refrigerantes em todos os corredores', impacto: 'Alto', potencial: '+R$ 1.100/mes' },
+      { id: 'pf3',  texto: 'Treinar equipe de caixa para sugerir complemento baseado nos pares de cross-sell', impacto: 'Alto', potencial: '+R$ 1.800/mes' },
+      { id: 'pf4',  texto: 'Criar display "Leve Junto" nas 5 principais associacoes de produto', impacto: 'Medio', potencial: '+R$ 900/mes' },
+    ]
+  },
+  {
+    categoria: 'Reativacao de Clientes',
+    cor: '#3b82f6',
+    icone: 'fa-users',
+    acoes: [
+      { id: 'pf5',  texto: 'Enviar campanha WhatsApp para 890 clientes em risco com cupom de 15% de desconto', impacto: 'Muito Alto', potencial: '+R$ 8.900/mes' },
+      { id: 'pf6',  texto: 'Criar programa de fidelidade para os 120 clientes Campeoes (cashback de 3%)', impacto: 'Alto', potencial: '+R$ 2.100/mes' },
+      { id: 'pf7',  texto: 'Enviar oferta de segunda compra para 580 clientes Potenciais (cadastrados ha menos de 60 dias)', impacto: 'Alto', potencial: '+R$ 3.480/mes' },
+      { id: 'pf8',  texto: 'Criar pesquisa de satisfacao para 1.200 clientes perdidos e oferecer cupom de retorno', impacto: 'Medio', potencial: '+R$ 2.400/mes' },
+    ]
+  },
+  {
+    categoria: 'Gestao por Categoria',
+    cor: '#f59e0b',
+    icone: 'fa-chart-bar',
+    acoes: [
+      { id: 'pf9',  texto: 'Ampliar mix de Bebidas para dias quentes: agua de coco, isotonicos, sucos gelados', impacto: 'Alto', potencial: '+R$ 1.600/mes' },
+      { id: 'pf10', texto: 'Criar secao de produtos premium ao lado dos itens mais vendidos (up-sell)', impacto: 'Medio', potencial: '+R$ 1.200/mes' },
+      { id: 'pf11', texto: 'Implantar precificacao dinamica: aumentar margem de itens com alta demanda e baixa elasticidade', impacto: 'Alto', potencial: '+R$ 2.200/mes' },
+      { id: 'pf12', texto: 'Adicionar opcao de delivery para ampliar base de clientes sem aumento de estrutura fisica', impacto: 'Muito Alto', potencial: '+R$ 4.500/mes' },
+    ]
+  },
+  {
+    categoria: 'Operacao e Experiencia',
+    cor: '#a855f7',
+    icone: 'fa-star',
+    acoes: [
+      { id: 'pf13', texto: 'Melhorar sinalizacao de ofertas na loja com cartazes padronizados e bem posicionados', impacto: 'Medio', potencial: '+R$ 780/mes' },
+      { id: 'pf14', texto: 'Criar roteiro semanal de pontas de gondola baseado nas analises de cross-sell', impacto: 'Alto', potencial: '+R$ 1.500/mes' },
+      { id: 'pf15', texto: 'Implantar checkout express para compras de ate 10 itens e reduzir abandono', impacto: 'Medio', potencial: '+R$ 620/mes' },
+      { id: 'pf16', texto: 'Coletar dados de e-mail e WhatsApp de todos os clientes no PDV para base de marketing', impacto: 'Alto', potencial: '+R$ 1.800/mes' },
+    ]
+  }
+];
+
+function loadPlanoFaturamento() {
+  const container = document.getElementById('plano-faturamento-cols');
+  if (!container) return;
+  const saved = getSavedChecklist('plano_faturamento');
+  container.innerHTML = planoFaturamentoItems.map(grupo => `
+    <div class="plano-grupo">
+      <div class="plano-grupo-header" style="border-left-color:${grupo.cor};">
+        <i class="fas ${grupo.icone}" style="color:${grupo.cor};"></i>
+        <span>${grupo.categoria}</span>
+      </div>
+      <div class="plano-acoes">
+        ${grupo.acoes.map(a => {
+          const checked = saved.includes(a.id);
+          return `
+            <div class="plano-item ${checked ? 'done' : ''}" id="pi-${a.id}">
+              <label class="plano-check-label">
+                <input type="checkbox" class="plano-check" data-id="${a.id}" data-plan="plano_faturamento" ${checked ? 'checked' : ''} onchange="togglePlanoItem(this, 'pf-progress-bar', 'pf-progress-pct', 'pf-concluidas', 'pf-total', planoFaturamentoItems)" />
+                <span class="plano-texto">${a.texto}</span>
+              </label>
+              <div class="plano-meta">
+                <span class="plano-impacto" style="color:${a.impacto === 'Muito Alto' ? '#22c55e' : a.impacto === 'Alto' ? '#f59e0b' : '#3b82f6'};">${a.impacto}</span>
+                <span class="plano-economia" style="color:var(--color-success);">${a.potencial}</span>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`).join('');
+
+  atualizarProgressoPlano('pf-progress-bar', 'pf-progress-pct', 'pf-concluidas', 'pf-total', planoFaturamentoItems, 'plano_faturamento');
+}
+
+function getSavedChecklist(key) {
+  try { return JSON.parse(localStorage.getItem('sm_checklist_' + key) || '[]'); } catch(e) { return []; }
+}
+
+function togglePlanoItem(checkbox, barId, pctId, doneId, totalId, items) {
+  const plan = checkbox.dataset.plan;
+  const id = checkbox.dataset.id;
+  const saved = getSavedChecklist(plan);
+  const itemEl = document.getElementById('pi-' + id);
+  if (checkbox.checked) {
+    if (!saved.includes(id)) saved.push(id);
+    if (itemEl) itemEl.classList.add('done');
+  } else {
+    const idx = saved.indexOf(id);
+    if (idx > -1) saved.splice(idx, 1);
+    if (itemEl) itemEl.classList.remove('done');
+  }
+  localStorage.setItem('sm_checklist_' + plan, JSON.stringify(saved));
+  atualizarProgressoPlano(barId, pctId, doneId, totalId, items, plan);
+}
+
+function atualizarProgressoPlano(barId, pctId, doneId, totalId, items, plan) {
+  const total = items.reduce((acc, g) => acc + g.acoes.length, 0);
+  const saved = getSavedChecklist(plan);
+  const done = saved.length;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  const bar = document.getElementById(barId);
+  const pctEl = document.getElementById(pctId);
+  const doneEl = document.getElementById(doneId);
+  const totalEl = document.getElementById(totalId);
+  if (bar) bar.style.width = pct + '%';
+  if (pctEl) pctEl.textContent = pct + '%';
+  if (doneEl) doneEl.textContent = done;
+  if (totalEl) totalEl.textContent = total;
 }
 
 // ====================================================================

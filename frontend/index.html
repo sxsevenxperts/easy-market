@@ -50,6 +50,18 @@
           </a>
         </li>
         <li>
+          <a href="#" class="nav-item" data-section="plano-perdas">
+            <i class="fas fa-list-check"></i>
+            <span>Plano Perdas</span>
+          </a>
+        </li>
+        <li>
+          <a href="#" class="nav-item" data-section="plano-faturamento">
+            <i class="fas fa-rocket"></i>
+            <span>Plano Crescimento</span>
+          </a>
+        </li>
+        <li>
           <a href="#" class="nav-item" data-section="clientes">
             <i class="fas fa-users"></i>
             <span>Clientes</span>
@@ -135,6 +147,7 @@
         </div>
       </div>
       <div class="topbar-right">
+        <div class="topbar-branding">Powered By <strong>Seven Xperts</strong> &nbsp;|&nbsp; CNPJ 32.794.007/0001-19</div>
         <div class="status-pill" id="systemStatus">
           <span class="status-dot status-green"></span>
           <span>Sistema Online</span>
@@ -340,7 +353,7 @@
       </div>
       <div id="content-estoque" class="hidden">
         <div class="grid-3col">
-          <div class="kpi-card kpi-card-wide">
+          <div class="kpi-card kpi-card-wide clickable" title="Ver todos os SKUs" onclick="mostrarSKUs()">
             <div class="kpi-icon kpi-purple"><i class="fas fa-boxes-stacked"></i></div>
             <div class="kpi-body">
               <span class="kpi-label">SKUs Monitorados</span>
@@ -393,6 +406,53 @@
           </div>
         </div>
       </div>
+
+      <!-- SKU List Sub-Panel -->
+      <div id="panel-sku-list" class="sub-panel">
+        <div class="sub-panel-header">
+          <button class="back-btn" onclick="hideSubPanel('panel-sku-list')">
+            <i class="fas fa-arrow-left"></i> Voltar ao Estoque
+          </button>
+          <h2>Inventario Completo — SKUs</h2>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="sku-filters">
+              <input type="text" id="skuSearch" placeholder="Buscar produto..." class="search-input" oninput="filtrarSKUs()" />
+              <select id="skuCategoria" onchange="filtrarSKUs()">
+                <option value="">Todas as categorias</option>
+                <option>Alimentos</option>
+                <option>Bebidas</option>
+                <option>Laticinios</option>
+                <option>Higiene</option>
+                <option>Padaria</option>
+                <option>Frios</option>
+                <option>Hortifruti</option>
+              </select>
+              <select id="skuStatus" onchange="filtrarSKUs()">
+                <option value="">Todos os status</option>
+                <option value="ok">Normal</option>
+                <option value="baixo">Baixo Estoque</option>
+                <option value="critico">Critico</option>
+                <option value="vencendo">Vencendo</option>
+              </select>
+            </div>
+            <span id="skuCount" style="color:var(--color-text-dim); font-size:0.85rem;"></span>
+          </div>
+          <div class="card-body" style="overflow-x:auto;">
+            <table class="data-table" id="skuFullTable">
+              <thead>
+                <tr>
+                  <th>SKU</th><th>Produto</th><th>Categoria</th><th>Estoque Atual</th>
+                  <th>Estoque Min</th><th>Preco Custo</th><th>Preco Venda</th>
+                  <th>Margem</th><th>Giro (dias)</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="skuFullBody"><!-- injected --></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- ==============================
@@ -403,6 +463,17 @@
         <div class="spinner"></div><p>Carregando...</p>
       </div>
       <div id="content-perdas" class="hidden">
+
+        <!-- Metric Toggle Bar -->
+        <div class="metric-toggle-bar">
+          <span style="color:var(--color-text-dim); font-size:0.88rem;">Exibir taxa em:</span>
+          <div class="metric-toggle">
+            <button class="metric-btn active" data-unit="pct" onclick="setUnidadePerda('pct', this)">%</button>
+            <button class="metric-btn" data-unit="kg" onclick="setUnidadePerda('kg', this)">kg / un</button>
+            <button class="metric-btn" data-unit="brl" onclick="setUnidadePerda('brl', this)">R$</button>
+          </div>
+        </div>
+
         <div class="grid-3col">
           <div class="kpi-card kpi-card-wide">
             <div class="kpi-icon kpi-red"><i class="fas fa-arrow-trend-down"></i></div>
@@ -410,6 +481,20 @@
               <span class="kpi-label">Taxa de Perda Atual</span>
               <span class="kpi-value" id="perdas-taxa">—</span>
               <span class="kpi-delta" id="perdas-meta">meta: &lt; 2%</span>
+              <div class="perda-triple-kpi">
+                <div>
+                  <span class="perda-metric-label">%</span>
+                  <span class="perda-metric-val" id="perdas-taxa-pct">2.3%</span>
+                </div>
+                <div>
+                  <span class="perda-metric-label">kg / un</span>
+                  <span class="perda-metric-val" id="perdas-taxa-kg">847 kg</span>
+                </div>
+                <div>
+                  <span class="perda-metric-label">R$</span>
+                  <span class="perda-metric-val" id="perdas-taxa-brl">R$ 4.850</span>
+                </div>
+              </div>
             </div>
           </div>
           <div class="kpi-card kpi-card-wide">
@@ -432,25 +517,65 @@
 
         <div id="perdas-insights" class="mt-24"></div>
 
-        <div class="grid-2col mt-24">
+        <!-- Breakdown Tabs -->
+        <div class="filter-tabs mt-24" id="perdasTabs" style="margin-bottom:1rem;">
+          <button class="filter-tab active" data-perdas-tab="individual" onclick="switchPerdasTab('individual', this)">Por Produto (Individual)</button>
+          <button class="filter-tab" data-perdas-tab="setorial" onclick="switchPerdasTab('setorial', this)">Por Categoria (Setorial)</button>
+        </div>
+
+        <!-- Individual Products Table -->
+        <div id="perdas-tab-individual" class="perdas-tab-view active">
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-chart-bar"></i> Perdas por Categoria</h3>
+              <h3 class="card-title"><i class="fas fa-ranking-star"></i> Perdas por Produto</h3>
             </div>
-            <div class="card-body">
-              <div class="chart-wrap"><canvas id="perdasChart"></canvas></div>
-            </div>
-          </div>
-          <div class="card">
-            <div class="card-header">
-              <h3 class="card-title"><i class="fas fa-ranking-star"></i> Produtos Criticos</h3>
-            </div>
-            <div class="card-body">
-              <table class="data-table" id="perdasProdTable">
-                <thead><tr><th>#</th><th>Produto</th><th>Perda %</th><th>Valor</th><th>Motivo</th><th>Status</th></tr></thead>
-                <tbody><!-- injected --></tbody>
+            <div class="card-body" style="overflow-x:auto;">
+              <table class="data-table" id="perdasIndividualTable">
+                <thead>
+                  <tr>
+                    <th>#</th><th>Produto</th><th>Categoria</th>
+                    <th id="col-pct" style="color:var(--color-primary);">Perda %</th>
+                    <th id="col-kg">Perda kg/un</th>
+                    <th id="col-brl">Perda R$</th>
+                    <th>Motivo</th><th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="perdasIndividualBody"><!-- injected --></tbody>
               </table>
             </div>
+          </div>
+        </div>
+
+        <!-- Setorial Table -->
+        <div id="perdas-tab-setorial" class="perdas-tab-view">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-layer-group"></i> Perdas por Categoria</h3>
+            </div>
+            <div class="card-body" style="overflow-x:auto;">
+              <table class="data-table" id="perdasSetorialTable">
+                <thead>
+                  <tr>
+                    <th>Categoria</th><th>Produtos afetados</th>
+                    <th id="scol-pct" style="color:var(--color-primary);">Taxa %</th>
+                    <th id="scol-kg">Volume (kg)</th>
+                    <th id="scol-brl">Valor (R$)</th>
+                    <th>Principal motivo</th><th>Tendencia</th>
+                  </tr>
+                </thead>
+                <tbody id="perdasSetorialBody"><!-- injected --></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="card mt-24">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-chart-bar"></i> Perdas por Categoria (Grafico)</h3>
+          </div>
+          <div class="card-body">
+            <div class="chart-wrap"><canvas id="perdasChart"></canvas></div>
           </div>
         </div>
       </div>
@@ -657,6 +782,100 @@
               <tbody><!-- injected --></tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      <!-- Criar Combo Sub-Panel -->
+      <div id="panel-criar-combo" class="sub-panel">
+        <div class="sub-panel-header">
+          <button class="back-btn" onclick="hideSubPanel('panel-criar-combo')">
+            <i class="fas fa-arrow-left"></i> Voltar ao Cross-Sell
+          </button>
+          <h2>Criar Combo Promocional</h2>
+        </div>
+
+        <div class="grid-2col">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-boxes-stacked"></i> Selecionar Produtos</h3>
+            </div>
+            <div class="card-body">
+              <div class="config-form">
+                <div class="config-field">
+                  <label>Produto A (Principal)</label>
+                  <select id="combo-prod-a" onchange="atualizarPreviewCombo()">
+                    <!-- options injected by JS -->
+                  </select>
+                </div>
+                <div class="config-field">
+                  <label>Produto B (Complementar)</label>
+                  <select id="combo-prod-b" onchange="atualizarPreviewCombo()">
+                    <!-- options injected by JS -->
+                  </select>
+                </div>
+                <div class="config-field">
+                  <label>Desconto do Combo (%)</label>
+                  <input type="number" id="combo-desconto" value="10" min="1" max="50" onchange="atualizarPreviewCombo()" oninput="atualizarPreviewCombo()" />
+                </div>
+                <div class="config-field">
+                  <label>Validade da Promocao</label>
+                  <input type="date" id="combo-validade" />
+                </div>
+                <div class="config-field">
+                  <label>Posicionamento na Loja</label>
+                  <select id="combo-posicao">
+                    <option>Ponta de Gondola</option>
+                    <option>Display Checkout</option>
+                    <option>Corredor Principal</option>
+                    <option>Entrada da Loja</option>
+                    <option>Setor do Produto A</option>
+                    <option>Display Refrigerado</option>
+                  </select>
+                </div>
+                <div class="config-field">
+                  <label>Observacoes</label>
+                  <input type="text" id="combo-obs" placeholder="Ex: Combo especial fim de semana" />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fas fa-chart-line"></i> Previsao de Impacto</h3>
+            </div>
+            <div class="card-body" id="combo-preview">
+              <div class="combo-preview-card">
+                <div class="preview-row"><span>Lift esperado</span><span id="prev-lift" class="text-green">—</span></div>
+                <div class="preview-row"><span>Aumento em vendas A</span><span id="prev-vendas-a" class="text-green">—</span></div>
+                <div class="preview-row"><span>Aumento em vendas B</span><span id="prev-vendas-b" class="text-green">—</span></div>
+                <div class="preview-row"><span>Receita adicional est./mes</span><span id="prev-receita" class="text-green">—</span></div>
+                <div class="preview-row"><span>Margem com desconto</span><span id="prev-margem">—</span></div>
+                <div class="preview-row"><span>ROI estimado</span><span id="prev-roi" class="text-green">—</span></div>
+              </div>
+              <div class="insight-card" style="margin-top:1rem;">
+                <h3><i class="fas fa-lightbulb"></i> Analise do Par</h3>
+                <ul class="insight-list" id="combo-insights-list"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card mt-24">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-list-check"></i> Combos Ativos</h3>
+          </div>
+          <div class="card-body" style="overflow-x:auto;">
+            <table class="data-table" id="combosAtivosTable">
+              <thead><tr><th>Combo</th><th>Desconto</th><th>Posicao</th><th>Validade</th><th>Vendas</th><th>Receita Extra</th><th>Status</th></tr></thead>
+              <tbody id="combosAtivosBody"><!-- injected --></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div style="margin-top:1.5rem; display:flex; gap:1rem;">
+          <button class="btn btn-primary" onclick="salvarCombo()"><i class="fas fa-save"></i> Salvar Combo</button>
+          <button class="btn btn-ghost" onclick="hideSubPanel('panel-criar-combo')">Cancelar</button>
         </div>
       </div>
     </section>
@@ -1049,6 +1268,205 @@
 
       </div>
     </section>
+
+    <!-- ==============================
+         SECTION: SKUs — Full Inventory (drill-down from Estoque)
+         ============================== -->
+    <section class="content-area section-page" id="section-skus">
+      <div class="drilldown-back">
+        <button class="back-btn" onclick="voltarSecao()"><i class="fas fa-arrow-left"></i> Voltar ao Estoque</button>
+        <span class="drilldown-breadcrumb">Estoque &rsaquo; Inventario Completo</span>
+      </div>
+      <div class="card">
+        <div class="card-header" style="flex-wrap:wrap; gap:0.75rem;">
+          <h3 class="card-title"><i class="fas fa-boxes-stacked"></i> Todos os SKUs Cadastrados</h3>
+          <div class="sku-filters">
+            <input type="text" id="skuSearch" placeholder="Buscar produto ou SKU..." class="search-input" oninput="filtrarSKUs()" />
+            <select id="skuCategoria" class="select-sm" onchange="filtrarSKUs()">
+              <option value="">Todas as categorias</option>
+              <option>Alimentos</option><option>Bebidas</option><option>Laticinios</option>
+              <option>Higiene</option><option>Padaria</option><option>Frios</option><option>Hortifruti</option>
+            </select>
+            <select id="skuStatus" class="select-sm" onchange="filtrarSKUs()">
+              <option value="">Todos os status</option>
+              <option value="ok">Normal</option>
+              <option value="baixo">Baixo Estoque</option>
+              <option value="critico">Critico</option>
+              <option value="vencendo">Vencendo</option>
+            </select>
+          </div>
+          <span id="skuCount" style="color:var(--color-text-dim); font-size:0.82rem; margin-left:auto;"></span>
+        </div>
+        <div class="card-body" style="overflow-x:auto;">
+          <table class="data-table" id="skuFullTable">
+            <thead>
+              <tr>
+                <th>SKU</th><th>Produto</th><th>Categoria</th>
+                <th>Estoque</th><th>Minimo</th>
+                <th>Preco Custo</th><th>Preco Venda</th><th>Margem</th>
+                <th>Giro (dias)</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="skuFullBody"><!-- injected --></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: CRIAR COMBO (drill-down from Cross-Sell)
+         ============================== -->
+    <section class="content-area section-page" id="section-criar-combo">
+      <div class="drilldown-back">
+        <button class="back-btn" onclick="voltarSecao()"><i class="fas fa-arrow-left"></i> Voltar ao Cross-Sell</button>
+        <span class="drilldown-breadcrumb">Cross-Sell &rsaquo; Criar Combo Promocional</span>
+      </div>
+      <div class="grid-2col">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-boxes-stacked"></i> Selecionar Produtos</h3>
+          </div>
+          <div class="card-body">
+            <div class="config-form">
+              <div class="config-field">
+                <label>Produto A — Principal</label>
+                <select id="combo-prod-a" onchange="atualizarPreviewCombo()">
+                  <option value="">Selecione o produto principal...</option>
+                </select>
+              </div>
+              <div class="config-field">
+                <label>Produto B — Complementar</label>
+                <select id="combo-prod-b" onchange="atualizarPreviewCombo()">
+                  <option value="">Selecione o produto complementar...</option>
+                </select>
+              </div>
+              <div class="config-field">
+                <label>Desconto do Combo (%)</label>
+                <input type="number" id="combo-desconto" value="10" min="1" max="50" oninput="atualizarPreviewCombo()" />
+              </div>
+              <div class="config-field">
+                <label>Validade da Promocao</label>
+                <input type="date" id="combo-validade" />
+              </div>
+              <div class="config-field">
+                <label>Posicionamento na Loja</label>
+                <select id="combo-posicao">
+                  <option>Ponta de Gondola</option>
+                  <option>Display Checkout</option>
+                  <option>Corredor Principal</option>
+                  <option>Entrada da Loja</option>
+                  <option>Setor do Produto A</option>
+                  <option>Display Refrigerado</option>
+                </select>
+              </div>
+              <div class="config-field">
+                <label>Observacoes</label>
+                <input type="text" id="combo-obs" placeholder="Ex: Combo especial fim de semana" />
+              </div>
+              <div style="display:flex; gap:1rem; margin-top:0.5rem;">
+                <button class="btn btn-primary" onclick="salvarCombo()"><i class="fas fa-save"></i> Salvar Combo</button>
+                <button class="btn btn-ghost" onclick="voltarSecao()">Cancelar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title"><i class="fas fa-chart-line"></i> Previsao de Impacto</h3>
+          </div>
+          <div class="card-body" id="combo-preview-body">
+            <div style="color:var(--color-text-dim); text-align:center; padding:2rem;">
+              <i class="fas fa-circle-info" style="font-size:2rem; margin-bottom:0.75rem; display:block;"></i>
+              Selecione os dois produtos para ver a previsao de impacto.
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card mt-24">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fas fa-list-check"></i> Combos Ativos</h3>
+        </div>
+        <div class="card-body">
+          <table class="data-table" id="combosAtivosTable">
+            <thead>
+              <tr><th>Combo</th><th>Desconto</th><th>Posicao</th><th>Validade</th><th>Vendas</th><th>Receita Extra</th><th>Status</th></tr>
+            </thead>
+            <tbody id="combosAtivosBody"><!-- injected --></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: PLANO DE REDUCAO DE PERDAS
+         ============================== -->
+    <section class="content-area section-page" id="section-plano-perdas">
+      <div id="content-plano-perdas">
+        <div class="plano-header-bar">
+          <div class="plano-progress-block">
+            <div class="plano-progress-label">Progresso geral — Reducao de Perdas</div>
+            <div class="plano-progress-bar-wrap">
+              <div class="plano-progress-bar" id="pp-progress-bar" style="width:0%"></div>
+            </div>
+            <span class="plano-progress-pct" id="pp-progress-pct">0%</span>
+          </div>
+          <div class="plano-kpi-mini">
+            <span id="pp-concluidas">0</span>/<span id="pp-total">0</span> acoes concluidas
+          </div>
+        </div>
+
+        <div class="insight-card" style="margin-bottom:1.5rem;">
+          <h3><i class="fas fa-robot"></i> Analise da IA — Contexto das Sugestoes</h3>
+          <ul class="insight-list">
+            <li class="warning">Taxa de perdas atual: 2.3% — acima da meta de 2.0%. Impacto financeiro: R$ 4.850/mes.</li>
+            <li>Padaria concentra 35% das perdas por vencimento diario de paes frescos sem controle de producao.</li>
+            <li>Laticinios reduziram perdas 18% apos FIFO — replica essa logica nas demais categorias.</li>
+            <li class="action">Cada 0.1pp de reducao na taxa de perdas economiza aprox. R$ 210/mes na operacao.</li>
+          </ul>
+        </div>
+
+        <div class="plano-columns" id="plano-perdas-cols"><!-- injected by JS --></div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         SECTION: PLANO DE CRESCIMENTO DE FATURAMENTO
+         ============================== -->
+    <section class="content-area section-page" id="section-plano-faturamento">
+      <div id="content-plano-faturamento">
+        <div class="plano-header-bar">
+          <div class="plano-progress-block">
+            <div class="plano-progress-label">Progresso geral — Crescimento de Faturamento</div>
+            <div class="plano-progress-bar-wrap">
+              <div class="plano-progress-bar" id="pf-progress-bar" style="width:0%; background: linear-gradient(90deg, #15803d, #22c55e);"></div>
+            </div>
+            <span class="plano-progress-pct" id="pf-progress-pct">0%</span>
+          </div>
+          <div class="plano-kpi-mini">
+            <span id="pf-concluidas">0</span>/<span id="pf-total">0</span> acoes concluidas
+          </div>
+        </div>
+
+        <div class="insight-card" style="margin-bottom:1.5rem;">
+          <h3><i class="fas fa-robot"></i> Analise da IA — Oportunidades Identificadas</h3>
+          <ul class="insight-list">
+            <li class="success">Potencial de crescimento estimado: +R$ 28.400/mes com execucao completa deste plano.</li>
+            <li>Cross-sell nao explorado representa R$ 3.200/mes em receita adicional com combos nos top 5 pares.</li>
+            <li class="trend">Clientes em risco (890) valem R$ 45.000/mes — reativacao urgente com campanha direcionada.</li>
+            <li class="action">Categoria Bebidas cresce 15% em dias acima de 32 graus — abastecimento preventivo pode capturar toda demanda.</li>
+          </ul>
+        </div>
+
+        <div class="plano-columns" id="plano-faturamento-cols"><!-- injected by JS --></div>
+      </div>
+    </section>
+
+    <!-- ==============================
+         PAGE FOOTER
+         ============================== -->
+    <footer class="page-footer">
+      Powered By <strong>Seven Xperts</strong> &nbsp;&mdash;&nbsp; CNPJ 32.794.007/0001-19
+    </footer>
 
   </main>
 
