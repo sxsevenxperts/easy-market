@@ -321,7 +321,7 @@ router.get('/forecast-dashboard', async (req, res) => {
             resumo: {
                 mediaAssertividade: resultado.resumo.mediaAssertividade,
                 status: parseFloat(resultado.resumo.mediaAssertividade) >= 90 ? 'Excelente' : 'Bom',
-                alertas: this._gerarAlertas(resultado.previsoes)
+                alertas: _gerarAlertas(resultado.previsoes)
             }
         };
 

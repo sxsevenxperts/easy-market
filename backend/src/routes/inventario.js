@@ -302,7 +302,8 @@ async function routes(fastify, options) {
   fastify.get('/:loja_id/vencimentos', async (request, reply) => {
     try {
       const { loja_id } = request.params;
-      const { dias = 7 } = request.query;
+      const diasRaw = request.query.dias ?? 7;
+      const dias = Math.max(1, Math.min(365, parseInt(diasRaw, 10) || 7));
 
       const result = await pool.query(
         `SELECT
@@ -318,9 +319,9 @@ async function routes(fastify, options) {
          WHERE loja_id = $1
          AND eh_perecivel = TRUE
          AND data_vencimento IS NOT NULL
-         AND data_vencimento <= NOW() + INTERVAL '${dias} days'
+         AND data_vencimento <= NOW() + ($2 * INTERVAL '1 day')
          ORDER BY data_vencimento ASC`,
-        [loja_id]
+        [loja_id, dias]
       );
 
       return reply.send({

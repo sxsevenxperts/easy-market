@@ -59,9 +59,9 @@ async function routes(fastify, options) {
           MIN(preco_unitario) as preco_minimo
          FROM vendas
          WHERE loja_id = $1
-         AND time >= NOW() - INTERVAL '${dateRange} days'
+         AND time >= NOW() - ($2 * INTERVAL '1 day')
       `;
-      const params = [loja_id];
+      const params = [loja_id, dateRange];
 
       if (categoria) {
         query += ` AND categoria = $${params.length + 1}`;
@@ -216,10 +216,10 @@ async function routes(fastify, options) {
          FROM vendas
          WHERE loja_id = $1
          AND categoria = $2
-         AND time >= NOW() - INTERVAL '${dateRange} days'
+         AND time >= NOW() - ($3 * INTERVAL '1 day')
          GROUP BY DATE_TRUNC('day', time), categoria
          ORDER BY data DESC`,
-        [loja_id, categoria]
+        [loja_id, categoria, dateRange]
       );
 
       // Calculate trends
@@ -262,10 +262,10 @@ async function routes(fastify, options) {
           AVG(preco_unitario) as ticket_medio
          FROM vendas
          WHERE loja_id = $1
-         AND time >= NOW() - INTERVAL '${dateRange} days'
+         AND time >= NOW() - ($2 * INTERVAL '1 day')
          GROUP BY EXTRACT(HOUR FROM time), EXTRACT(DOW FROM time)
          ORDER BY hora ASC`,
-        [loja_id]
+        [loja_id, dateRange]
       );
 
       // Identify peak hours
@@ -292,7 +292,8 @@ async function routes(fastify, options) {
   fastify.get('/:loja_id/desperdicio', async (request, reply) => {
     try {
       const { loja_id } = request.params;
-      const { dias = 30 } = request.query;
+      const diasRaw = request.query.dias ?? 30;
+      const dias = Math.max(1, Math.min(365, parseInt(diasRaw, 10) || 30));
 
       const result = await pool.query(
         `SELECT
@@ -304,10 +305,10 @@ async function routes(fastify, options) {
          FROM alertas a
          WHERE a.loja_id = $1
          AND a.tipo IN ('desperdicio', 'vencimento_proximo')
-         AND a.created_at >= NOW() - INTERVAL '${dias} days'
+         AND a.created_at >= NOW() - ($2 * INTERVAL '1 day')
          GROUP BY a.tipo, a.categoria
          ORDER BY economia_potencial DESC`,
-        [loja_id]
+        [loja_id, dias]
       );
 
       return reply.send({
@@ -345,8 +346,14 @@ async function routes(fastify, options) {
       );
 
       const data = result.rows[0];
-      const variacao_semana = ((data.semana_atual - data.semana_passada) / data.semana_passada * 100).toFixed(2);
-      const variacao_mes = ((data.mes_atual - data.mes_passado) / data.mes_passado * 100).toFixed(2);
+      const semana_passada = parseFloat(data.semana_passada) || 0;
+      const mes_passado = parseFloat(data.mes_passado) || 0;
+      const variacao_semana = semana_passada !== 0
+        ? ((data.semana_atual - semana_passada) / semana_passada * 100).toFixed(2)
+        : '0.00';
+      const variacao_mes = mes_passado !== 0
+        ? ((data.mes_atual - mes_passado) / mes_passado * 100).toFixed(2)
+        : '0.00';
 
       return reply.send({
         loja_id,

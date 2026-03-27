@@ -251,10 +251,11 @@ router.post('/gerar-compras', async (req, res) => {
 router.get('/download/:filename', (req, res) => {
   try {
     const { filename } = req.params;
-    const filepath = require('path').join(__dirname, '../../reports', filename);
+    const reportsDir = require('path').resolve(__dirname, '../../reports');
+    const filepath = require('path').resolve(reportsDir, filename);
 
     // Security check - prevent directory traversal
-    if (!filepath.includes('/reports/')) {
+    if (!filepath.startsWith(reportsDir + require('path').sep) && filepath !== reportsDir) {
       return res.status(400).json({
         success: false,
         error: 'Caminho inválido'

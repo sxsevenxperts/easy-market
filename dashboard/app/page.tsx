@@ -184,7 +184,7 @@ export default function DashboardHome() {
                   <div
                     className="bg-accent h-2 rounded-full"
                     style={{
-                      width: `${(cat.faturamento / (resumo.faturamento || 1)) * 100}%`,
+                      width: `${((parseFloat(cat.faturamento) || 0) / (parseFloat(resumo.faturamento) || 1) * 100).toFixed(1)}%`,
                     }}
                   />
                 </div>

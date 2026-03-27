@@ -166,10 +166,11 @@ async function routes(fastify, options) {
   fastify.get('/:loja_id/summary', async (request, reply) => {
     try {
       const { loja_id } = request.params;
-      const { dias = 7 } = request.query;
+      const diasRaw = request.query.dias ?? 7;
+      const dias = Math.max(1, Math.min(365, parseInt(diasRaw, 10) || 7));
 
       const result = await pool.query(
-        `SELECT 
+        `SELECT
           categoria,
           SUM(quantidade) as total_quantidade,
           SUM(preco_unitario * quantidade * (1 - desconto_percentual/100)) as faturamento,
@@ -178,10 +179,10 @@ async function routes(fastify, options) {
           DATE_TRUNC('day', time) as data
         FROM vendas
         WHERE loja_id = $1
-        AND time >= NOW() - INTERVAL '${dias} days'
+        AND time >= NOW() - ($2 * INTERVAL '1 day')
         GROUP BY categoria, DATE_TRUNC('day', time)
         ORDER BY data DESC`,
-        [loja_id]
+        [loja_id, dias]
       );
 
       return reply.send({

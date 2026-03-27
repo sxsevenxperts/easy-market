@@ -332,7 +332,12 @@ class PredictionPipeline:
 
     def __init__(self):
         self.db = DatabaseConnection()
-        self.redis = redis.Redis(host='localhost', port=6379, decode_responses=True)
+        self.redis = redis.Redis(
+            host=os.getenv('REDIS_HOST', 'localhost'),
+            port=int(os.getenv('REDIS_PORT', 6379)),
+            password=os.getenv('REDIS_PASSWORD', None) or None,
+            decode_responses=True
+        )
         self.feature_engineer = FeatureEngineer()
         self.climate_analyzer = ClimateCorrelationAnalyzer()
 
@@ -452,20 +457,26 @@ class PredictionPipeline:
         """Salva previsão no banco de dados"""
 
         try:
+            agora = datetime.now()
             for previsao in result['previsoes']:
+                hora_offset = previsao.get('hora', 1)
+                data_inicio = agora + timedelta(hours=hora_offset - 1)
+                data_fim = agora + timedelta(hours=hora_offset)
+
                 sql = """
                     INSERT INTO previsoes (
                         loja_id, categoria, data_inicio, data_fim,
                         modelo, quantidade_esperada,
                         quantidade_lower, quantidade_upper,
                         confianca_percentual, accuracy_mape
-                    ) VALUES (%s, %s, NOW(), NOW() + INTERVAL '1 hour',
-                              %s, %s, %s, %s, %s, %s)
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """
 
                 params = (
                     result['loja_id'],
                     result['categoria'],
+                    data_inicio.isoformat(),
+                    data_fim.isoformat(),
                     'ensemble',
                     previsao['quantidade_esperada'],
                     previsao['intervalo_confianca'][0],

@@ -462,7 +462,9 @@ async function gerarRelatorio(loja_id, tipo, incluirAnalise) {
     estoque: {
       total_produtos: dadosEstoque.total_produtos || 0,
       produtos_criticos: dadosEstoque.produtos_criticos || 0,
-      saude: `${Math.round(((dadosEstoque.total_produtos - dadosEstoque.produtos_criticos) / dadosEstoque.total_produtos) * 100)}% saudável`,
+      saude: dadosEstoque.total_produtos > 0
+        ? `${Math.round(((dadosEstoque.total_produtos - dadosEstoque.produtos_criticos) / dadosEstoque.total_produtos) * 100)}% saudável`
+        : '100% saudável',
     },
 
     alertas: {

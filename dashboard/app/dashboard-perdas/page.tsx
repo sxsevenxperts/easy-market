@@ -11,7 +11,7 @@ export default function Page() {
     const load = async () => {
       try {
         const res = await api.fetchLossRate(lojaId);
-        setData(res.data);
+        setData(res);
       } catch (error) {
         console.error(error);
       }

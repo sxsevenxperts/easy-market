@@ -228,7 +228,7 @@ class PredictiveSalesForecastService {
             margemErro: parseFloat(margemErro.toFixed(2)),
             assertividade: parseFloat(assertividade.toFixed(2)),
             fatorDiaSemana: parseFloat(padroes.fatorDiaSemana[diaSemana].toFixed(3)),
-            tenencia: parseFloat(padroes.tendencia.toFixed(3)),
+            tendencia: parseFloat(padroes.tendencia.toFixed(3)),
             volatilidade: parseFloat((padroes.volatilidade * 100).toFixed(2))
         };
     }
@@ -273,7 +273,7 @@ class PredictiveSalesForecastService {
             margemErro: parseFloat(margemErro.toFixed(2)),
             assertividade: parseFloat(assertividade.toFixed(2)),
             mediadiaria: parseFloat((vendaSemanaPrevista / 7).toFixed(2)),
-            tenencia: parseFloat(padroes.tendencia.toFixed(3)),
+            tendencia: parseFloat(padroes.tendencia.toFixed(3)),
             volatilidade: parseFloat((padroes.volatilidade * 100).toFixed(2))
         };
     }
@@ -317,7 +317,7 @@ class PredictiveSalesForecastService {
             margemErro: parseFloat(margemErro.toFixed(2)),
             assertividade: parseFloat(assertividade.toFixed(2)),
             mediadiaria: parseFloat((vendaQuinzenaPrevista / 15).toFixed(2)),
-            tenencia: parseFloat(padroes.tendencia.toFixed(3)),
+            tendencia: parseFloat(padroes.tendencia.toFixed(3)),
             volatilidade: parseFloat((padroes.volatilidade * 100).toFixed(2))
         };
     }
@@ -361,7 +361,7 @@ class PredictiveSalesForecastService {
             margemErro: parseFloat(margemErro.toFixed(2)),
             assertividade: parseFloat(assertividade.toFixed(2)),
             mediadiaria: parseFloat((vendaMesPrevista / 30).toFixed(2)),
-            tenencia: parseFloat(padroes.tendencia.toFixed(3)),
+            tendencia: parseFloat(padroes.tendencia.toFixed(3)),
             volatilidade: parseFloat((padroes.volatilidade * 100).toFixed(2))
         };
     }
@@ -379,10 +379,10 @@ class PredictiveSalesForecastService {
         assertividade -= penalizacaoHorizonte;
 
         // Bonus por histórico (quanto mais dados, mais assertivo)
-        if (diasHistorico >= 60) {
-            assertividade += 2;
-        } else if (diasHistorico >= 90) {
+        if (diasHistorico >= 90) {
             assertividade += 3;
+        } else if (diasHistorico >= 60) {
+            assertividade += 2;
         }
 
         // Limitar entre 85% e 95%

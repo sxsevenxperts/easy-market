@@ -15,11 +15,12 @@ interface DashboardStore {
   reset: () => void;
 }
 
+// Valores padrão — o persist middleware cuida da hidratação via localStorage
 const initialState = {
-  loja_id: typeof localStorage !== 'undefined' ? localStorage.getItem('loja_id') || 'loja_001' : 'loja_001',
-  loja_name: typeof localStorage !== 'undefined' ? localStorage.getItem('loja_name') || 'Loja Principal' : 'Loja Principal',
-  user_name: typeof localStorage !== 'undefined' ? localStorage.getItem('user_name') || 'Usuário' : 'Usuário',
-  api_key: typeof localStorage !== 'undefined' ? localStorage.getItem('api_key') || '' : '',
+  loja_id: 'loja_001',
+  loja_name: 'Loja Principal',
+  user_name: 'Usuário',
+  api_key: '',
   theme: 'dark' as const,
 };
 

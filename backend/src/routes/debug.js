@@ -4,8 +4,11 @@
  */
 
 async function routes(fastify, options) {
-  // GET /debug/env - Mostrar variáveis carregadas
+  // GET /debug/env - Mostrar variáveis carregadas (apenas em desenvolvimento)
   fastify.get('/env', async (request, reply) => {
+    if (process.env.NODE_ENV === 'production') {
+      return reply.code(404).send({ error: 'not_found' });
+    }
     try {
       const env = require('../config/env');
       return {

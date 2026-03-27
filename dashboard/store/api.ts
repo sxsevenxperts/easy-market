@@ -8,6 +8,17 @@ import { create } from 'zustand';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
 
+// Instância axios com auth token
+const apiClient = axios.create({ baseURL: API_URL });
+apiClient.interceptors.request.use((config) => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('token');
+    if (token) config.headers = config.headers ?? {};
+    if (token) config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+});
+
 interface ApiStore {
   // Predicoes
   fetchPredictionsAnalysis: (lojaId: number, clienteId: number) => Promise<any>;
@@ -55,7 +66,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchPredictionsAnalysis: async (lojaId, clienteId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/predicoes/cliente/${clienteId}?loja_id=${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/predicoes/cliente/${clienteId}?loja_id=${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -68,7 +79,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchChurnScore: async (lojaId, clienteId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/predicoes/churn/${clienteId}?loja_id=${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/predicoes/churn/${clienteId}?loja_id=${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -81,7 +92,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchBrandAnalysis: async (lojaId, clienteId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/predicoes/marca/${clienteId}?loja_id=${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/predicoes/marca/${clienteId}?loja_id=${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -94,7 +105,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchOpportunities: async (lojaId, clienteId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/predicoes/oportunidades/${clienteId}?loja_id=${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/predicoes/oportunidades/${clienteId}?loja_id=${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -108,7 +119,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchLossRate: async (lojaId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/perdas/taxa-atual/${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/perdas/taxa-atual/${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -121,7 +132,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchLossReduction: async (lojaId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/perdas/reducao/${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/perdas/reducao/${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -134,7 +145,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchProductsHighLoss: async (lojaId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/perdas/produtos-maior-perda/${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/perdas/produtos-maior-perda/${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -148,7 +159,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchGondolaAnalysis: async (lojaId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/otimizacao-gondolas/analise/${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/otimizacao-gondolas/analise/${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -161,7 +172,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchGondolaRecommendations: async (lojaId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/otimizacao-gondolas/recomendacoes/${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/otimizacao-gondolas/recomendacoes/${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -174,7 +185,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchGondolaLayout: async (lojaId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/otimizacao-gondolas/layout/${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/otimizacao-gondolas/layout/${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -187,7 +198,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchGondolaComplete: async (lojaId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/otimizacao-gondolas/completo/${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/otimizacao-gondolas/completo/${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -201,7 +212,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchNutritionalProfile: async (lojaId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/otimizacao-nutricional/perfil/${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/otimizacao-nutricional/perfil/${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -214,7 +225,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchNutritionalClassification: async (lojaId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/otimizacao-nutricional/classificacao/${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/otimizacao-nutricional/classificacao/${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -227,7 +238,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchComplementarityMatrix: async (lojaId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/otimizacao-nutricional/complementaridade/${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/otimizacao-nutricional/complementaridade/${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -241,7 +252,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchOptimalQuantity: async (lojaId, produtoId, gordura = 0.15) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/otimizacao-compras/quantidade-otima/${lojaId}/${produtoId}?gordura=${gordura}`);
+      const res = await apiClient.get(`${API_URL}/otimizacao-compras/quantidade-otima/${lojaId}/${produtoId}?gordura=${gordura}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -254,7 +265,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchPurchaseAnalysis: async (lojaId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/otimizacao-compras/analise-loja/${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/otimizacao-compras/analise-loja/${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -267,7 +278,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchPurchaseScenarios: async (lojaId, produtoId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/otimizacao-compras/cenarios/${lojaId}/${produtoId}`);
+      const res = await apiClient.get(`${API_URL}/otimizacao-compras/cenarios/${lojaId}/${produtoId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -280,7 +291,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchStockoutRisk: async (lojaId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/otimizacao-compras/risco-falta/${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/otimizacao-compras/risco-falta/${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -294,7 +305,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   fetchSecurityConfig: async (lojaId) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_URL}/configuracao-seguranca/loja/${lojaId}`);
+      const res = await apiClient.get(`${API_URL}/configuracao-seguranca/loja/${lojaId}`);
       return res.data;
     } catch (error: any) {
       set({ error: error.message });
@@ -307,7 +318,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   updateSecurityConfig: async (lojaId, taxa) => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.put(`${API_URL}/configuracao-seguranca/loja/${lojaId}/taxa-padrao`, {
+      const res = await apiClient.put(`${API_URL}/configuracao-seguranca/loja/${lojaId}/taxa-padrao`, {
         taxa_padrao: taxa
       });
       return res.data;
@@ -322,7 +333,7 @@ export const useApiStore = create<ApiStore>((set) => ({
   setProductSecurityRate: async (lojaId, produtoId, taxa, obs = '') => {
     set({ isLoading: true, error: null });
     try {
-      const res = await axios.put(
+      const res = await apiClient.put(
         `${API_URL}/configuracao-seguranca/loja/${lojaId}/produto/${produtoId}/taxa-customizada`,
         { taxa, observacoes: obs }
       );
