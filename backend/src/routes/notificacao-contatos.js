@@ -1,53 +1,13 @@
+
+const express = require('express');
+const router = express.Router();
 const Joi = require('joi');
 const db = require('../db');
 const twilio = require('twilio');
 
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
-// Schemas
-const createContatoSchema = Joi.object({
-  loja_id: Joi.string().required(),
-  nome: Joi.string().min(3).required(),
-  cargo: Joi.string().optional(),
-  setores: Joi.array()
-    .items(Joi.string())
-    .default(['Bebidas', 'Alimentos', 'Higiene', 'Limpeza', 'Perecíveis']), // Todos por padrão
-  telefone_whatsapp: Joi.string()
-    .pattern(/^\+?[1-9]\d{1,14}$/)
-    .optional(),
-  telefone_sms: Joi.string()
-    .pattern(/^\+?[1-9]\d{1,14}$/)
-    .optional(),
-  email: Joi.string().email().optional(),
-  receber_alertas_criticos: Joi.boolean().default(true),
-  receber_alertas_whatsapp: Joi.boolean().default(false),
-  receber_alertas_sms: Joi.boolean().default(false),
-  receber_alertas_email: Joi.boolean().default(false),
-  receber_relatorios: Joi.boolean().default(false),
-});
-
-const updateContatoSchema = Joi.object({
-  nome: Joi.string().min(3).optional(),
-  cargo: Joi.string().optional(),
-  telefone_whatsapp: Joi.string().optional(),
-  telefone_sms: Joi.string().optional(),
-  email: Joi.string().email().optional(),
-  ativo: Joi.boolean().optional(),
-  receber_alertas_criticos: Joi.boolean().optional(),
-  receber_alertas_whatsapp: Joi.boolean().optional(),
-  receber_alertas_sms: Joi.boolean().optional(),
-  receber_alertas_email: Joi.boolean().optional(),
-  receber_relatorios: Joi.boolean().optional(),
-});
-
-module.exports = async function (fastify, opts) {
-  // POST /notificacao-contatos - Criar novo contato
-  fastify.post('/notificacao-contatos', async (request, reply) => {
-    const { error, value } = createContatoSchema.validate(request.body);
-    if (error) return reply.status(400).send({ error: error.details[0].message });
+router.post('/notificacao-contatos', async (req, res) => {
+    const { error, value } = createContatoSchema.validate(req.body);
+    if (error) return res.status(400).send({ error: error.details[0].message });
 
     const {
       loja_id,
@@ -71,7 +31,7 @@ module.exports = async function (fastify, opts) {
             fields: 'line_type_intelligence',
           });
         } catch (err) {
-          return reply.status(400).send({ error: 'Número WhatsApp inválido' });
+          return res.status(400).send({ error: 'Número WhatsApp inválido' });
         }
       }
 
@@ -98,17 +58,17 @@ module.exports = async function (fastify, opts) {
         ]
       );
 
-      reply.status(201).send(result.rows[0]);
+      res.status(201).send(result.rows[0]);
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao criar contato' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao criar contato' });
     }
   });
 
   // GET /notificacao-contatos/:loja_id - Listar contatos
-  fastify.get('/notificacao-contatos/:loja_id', async (request, reply) => {
-    const { loja_id } = request.params;
-    const { apenas_ativos = true } = request.query;
+  router.get('/notificacao-contatos/:loja_id', async (req, res) => {
+    const { loja_id } = req.params;
+    const { apenas_ativos = true } = req.query;
 
     try {
       let query = 'SELECT * FROM notificacao_contatos WHERE loja_id = $1';
@@ -121,16 +81,16 @@ module.exports = async function (fastify, opts) {
       query += ' ORDER BY cargo DESC, nome ASC';
 
       const result = await db.query(query, params);
-      reply.send(result.rows);
+      res.send(result.rows);
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao listar contatos' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao listar contatos' });
     }
   });
 
   // GET /notificacao-contatos/:id - Obter contato específico
-  fastify.get('/notificacao-contatos/:id/detalhes', async (request, reply) => {
-    const { id } = request.params;
+  router.get('/notificacao-contatos/:id/detalhes', async (req, res) => {
+    const { id } = req.params;
 
     try {
       const result = await db.query(
@@ -139,22 +99,22 @@ module.exports = async function (fastify, opts) {
       );
 
       if (result.rows.length === 0) {
-        return reply.status(404).send({ error: 'Contato não encontrado' });
+        return res.status(404).send({ error: 'Contato não encontrado' });
       }
 
-      reply.send(result.rows[0]);
+      res.send(result.rows[0]);
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao obter contato' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao obter contato' });
     }
   });
 
   // PUT /notificacao-contatos/:id - Atualizar contato
-  fastify.put('/notificacao-contatos/:id', async (request, reply) => {
-    const { id } = request.params;
-    const { error, value } = updateContatoSchema.validate(request.body);
+  router.put('/notificacao-contatos/:id', async (req, res) => {
+    const { id } = req.params;
+    const { error, value } = updateContatoSchema.validate(req.body);
 
-    if (error) return reply.status(400).send({ error: error.details[0].message });
+    if (error) return res.status(400).send({ error: error.details[0].message });
 
     try {
       const campos = [];
@@ -168,7 +128,7 @@ module.exports = async function (fastify, opts) {
       });
 
       if (campos.length === 0) {
-        return reply.status(400).send({ error: 'Nenhum campo para atualizar' });
+        return res.status(400).send({ error: 'Nenhum campo para atualizar' });
       }
 
       campos.push(`updated_at = NOW()`);
@@ -179,19 +139,19 @@ module.exports = async function (fastify, opts) {
       );
 
       if (result.rows.length === 0) {
-        return reply.status(404).send({ error: 'Contato não encontrado' });
+        return res.status(404).send({ error: 'Contato não encontrado' });
       }
 
-      reply.send(result.rows[0]);
+      res.send(result.rows[0]);
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao atualizar contato' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao atualizar contato' });
     }
   });
 
   // DELETE /notificacao-contatos/:id - Deletar contato
-  fastify.delete('/notificacao-contatos/:id', async (request, reply) => {
-    const { id } = request.params;
+  router.delete('/notificacao-contatos/:id', async (req, res) => {
+    const { id } = req.params;
 
     try {
       const result = await db.query(
@@ -200,19 +160,19 @@ module.exports = async function (fastify, opts) {
       );
 
       if (result.rows.length === 0) {
-        return reply.status(404).send({ error: 'Contato não encontrado' });
+        return res.status(404).send({ error: 'Contato não encontrado' });
       }
 
-      reply.send({ status: 'contato deletado' });
+      res.send({ status: 'contato deletado' });
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao deletar contato' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao deletar contato' });
     }
   });
 
   // POST /notificacao-contatos/:id/teste - Testar envio
-  fastify.post('/notificacao-contatos/:id/teste', async (request, reply) => {
-    const { id } = request.params;
+  router.post('/notificacao-contatos/:id/teste', async (req, res) => {
+    const { id } = req.params;
 
     try {
       const contato = await db.query(
@@ -221,7 +181,7 @@ module.exports = async function (fastify, opts) {
       );
 
       if (contato.rows.length === 0) {
-        return reply.status(404).send({ error: 'Contato não encontrado' });
+        return res.status(404).send({ error: 'Contato não encontrado' });
       }
 
       const contact = contato.rows[0];
@@ -255,7 +215,7 @@ module.exports = async function (fastify, opts) {
         }
       }
 
-      reply.send({
+      res.send({
         contato: {
           id: contact.id,
           nome: contact.nome,
@@ -264,14 +224,14 @@ module.exports = async function (fastify, opts) {
         resultados,
       });
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao testar envio' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao testar envio' });
     }
   });
 
   // GET /notificacao-contatos/:loja_id/por-canal - Agrupar por canal preferido
-  fastify.get('/notificacao-contatos/:loja_id/por-canal', async (request, reply) => {
-    const { loja_id } = request.params;
+  router.get('/notificacao-contatos/:loja_id/por-canal', async (req, res) => {
+    const { loja_id } = req.params;
 
     try {
       const result = await db.query(
@@ -285,16 +245,16 @@ module.exports = async function (fastify, opts) {
         [loja_id]
       );
 
-      reply.send(result.rows[0]);
+      res.send(result.rows[0]);
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao obter estatísticas' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao obter estatísticas' });
     }
   });
 
   // GET /notificacao-contatos/:loja_id/setor/:setor - Contatos de um setor específico
-  fastify.get('/notificacao-contatos/:loja_id/setor/:setor', async (request, reply) => {
-    const { loja_id, setor } = request.params;
+  router.get('/notificacao-contatos/:loja_id/setor/:setor', async (req, res) => {
+    const { loja_id, setor } = req.params;
 
     try {
       const result = await db.query(
@@ -306,17 +266,17 @@ module.exports = async function (fastify, opts) {
         [loja_id, setor]
       );
 
-      reply.send(result.rows);
+      res.send(result.rows);
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao obter contatos do setor' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao obter contatos do setor' });
     }
   });
 
   // Helper: Obter contatos para notificação (com filtragem de setor)
-  fastify.get('/notificacao-contatos/:loja_id/para-notificar', async (request, reply) => {
-    const { loja_id } = request.params;
-    const { setor, tipo_alerta } = request.query;
+  router.get('/notificacao-contatos/:loja_id/para-notificar', async (req, res) => {
+    const { loja_id } = req.params;
+    const { setor, tipo_alerta } = req.query;
 
     try {
       let query = `
@@ -339,10 +299,11 @@ module.exports = async function (fastify, opts) {
       query += ` ORDER BY cargo DESC, nome ASC`;
 
       const result = await db.query(query, params);
-      reply.send(result.rows);
+      res.send(result.rows);
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao obter contatos' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao obter contatos' });
     }
   });
-};
+
+module.exports = router;

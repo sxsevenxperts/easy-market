@@ -38,6 +38,41 @@ try {
 // Injeta supabase em todas as requests
 app.use((req, _res, next) => { req.supabase = supabase; next(); });
 
+// ── Authentication Middleware ──────────────────────────────────────────────────
+const { verifyToken } = require('./middleware/auth');
+app.use(verifyToken);
+
+// ── Mount Express Routers ──────────────────────────────────────────────────────
+const routerClientes = require('./routes/clientes');
+const routerDashboard = require('./routes/dashboard');
+const routerDebug = require('./routes/debug');
+const routerInventario = require('./routes/inventario');
+const routerLojas = require('./routes/lojas');
+const routerVendas = require('./routes/vendas');
+const routerRelatorios = require('./routes/relatorios');
+const routerRelatoriosAgendados = require('./routes/relatorios-agendados');
+const routerConfiguracaoSeguranca = require('./routes/configuracao-seguranca');
+const routerNotificacoes = require('./routes/notificacoes');
+const routerNotificacaoContatos = require('./routes/notificacao-contatos');
+const routerOtimizacaoCompras = require('./routes/otimizacao-compras');
+const routerOtimizacaoGondolas = require('./routes/otimizacao-gondolas');
+const routerOtimizacaoNutricional = require('./routes/otimizacao-nutricional');
+
+app.use('/api/v1/clientes', routerClientes);
+app.use('/api/v1/dashboard', routerDashboard);
+app.use('/api/v1/debug', routerDebug);
+app.use('/api/v1/inventario', routerInventario);
+app.use('/api/v1/lojas', routerLojas);
+app.use('/api/v1/vendas', routerVendas);
+app.use('/api/v1/relatorios', routerRelatorios);
+app.use('/api/v1/relatorios-agendados', routerRelatoriosAgendados);
+app.use('/api/v1/configuracao-seguranca', routerConfiguracaoSeguranca);
+app.use('/api/v1/notificacoes', routerNotificacoes);
+app.use('/api/v1/notificacao-contatos', routerNotificacaoContatos);
+app.use('/api/v1/otimizacao-compras', routerOtimizacaoCompras);
+app.use('/api/v1/otimizacao-gondolas', routerOtimizacaoGondolas);
+app.use('/api/v1/otimizacao-nutricional', routerOtimizacaoNutricional);
+
 // ── Rotas Express Router ────────────────────────────────────────────────────
 const expressRoutes = [
   { path: '/api/v1/rfm',                  file: './routes/rfm',                  name: 'RFM'               },
@@ -208,6 +243,42 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ sucesso: false, erro: err.message });
 });
 
+// ── Scheduler Status Route ─────────────────────────────────────────────────────
+let scraperScheduler = null;
+
+app.get('/api/v1/scheduler/status', (req, res) => {
+  if (!scraperScheduler) {
+    return res.json({ sucesso: false, erro: 'Scheduler não inicializado' });
+  }
+  const status = scraperScheduler.getStatus();
+  res.json({ sucesso: true, scheduler: status });
+});
+
+app.post('/api/v1/scheduler/start', async (req, res) => {
+  if (!supabase) {
+    return res.json({ sucesso: false, erro: 'Supabase não conectado' });
+  }
+  if (scraperScheduler && scraperScheduler.isRunning) {
+    return res.json({ sucesso: false, erro: 'Scheduler já está rodando' });
+  }
+  
+  const ScraperScheduler = require('./scrapers/scheduler');
+  scraperScheduler = new ScraperScheduler(supabase);
+  const lojaIds = req.body?.lojaIds || ['loja_001'];
+  const intervalMinutes = req.body?.intervalMinutes || 60;
+  
+  scraperScheduler.start(lojaIds, intervalMinutes);
+  res.json({ sucesso: true, message: 'Scheduler iniciado', lojaIds, intervalMinutes });
+});
+
+app.post('/api/v1/scheduler/stop', (req, res) => {
+  if (!scraperScheduler) {
+    return res.json({ sucesso: false, erro: 'Scheduler não inicializado' });
+  }
+  scraperScheduler.stop();
+  res.json({ sucesso: true, message: 'Scheduler parado' });
+});
+
 // ── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`
@@ -219,6 +290,28 @@ app.listen(PORT, '0.0.0.0', () => {
 ║  API:    http://0.0.0.0:${PORT}/api/v1           ║
 ╚══════════════════════════════════════════════════╝
   `);
+
+  // ── Initialize Scraper Scheduler ────────────────────────────────────────────
+  if (supabase && process.env.NODE_ENV !== 'test') {
+    try {
+      const ScraperScheduler = require('./scrapers/scheduler');
+      scraperScheduler = new ScraperScheduler(supabase);
+      
+      // Get store IDs from env or use defaults
+      const lojaIds = (process.env.LOJA_IDS || 'loja_001,loja_002,loja_003')
+        .split(',')
+        .map(id => id.trim());
+      
+      const intervalMinutes = parseInt(process.env.SCRAPER_INTERVAL || '60', 10);
+      
+      scraperScheduler.start(lojaIds, intervalMinutes);
+      console.log(`[SmartMarket] ✅ Scraper Scheduler iniciado: ${lojaIds.join(', ')} a cada ${intervalMinutes}min`);
+    } catch (error) {
+      console.error('[SmartMarket] ❌ Erro ao iniciar Scheduler:', error.message);
+    }
+  } else {
+    console.warn('[SmartMarket] ⚠️  Scheduler desativado (Supabase não conectado ou teste)');
+  }
 });
 
 module.exports = app;

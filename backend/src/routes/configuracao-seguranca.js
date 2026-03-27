@@ -1,25 +1,14 @@
-/**
- * Rotas de Configuração de Taxa de Segurança
- * Permite que cada supermercado configure suas próprias taxas de segurança
- * - Por loja (taxa padrão)
- * - Por categoria
- * - Por produto específico
- */
 
-module.exports = async function (fastify, opts) {
-  const { supabase } = fastify;
-  const ConfiguracaoSeguranca = require('../services/configuracao-seguranca');
+const express = require('express');
+const router = express.Router();
+const ConfiguracaoSeguranca = require('../services/configuracao-seguranca');
 
-  /**
-   * GET /loja/:loja_id
-   * Obter toda a configuração de segurança da loja
-   */
-  fastify.get('/loja/:loja_id', async (request, reply) => {
+router.get('/loja/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       if (!loja_id || isNaN(loja_id)) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Invalid loja_id'
         });
@@ -27,15 +16,15 @@ module.exports = async function (fastify, opts) {
 
       const config = await ConfiguracaoSeguranca.obterConfiguracaoLoja(loja_id);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: config,
         timestamp: new Date().toISOString(),
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(500).send({
+      router.log.error(error);
+      return res.code(500).send({
         success: false,
         error: error.message
       });
@@ -47,21 +36,21 @@ module.exports = async function (fastify, opts) {
    * Atualizar taxa padrão de segurança da loja
    * Body: { taxa_padrao: 0.15 }
    */
-  fastify.put('/loja/:loja_id/taxa-padrao', async (request, reply) => {
+  router.put('/loja/:loja_id/taxa-padrao', async (req, res) => {
     try {
-      const { loja_id } = request.params;
-      const { taxa_padrao } = request.body;
-      const usuario_id = request.user?.sub || 'sistema';
+      const { loja_id } = req.params;
+      const { taxa_padrao } = req.body;
+      const usuario_id = req.user?.sub || 'sistema';
 
       if (!loja_id || isNaN(loja_id)) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Invalid loja_id'
         });
       }
 
       if (!taxa_padrao || taxa_padrao < 0.05 || taxa_padrao > 0.30) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Taxa deve estar entre 0.05 (5%) e 0.30 (30%)'
         });
@@ -73,7 +62,7 @@ module.exports = async function (fastify, opts) {
         usuario_id
       );
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: resultado,
         mensagem: `Taxa padrão atualizada para ${Math.round(taxa_padrao * 100)}%`,
@@ -81,8 +70,8 @@ module.exports = async function (fastify, opts) {
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(500).send({
+      router.log.error(error);
+      return res.code(500).send({
         success: false,
         error: error.message
       });
@@ -94,14 +83,14 @@ module.exports = async function (fastify, opts) {
    * Atualizar taxa de segurança por categoria
    * Body: { categoria: "bebidas", taxa: 0.20 }
    */
-  fastify.put('/loja/:loja_id/taxa-categoria', async (request, reply) => {
+  router.put('/loja/:loja_id/taxa-categoria', async (req, res) => {
     try {
-      const { loja_id } = request.params;
-      const { categoria, taxa } = request.body;
-      const usuario_id = request.user?.sub || 'sistema';
+      const { loja_id } = req.params;
+      const { categoria, taxa } = req.body;
+      const usuario_id = req.user?.sub || 'sistema';
 
       if (!categoria || !taxa) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Categoria e taxa são obrigatórios'
         });
@@ -114,7 +103,7 @@ module.exports = async function (fastify, opts) {
         usuario_id
       );
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: resultado,
         mensagem: `Taxa da categoria ${categoria} atualizada para ${Math.round(taxa * 100)}%`,
@@ -122,8 +111,8 @@ module.exports = async function (fastify, opts) {
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(400).send({
+      router.log.error(error);
+      return res.code(400).send({
         success: false,
         error: error.message
       });
@@ -135,13 +124,13 @@ module.exports = async function (fastify, opts) {
    * Definir taxa de segurança customizada para um produto específico
    * Body: { taxa: 0.25, observacoes: "Produto crítico para venda" }
    */
-  fastify.put('/loja/:loja_id/produto/:produto_id/taxa-customizada', async (request, reply) => {
+  router.put('/loja/:loja_id/produto/:produto_id/taxa-customizada', async (req, res) => {
     try {
-      const { loja_id, produto_id } = request.params;
-      const { taxa, observacoes = '' } = request.body;
+      const { loja_id, produto_id } = req.params;
+      const { taxa, observacoes = '' } = req.body;
 
       if (!taxa || taxa < 0.05 || taxa > 0.30) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Taxa deve estar entre 5% e 30%'
         });
@@ -154,7 +143,7 @@ module.exports = async function (fastify, opts) {
         observacoes
       );
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: resultado,
         mensagem: `Taxa customizada para ${resultado.nome} definida em ${Math.round(taxa * 100)}%`,
@@ -162,8 +151,8 @@ module.exports = async function (fastify, opts) {
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(400).send({
+      router.log.error(error);
+      return res.code(400).send({
         success: false,
         error: error.message
       });
@@ -174,13 +163,13 @@ module.exports = async function (fastify, opts) {
    * DELETE /loja/:loja_id/produto/:produto_id/taxa-customizada
    * Remover taxa customizada (voltar ao padrão)
    */
-  fastify.delete('/loja/:loja_id/produto/:produto_id/taxa-customizada', async (request, reply) => {
+  router.delete('/loja/:loja_id/produto/:produto_id/taxa-customizada', async (req, res) => {
     try {
-      const { loja_id, produto_id } = request.params;
+      const { loja_id, produto_id } = req.params;
 
       const resultado = await ConfiguracaoSeguranca.removerTaxaCustomizada(loja_id, produto_id);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: resultado,
         mensagem: `Taxa customizada removida. ${resultado.nome} voltará ao padrão da loja`,
@@ -188,8 +177,8 @@ module.exports = async function (fastify, opts) {
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(400).send({
+      router.log.error(error);
+      return res.code(400).send({
         success: false,
         error: error.message
       });
@@ -201,21 +190,21 @@ module.exports = async function (fastify, opts) {
    * Obter taxa que será aplicada a um produto específico
    * (Considera: customizada > categoria > padrão)
    */
-  fastify.get('/loja/:loja_id/produto/:produto_id/taxa', async (request, reply) => {
+  router.get('/loja/:loja_id/produto/:produto_id/taxa', async (req, res) => {
     try {
-      const { loja_id, produto_id } = request.params;
+      const { loja_id, produto_id } = req.params;
 
       const resultado = await ConfiguracaoSeguranca.obterTaxaParaProduto(loja_id, produto_id);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: resultado,
         timestamp: new Date().toISOString(),
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(400).send({
+      router.log.error(error);
+      return res.code(400).send({
         success: false,
         error: error.message
       });
@@ -227,14 +216,14 @@ module.exports = async function (fastify, opts) {
    * Definir política de risco da loja
    * Body: { politica: "BALANCEADO" } (CONSERVADOR, BALANCEADO, AGRESSIVO)
    */
-  fastify.put('/loja/:loja_id/politica-risco', async (request, reply) => {
+  router.put('/loja/:loja_id/politica-risco', async (req, res) => {
     try {
-      const { loja_id } = request.params;
-      const { politica } = request.body;
-      const usuario_id = request.user?.sub || 'sistema';
+      const { loja_id } = req.params;
+      const { politica } = req.body;
+      const usuario_id = req.user?.sub || 'sistema';
 
       if (!politica) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Política é obrigatória'
         });
@@ -246,7 +235,7 @@ module.exports = async function (fastify, opts) {
         usuario_id
       );
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: resultado,
         mensagem: `Política de risco alterada para ${politica}`,
@@ -254,8 +243,8 @@ module.exports = async function (fastify, opts) {
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(400).send({
+      router.log.error(error);
+      return res.code(400).send({
         success: false,
         error: error.message
       });
@@ -266,13 +255,13 @@ module.exports = async function (fastify, opts) {
    * GET /loja/:loja_id/taxas-customizadas
    * Listar todos os produtos com taxa customizada
    */
-  fastify.get('/loja/:loja_id/taxas-customizadas', async (request, reply) => {
+  router.get('/loja/:loja_id/taxas-customizadas', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       const resultado = await ConfiguracaoSeguranca.listarTaxasCustomizadas(loja_id);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: {
           total: resultado.length,
@@ -282,8 +271,8 @@ module.exports = async function (fastify, opts) {
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(400).send({
+      router.log.error(error);
+      return res.code(400).send({
         success: false,
         error: error.message
       });
@@ -295,10 +284,10 @@ module.exports = async function (fastify, opts) {
    * Obter taxa recomendada considerando contexto do produto
    * Query params: variabilidade (ALTA|MEDIA|BAIXA), perecivel, essencial, sazonalidade
    */
-  fastify.get('/loja/:loja_id/produto/:produto_id/taxa-recomendada', async (request, reply) => {
+  router.get('/loja/:loja_id/produto/:produto_id/taxa-recomendada', async (req, res) => {
     try {
-      const { loja_id, produto_id } = request.params;
-      const { variabilidade = 'MEDIA', perecivel = false, essencial = false, sazonalidade = 'BAIXA' } = request.query;
+      const { loja_id, produto_id } = req.params;
+      const { variabilidade = 'MEDIA', perecivel = false, essencial = false, sazonalidade = 'BAIXA' } = req.query;
 
       const resultado = await ConfiguracaoSeguranca.obterTaxaRecomendada(
         loja_id,
@@ -311,18 +300,19 @@ module.exports = async function (fastify, opts) {
         }
       );
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: resultado,
         timestamp: new Date().toISOString(),
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(400).send({
+      router.log.error(error);
+      return res.code(400).send({
         success: false,
         error: error.message
       });
     }
   });
-};
+
+module.exports = router;

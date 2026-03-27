@@ -1,24 +1,14 @@
-/**
- * Rotas de Otimização Nutricional
- * Integra dados nutricionais (% gordura, calorias, proteína, sódio, açúcar)
- * com estratégias de posicionamento, preço e cross-sell
- */
 
-module.exports = async function (fastify, opts) {
-  const { supabase } = fastify;
-  const OtimizacaoNutricional = require('../services/otimizacao-nutricional');
+const express = require('express');
+const router = express.Router();
+const OtimizacaoNutricional = require('../services/otimizacao-nutricional');
 
-  /**
-   * GET /perfil/:loja_id
-   * Extrai perfil nutricional completo de todos os produtos
-   * Inclui: % gordura, proteína, calorias, sódio, açúcar, etc
-   */
-  fastify.get('/perfil/:loja_id', async (request, reply) => {
+router.get('/perfil/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       if (!loja_id || isNaN(loja_id)) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Invalid loja_id parameter'
         });
@@ -31,7 +21,7 @@ module.exports = async function (fastify, opts) {
         .single();
 
       if (!lojaExists) {
-        return reply.code(404).send({
+        return res.code(404).send({
           success: false,
           error: 'Store not found'
         });
@@ -39,7 +29,7 @@ module.exports = async function (fastify, opts) {
 
       const perfil = await OtimizacaoNutricional.extrairPerfilNutricional(loja_id);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: {
           total_produtos: perfil.length,
@@ -56,8 +46,8 @@ module.exports = async function (fastify, opts) {
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(500).send({
+      router.log.error(error);
+      return res.code(500).send({
         success: false,
         error: error.message || 'Error extracting nutritional profile',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -70,12 +60,12 @@ module.exports = async function (fastify, opts) {
    * Classifica produtos por perfil de consumidor
    * Health-Conscious, Indulgence, Balanced, Senior, Diabetic, etc
    */
-  fastify.get('/classificacao/:loja_id', async (request, reply) => {
+  router.get('/classificacao/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       if (!loja_id || isNaN(loja_id)) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Invalid loja_id parameter'
         });
@@ -88,7 +78,7 @@ module.exports = async function (fastify, opts) {
         .single();
 
       if (!lojaExists) {
-        return reply.code(404).send({
+        return res.code(404).send({
           success: false,
           error: 'Store not found'
         });
@@ -96,7 +86,7 @@ module.exports = async function (fastify, opts) {
 
       const classificacao = await OtimizacaoNutricional.classificarPorPerfilConsumidor(loja_id);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: {
           health_conscious: {
@@ -124,8 +114,8 @@ module.exports = async function (fastify, opts) {
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(500).send({
+      router.log.error(error);
+      return res.code(500).send({
         success: false,
         error: error.message || 'Error classifying products by consumer profile',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -139,12 +129,12 @@ module.exports = async function (fastify, opts) {
    * Identifica produtos que se combinam bem nutricionalmente
    * Ex: produto gordo + produto magro = combo saudável
    */
-  fastify.get('/complementaridade/:loja_id', async (request, reply) => {
+  router.get('/complementaridade/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       if (!loja_id || isNaN(loja_id)) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Invalid loja_id parameter'
         });
@@ -157,7 +147,7 @@ module.exports = async function (fastify, opts) {
         .single();
 
       if (!lojaExists) {
-        return reply.code(404).send({
+        return res.code(404).send({
           success: false,
           error: 'Store not found'
         });
@@ -165,7 +155,7 @@ module.exports = async function (fastify, opts) {
 
       const complementaridade = await OtimizacaoNutricional.gerarMatrizComplementaridade(loja_id);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: {
           total_combos: complementaridade.length,
@@ -178,8 +168,8 @@ module.exports = async function (fastify, opts) {
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(500).send({
+      router.log.error(error);
+      return res.code(500).send({
         success: false,
         error: error.message || 'Error generating nutritional complementarity matrix',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -195,12 +185,12 @@ module.exports = async function (fastify, opts) {
    * - % gordura e outros nutrientes
    * - Oportunidades de cross-sell
    */
-  fastify.get('/posicionamento/:loja_id', async (request, reply) => {
+  router.get('/posicionamento/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       if (!loja_id || isNaN(loja_id)) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Invalid loja_id parameter'
         });
@@ -213,7 +203,7 @@ module.exports = async function (fastify, opts) {
         .single();
 
       if (!lojaExists) {
-        return reply.code(404).send({
+        return res.code(404).send({
           success: false,
           error: 'Store not found'
         });
@@ -221,15 +211,15 @@ module.exports = async function (fastify, opts) {
 
       const posicionamento = await OtimizacaoNutricional.calcularPosicionamentoNutricional(loja_id);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: posicionamento,
         timestamp: new Date().toISOString(),
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(500).send({
+      router.log.error(error);
+      return res.code(500).send({
         success: false,
         error: error.message || 'Error calculating nutritional positioning',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -244,12 +234,12 @@ module.exports = async function (fastify, opts) {
    * - Elasticidade de preço por tipo de produto
    * - Demanda por produto saúde vs indulgência
    */
-  fastify.get('/precos/:loja_id', async (request, reply) => {
+  router.get('/precos/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       if (!loja_id || isNaN(loja_id)) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Invalid loja_id parameter'
         });
@@ -262,7 +252,7 @@ module.exports = async function (fastify, opts) {
         .single();
 
       if (!lojaExists) {
-        return reply.code(404).send({
+        return res.code(404).send({
           success: false,
           error: 'Store not found'
         });
@@ -270,7 +260,7 @@ module.exports = async function (fastify, opts) {
 
       const ajustes = await OtimizacaoNutricional.recomendarAjustesPrecoPorNutricao(loja_id);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: {
           aumentar_preco: {
@@ -296,8 +286,8 @@ module.exports = async function (fastify, opts) {
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(500).send({
+      router.log.error(error);
+      return res.code(500).send({
         success: false,
         error: error.message || 'Error recommending price adjustments',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -315,12 +305,12 @@ module.exports = async function (fastify, opts) {
    * - Recomendações de preço
    * - Impacto estimado em receita e margem
    */
-  fastify.get('/relatorio-completo/:loja_id', async (request, reply) => {
+  router.get('/relatorio-completo/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       if (!loja_id || isNaN(loja_id)) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Invalid loja_id parameter'
         });
@@ -333,7 +323,7 @@ module.exports = async function (fastify, opts) {
         .single();
 
       if (!lojaExists) {
-        return reply.code(404).send({
+        return res.code(404).send({
           success: false,
           error: 'Store not found'
         });
@@ -341,7 +331,7 @@ module.exports = async function (fastify, opts) {
 
       const relatorio = await OtimizacaoNutricional.gerarRelatoriCompleto(loja_id);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: {
           loja: {
@@ -354,12 +344,13 @@ module.exports = async function (fastify, opts) {
         loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(500).send({
+      router.log.error(error);
+      return res.code(500).send({
         success: false,
         error: error.message || 'Error generating complete nutritional optimization report',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   });
-};
+
+module.exports = router;

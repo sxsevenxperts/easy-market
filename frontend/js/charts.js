@@ -1,32 +1,60 @@
 /**
  * Smart Market - Chart.js Rendering Functions
+ * All functions accept data parameters for real data rendering
  */
 
 const chartInstances = {};
 
+const chartColors = {
+  primary: '#3b82f6',
+  primaryBg: 'rgba(59, 130, 246, 0.1)',
+  success: '#10b981',
+  successBg: 'rgba(16, 185, 129, 0.1)',
+  warning: '#f59e0b',
+  danger: '#ef4444',
+  purple: '#8b5cf6',
+  orange: '#f97316',
+  grid: 'rgba(148, 163, 184, 0.1)',
+  tick: '#94a3b8',
+  label: '#e2e8f0',
+  border: '#1e293b',
+};
+
+const defaultScales = {
+  y: {
+    beginAtZero: true,
+    grid: { color: chartColors.grid },
+    ticks: { color: chartColors.tick },
+  },
+  x: {
+    grid: { display: false },
+    ticks: { color: chartColors.tick },
+  },
+};
+
 /**
- * Dashboard Sales Chart
+ * Dashboard Sales Chart (line)
  */
-function renderDashSalesChart() {
+function renderDashSalesChart(labels, values) {
   const ctx = document.getElementById('dashSalesChart');
   if (!ctx) return;
+  if (chartInstances.dashSales) chartInstances.dashSales.destroy();
 
-  if (chartInstances.dashSales) {
-    chartInstances.dashSales.destroy();
-  }
+  labels = labels || ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'];
+  values = values || [8200, 9400, 7800, 10500, 11200, 12800, 10600];
 
   chartInstances.dashSales = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab', 'Dom'],
+      labels,
       datasets: [{
-        label: 'Vendas',
-        data: [8200, 9400, 7800, 10500, 11200, 12800, 10600],
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        label: 'Vendas (R$)',
+        data: values,
+        borderColor: chartColors.primary,
+        backgroundColor: chartColors.primaryBg,
         tension: 0.3,
         fill: true,
-        pointBackgroundColor: '#3b82f6',
+        pointBackgroundColor: chartColors.primary,
         pointBorderColor: '#1e40af',
         pointRadius: 5,
       }]
@@ -34,59 +62,31 @@ function renderDashSalesChart() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: {
-            color: 'rgba(148, 163, 184, 0.1)',
-          },
-          ticks: {
-            color: '#94a3b8',
-          },
-        },
-        x: {
-          grid: {
-            display: false,
-          },
-          ticks: {
-            color: '#94a3b8',
-          },
-        },
-      },
+      plugins: { legend: { display: false } },
+      scales: defaultScales,
     },
   });
 }
 
 /**
- * Dashboard Category Distribution
+ * Dashboard Category Distribution (doughnut)
  */
-function renderDashCategoryChart() {
+function renderDashCategoryChart(labels, values) {
   const ctx = document.getElementById('dashCategoryChart');
   if (!ctx) return;
+  if (chartInstances.dashCategory) chartInstances.dashCategory.destroy();
 
-  if (chartInstances.dashCategory) {
-    chartInstances.dashCategory.destroy();
-  }
+  labels = labels || ['Alimentos', 'Bebidas', 'Laticinios', 'Higiene', 'Outros'];
+  values = values || [28, 22, 18, 20, 12];
 
   chartInstances.dashCategory = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Alimentos', 'Bebidas', 'Laticínios', 'Higiene', 'Outros'],
+      labels,
       datasets: [{
-        data: [28, 22, 18, 20, 12],
-        backgroundColor: [
-          '#3b82f6',
-          '#10b981',
-          '#f59e0b',
-          '#ef4444',
-          '#8b5cf6',
-        ],
-        borderColor: '#1e293b',
+        data: values,
+        backgroundColor: [chartColors.primary, chartColors.success, chartColors.warning, chartColors.danger, chartColors.purple],
+        borderColor: chartColors.border,
         borderWidth: 2,
       }],
     },
@@ -94,52 +94,43 @@ function renderDashCategoryChart() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          position: 'bottom',
-          labels: {
-            color: '#e2e8f0',
-            padding: 15,
-          },
-        },
+        legend: { position: 'bottom', labels: { color: chartColors.label, padding: 15 } },
       },
     },
   });
 }
 
 /**
- * Forecast Chart
+ * Forecast Chart (line with 2 datasets)
  */
-function renderForecastChart() {
+function renderForecastChart(labels, previsto, realizado) {
   const ctx = document.getElementById('forecastChart');
   if (!ctx) return;
+  if (chartInstances.forecast) chartInstances.forecast.destroy();
 
-  if (chartInstances.forecast) {
-    chartInstances.forecast.destroy();
-  }
-
-  const days = Array.from({ length: 30 }, (_, i) => `Dia ${i + 1}`);
-  const predicted = Array.from({ length: 30 }, () => Math.floor(Math.random() * 5000 + 8000));
-  const actual = Array.from({ length: 30 }, () => Math.floor(Math.random() * 5000 + 8000));
+  labels = labels || Array.from({ length: 14 }, (_, i) => `Dia ${i + 1}`);
+  previsto = previsto || Array.from({ length: 14 }, () => Math.floor(Math.random() * 5000 + 8000));
+  realizado = realizado || Array.from({ length: 14 }, () => Math.floor(Math.random() * 5000 + 8000));
 
   chartInstances.forecast = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: days,
+      labels,
       datasets: [
         {
           label: 'Previsto',
-          data: predicted,
-          borderColor: '#3b82f6',
-          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          data: previsto,
+          borderColor: chartColors.primary,
+          backgroundColor: chartColors.primaryBg,
           tension: 0.4,
           borderWidth: 2,
           pointRadius: 3,
         },
         {
-          label: 'Real',
-          data: actual,
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.1)',
+          label: 'Realizado',
+          data: realizado,
+          borderColor: chartColors.success,
+          backgroundColor: chartColors.successBg,
           tension: 0.4,
           borderWidth: 2,
           pointRadius: 3,
@@ -149,60 +140,34 @@ function renderForecastChart() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          labels: {
-            color: '#e2e8f0',
-          },
-        },
-      },
+      plugins: { legend: { labels: { color: chartColors.label } } },
       scales: {
-        y: {
-          grid: {
-            color: 'rgba(148, 163, 184, 0.1)',
-          },
-          ticks: {
-            color: '#94a3b8',
-          },
-        },
-        x: {
-          grid: {
-            display: false,
-          },
-          ticks: {
-            color: '#94a3b8',
-          },
-        },
+        y: { grid: { color: chartColors.grid }, ticks: { color: chartColors.tick } },
+        x: { grid: { display: false }, ticks: { color: chartColors.tick } },
       },
     },
   });
 }
 
 /**
- * Perdas Chart
+ * Perdas Chart (horizontal bar)
  */
-function renderPerdasChart() {
+function renderPerdasChart(categories, values) {
   const ctx = document.getElementById('perdasChart');
   if (!ctx) return;
+  if (chartInstances.perdas) chartInstances.perdas.destroy();
 
-  if (chartInstances.perdas) {
-    chartInstances.perdas.destroy();
-  }
+  categories = categories || ['Padaria', 'Laticinios', 'Hortifruti', 'Frios', 'Bebidas'];
+  values = values || [1700, 1200, 890, 620, 440];
 
   chartInstances.perdas = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['Alimentos', 'Bebidas', 'Laticínios', 'Higiene', 'Padaria'],
+      labels: categories,
       datasets: [{
-        label: 'Perdas (%)',
-        data: [3.2, 1.8, 2.5, 1.2, 4.1],
-        backgroundColor: [
-          '#ef4444',
-          '#f97316',
-          '#f59e0b',
-          '#eab308',
-          '#84cc16',
-        ],
+        label: 'Perdas (R$)',
+        data: values,
+        backgroundColor: [chartColors.danger, chartColors.orange, chartColors.warning, '#eab308', chartColors.success],
         borderRadius: 6,
         borderWidth: 0,
       }],
@@ -211,113 +176,34 @@ function renderPerdasChart() {
       responsive: true,
       maintainAspectRatio: false,
       indexAxis: 'y',
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
+      plugins: { legend: { display: false } },
       scales: {
-        x: {
-          grid: {
-            color: 'rgba(148, 163, 184, 0.1)',
-          },
-          ticks: {
-            color: '#94a3b8',
-          },
-        },
-        y: {
-          ticks: {
-            color: '#94a3b8',
-          },
-        },
+        x: { grid: { color: chartColors.grid }, ticks: { color: chartColors.tick } },
+        y: { ticks: { color: chartColors.tick } },
       },
     },
   });
 }
 
 /**
- * RFM Distribution Chart
+ * RFM Distribution Chart (bar)
  */
-function renderRFMChart() {
+function renderRFMChart(segments, counts) {
   const ctx = document.getElementById('rfmChart');
   if (!ctx) return;
+  if (chartInstances.rfm) chartInstances.rfm.destroy();
 
-  if (chartInstances.rfm) {
-    chartInstances.rfm.destroy();
-  }
+  segments = segments || ['Campeoes', 'Leais', 'Potenciais', 'Em Risco', 'Perdidos'];
+  counts = counts || [120, 340, 580, 890, 1200];
 
   chartInstances.rfm = new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels: ['Recência', 'Frequência', 'Valor', 'Fidelidade', 'Engajamento'],
-      datasets: [{
-        label: 'VIP',
-        data: [90, 85, 92, 88, 86],
-        borderColor: '#3b82f6',
-        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-      },
-      {
-        label: 'Regular',
-        data: [65, 60, 58, 62, 60],
-        borderColor: '#10b981',
-        backgroundColor: 'rgba(16, 185, 129, 0.2)',
-      },
-      {
-        label: 'Em Risco',
-        data: [35, 40, 38, 35, 32],
-        borderColor: '#ef4444',
-        backgroundColor: 'rgba(239, 68, 68, 0.2)',
-      }],
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          labels: {
-            color: '#e2e8f0',
-          },
-        },
-      },
-      scales: {
-        r: {
-          grid: {
-            color: 'rgba(148, 163, 184, 0.2)',
-          },
-          ticks: {
-            color: '#94a3b8',
-            backdropColor: 'transparent',
-          },
-        },
-      },
-    },
-  });
-}
-
-/**
- * Anomaly Chart
- */
-function renderAnomaliaChart() {
-  const ctx = document.getElementById('anomaliaChart');
-  if (!ctx) return;
-
-  if (chartInstances.anomalia) {
-    chartInstances.anomalia.destroy();
-  }
-
-  chartInstances.anomalia = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: ['Crítica', 'Alta', 'Média', 'Baixa'],
+      labels: segments,
       datasets: [{
-        label: 'Anomalias',
-        data: [2, 3, 5, 8],
-        backgroundColor: [
-          '#ef4444',
-          '#f97316',
-          '#f59e0b',
-          '#eab308',
-        ],
+        label: 'Clientes',
+        data: counts,
+        backgroundColor: [chartColors.success, chartColors.primary, chartColors.warning, chartColors.danger, '#6b7280'],
         borderRadius: 6,
         borderWidth: 0,
       }],
@@ -325,30 +211,40 @@ function renderAnomaliaChart() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false,
-        },
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          grid: {
-            color: 'rgba(148, 163, 184, 0.1)',
-          },
-          ticks: {
-            color: '#94a3b8',
-          },
-        },
-        x: {
-          grid: {
-            display: false,
-          },
-          ticks: {
-            color: '#94a3b8',
-          },
-        },
-      },
+      plugins: { legend: { display: false } },
+      scales: defaultScales,
+    },
+  });
+}
+
+/**
+ * Anomalia Chart (bar)
+ */
+function renderAnomaliaChart(types, counts) {
+  const ctx = document.getElementById('anomaliaChart');
+  if (!ctx) return;
+  if (chartInstances.anomalia) chartInstances.anomalia.destroy();
+
+  types = types || ['Critica', 'Alta', 'Media', 'Baixa'];
+  counts = counts || [2, 3, 5, 8];
+
+  chartInstances.anomalia = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: types,
+      datasets: [{
+        label: 'Anomalias',
+        data: counts,
+        backgroundColor: [chartColors.danger, chartColors.orange, chartColors.warning, '#eab308'],
+        borderRadius: 6,
+        borderWidth: 0,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: defaultScales,
     },
   });
 }

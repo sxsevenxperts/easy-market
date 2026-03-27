@@ -1,38 +1,14 @@
+
+const express = require('express');
+const router = express.Router();
 const { pool } = require('../config/database');
 const redis = require('../config/redis');
 const logger = require('../config/logger');
 const Joi = require('joi');
 
-// Validation schemas
-const produtoSchema = Joi.object({
-  loja_id: Joi.string().required(),
-  sku: Joi.string().required(),
-  nome: Joi.string().required(),
-  categoria: Joi.string().required(),
-  subcategoria: Joi.string(),
-  preco_custo: Joi.number().precision(2),
-  preco_venda: Joi.number().precision(2),
-  estoque_atual: Joi.number().integer().default(0),
-  estoque_minimo: Joi.number().integer().default(5),
-  estoque_maximo: Joi.number().integer().default(100),
-  eh_perecivel: Joi.boolean().default(false),
-  data_vencimento: Joi.date()
-});
-
-const atualizarEstoqueSchema = Joi.object({
-  loja_id: Joi.string().required(),
-  sku: Joi.string().required(),
-  quantidade: Joi.number().integer().required(), // pode ser negativo (saída)
-  tipo_movimento: Joi.string().valid('entrada', 'saida', 'ajuste', 'devolucao').required(),
-  motivo: Joi.string()
-});
-
-async function routes(fastify, options) {
-
-  // GET /api/v1/inventario/:loja_id - Get inventory summary
-  fastify.get('/:loja_id', async (request, reply) => {
+router.get('/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       const result = await pool.query(
         `SELECT
@@ -46,24 +22,24 @@ async function routes(fastify, options) {
         [loja_id]
       );
 
-      return reply.send({
+      return res.send({
         loja_id,
         resumo_estoque: result.rows[0]
       });
 
     } catch (err) {
       logger.error('Error fetching inventory summary:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
   // GET /api/v1/inventario/:loja_id/produtos - List all products
-  fastify.get('/:loja_id/produtos', async (request, reply) => {
+  router.get('/:loja_id/produtos', async (req, res) => {
     try {
-      const { loja_id } = request.params;
-      const { categoria, status, limit = 100, offset = 0 } = request.query;
+      const { loja_id } = req.params;
+      const { categoria, status, limit = 100, offset = 0 } = req.query;
 
       let query = `
         SELECT
@@ -106,7 +82,7 @@ async function routes(fastify, options) {
 
       const result = await pool.query(query, params);
 
-      return reply.send({
+      return res.send({
         loja_id,
         total: result.rows.length,
         produtos: result.rows
@@ -114,23 +90,23 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error fetching products:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
   // POST /api/v1/inventario/:loja_id/produtos - Create/Update product
-  fastify.post('/:loja_id/produtos', async (request, reply) => {
+  router.post('/:loja_id/produtos', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
       const { error, value } = produtoSchema.validate({
-        ...request.body,
+        ...req.body,
         loja_id
       });
 
       if (error) {
-        return reply.code(400).send({
+        return res.code(400).send({
           error: 'validation_error',
           details: error.details
         });
@@ -182,11 +158,11 @@ async function routes(fastify, options) {
 
       logger.info(`Product ${sku} created/updated in store ${loja_id}`);
 
-      return reply.code(201).send(result.rows[0]);
+      return res.code(201).send(result.rows[0]);
 
     } catch (err) {
       logger.error('Error creating product:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error',
         message: err.message
       });
@@ -194,16 +170,16 @@ async function routes(fastify, options) {
   });
 
   // PUT /api/v1/inventario/:loja_id/movimento - Update inventory
-  fastify.put('/:loja_id/movimento', async (request, reply) => {
+  router.put('/:loja_id/movimento', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
       const { error, value } = atualizarEstoqueSchema.validate({
-        ...request.body,
+        ...req.body,
         loja_id
       });
 
       if (error) {
-        return reply.code(400).send({
+        return res.code(400).send({
           error: 'validation_error',
           details: error.details
         });
@@ -218,14 +194,14 @@ async function routes(fastify, options) {
       );
 
       if (produtoResult.rows.length === 0) {
-        return reply.code(404).send({ error: 'product_not_found' });
+        return res.code(404).send({ error: 'product_not_found' });
       }
 
       const produto = produtoResult.rows[0];
       const novo_estoque = produto.estoque_atual + (tipo_movimento === 'saida' ? -quantidade : quantidade);
 
       if (novo_estoque < 0) {
-        return reply.code(400).send({
+        return res.code(400).send({
           error: 'insufficient_stock',
           estoque_atual: produto.estoque_atual
         });
@@ -287,11 +263,11 @@ async function routes(fastify, options) {
       // Invalidate cache
       await redis.del(`inventario:${loja_id}`);
 
-      return reply.send(updateResult.rows[0]);
+      return res.send(updateResult.rows[0]);
 
     } catch (err) {
       logger.error('Error updating inventory:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error',
         message: err.message
       });
@@ -299,10 +275,10 @@ async function routes(fastify, options) {
   });
 
   // GET /api/v1/inventario/:loja_id/vencimentos - Products expiring soon
-  fastify.get('/:loja_id/vencimentos', async (request, reply) => {
+  router.get('/:loja_id/vencimentos', async (req, res) => {
     try {
-      const { loja_id } = request.params;
-      const diasRaw = request.query.dias ?? 7;
+      const { loja_id } = req.params;
+      const diasRaw = req.query.dias ?? 7;
       const dias = Math.max(1, Math.min(365, parseInt(diasRaw, 10) || 7));
 
       const result = await pool.query(
@@ -324,7 +300,7 @@ async function routes(fastify, options) {
         [loja_id, dias]
       );
 
-      return reply.send({
+      return res.send({
         loja_id,
         dias_verificacao: dias,
         total_risco: result.rows.length,
@@ -333,16 +309,16 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error fetching expiring products:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
   // GET /api/v1/inventario/:loja_id/estoque-baixo - Low stock products
-  fastify.get('/:loja_id/estoque-baixo', async (request, reply) => {
+  router.get('/:loja_id/estoque-baixo', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       const result = await pool.query(
         `SELECT
@@ -358,7 +334,7 @@ async function routes(fastify, options) {
         [loja_id]
       );
 
-      return reply.send({
+      return res.send({
         loja_id,
         total_produtos_baixo: result.rows.length,
         valor_total_repor: result.rows.reduce((sum, p) => sum + (p.valor_para_repor || 0), 0),
@@ -367,12 +343,10 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error fetching low stock products:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
-}
-
-module.exports = routes;
+module.exports = router;

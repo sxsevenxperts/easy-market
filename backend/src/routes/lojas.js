@@ -1,26 +1,16 @@
+
+const express = require('express');
+const router = express.Router();
 const { pool } = require('../config/database');
 const logger = require('../config/logger');
 const { v4: uuidv4 } = require('uuid');
 const Joi = require('joi');
 
-// Validation schema
-const lojaSchema = Joi.object({
-  nome: Joi.string().required(),
-  municipio: Joi.string().required(),
-  estado: Joi.string().length(2).required(),
-  latitude: Joi.number().precision(8),
-  longitude: Joi.number().precision(8),
-  fuso_horario: Joi.string().default('America/Fortaleza')
-});
-
-async function routes(fastify, options) {
-
-  // POST /api/v1/lojas - Create new store
-  fastify.post('/', async (request, reply) => {
+router.post('/', async (req, res) => {
     try {
-      const { error, value } = lojaSchema.validate(request.body);
+      const { error, value } = lojaSchema.validate(req.body);
       if (error) {
-        return reply.code(400).send({
+        return res.code(400).send({
           error: 'validation_error',
           details: error.details
         });
@@ -46,7 +36,7 @@ async function routes(fastify, options) {
 
       logger.info(`New store created: ${lojaId}`);
 
-      return reply.code(201).send({
+      return res.code(201).send({
         loja_id: lojaId,
         status: 'criada',
         api_key: apiKey,
@@ -55,16 +45,16 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error creating store:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
   // GET /api/v1/lojas/:loja_id - Get store details
-  fastify.get('/:loja_id', async (request, reply) => {
+  router.get('/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       const result = await pool.query(
         'SELECT * FROM lojas WHERE loja_id = $1',
@@ -72,7 +62,7 @@ async function routes(fastify, options) {
       );
 
       if (result.rows.length === 0) {
-        return reply.code(404).send({ error: 'loja_not_found' });
+        return res.code(404).send({ error: 'loja_not_found' });
       }
 
       const loja = result.rows[0];
@@ -83,24 +73,24 @@ async function routes(fastify, options) {
         [loja_id]
       );
 
-      return reply.send({
+      return res.send({
         ...loja,
         configuracao: configResult.rows[0] || {}
       });
 
     } catch (err) {
       logger.error('Error fetching store:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
   // PUT /api/v1/lojas/:loja_id - Update store
-  fastify.put('/:loja_id', async (request, reply) => {
+  router.put('/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
-      const updates = request.body;
+      const { loja_id } = req.params;
+      const updates = req.body;
 
       const fields = [];
       const values = [];
@@ -124,7 +114,7 @@ async function routes(fastify, options) {
       }
 
       if (fields.length === 0) {
-        return reply.code(400).send({
+        return res.code(400).send({
           error: 'no_updates'
         });
       }
@@ -138,41 +128,39 @@ async function routes(fastify, options) {
       );
 
       if (result.rows.length === 0) {
-        return reply.code(404).send({ error: 'loja_not_found' });
+        return res.code(404).send({ error: 'loja_not_found' });
       }
 
       logger.info(`Store updated: ${loja_id}`);
 
-      return reply.send(result.rows[0]);
+      return res.send(result.rows[0]);
 
     } catch (err) {
       logger.error('Error updating store:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
   // GET /api/v1/lojas - List all stores
-  fastify.get('/', async (request, reply) => {
+  router.get('/', async (req, res) => {
     try {
       const result = await pool.query(
         'SELECT * FROM lojas ORDER BY created_at DESC LIMIT 100'
       );
 
-      return reply.send({
+      return res.send({
         total: result.rows.length,
         lojas: result.rows
       });
 
     } catch (err) {
       logger.error('Error listing stores:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
-}
-
-module.exports = routes;
+module.exports = router;

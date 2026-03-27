@@ -1,14 +1,14 @@
+
+const express = require('express');
+const router = express.Router();
 const { pool } = require('../config/database');
 const redis = require('../config/redis');
 const logger = require('../config/logger');
 
-async function routes(fastify, options) {
-
-  // GET /api/v1/dashboard/:loja_id - Main dashboard
-  fastify.get('/:loja_id', async (request, reply) => {
+router.get('/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
-      const { periodo = 'hoje' } = request.query;
+      const { loja_id } = req.params;
+      const { periodo = 'hoje' } = req.query;
 
       // Define date range
       let dateRange = "AND time >= NOW() - INTERVAL '1 day'";
@@ -22,7 +22,7 @@ async function routes(fastify, options) {
       );
 
       if (lojaResult.rows.length === 0) {
-        return reply.code(404).send({ error: 'loja_not_found' });
+        return res.code(404).send({ error: 'loja_not_found' });
       }
 
       const loja = lojaResult.rows[0];
@@ -136,7 +136,7 @@ async function routes(fastify, options) {
         [loja.municipio]
       );
 
-      return reply.send({
+      return res.send({
         loja: {
           id: loja.loja_id,
           nome: loja.nome,
@@ -195,16 +195,16 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error fetching dashboard:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
   // GET /api/v1/dashboard/:loja_id/categoria/:categoria - Category-specific dashboard
-  fastify.get('/:loja_id/categoria/:categoria', async (request, reply) => {
+  router.get('/:loja_id/categoria/:categoria', async (req, res) => {
     try {
-      const { loja_id, categoria } = request.params;
+      const { loja_id, categoria } = req.params;
 
       // Category sales trend
       const trendResult = await pool.query(
@@ -250,7 +250,7 @@ async function routes(fastify, options) {
         [loja_id, categoria]
       );
 
-      return reply.send({
+      return res.send({
         loja_id,
         categoria,
         trend: trendResult.rows,
@@ -260,12 +260,10 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error fetching category dashboard:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
-}
-
-module.exports = routes;
+module.exports = router;

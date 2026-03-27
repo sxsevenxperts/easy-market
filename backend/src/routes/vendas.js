@@ -1,28 +1,17 @@
+
+const express = require('express');
+const router = express.Router();
 const { pool } = require('../config/database');
 const redis = require('../config/redis');
 const logger = require('../config/logger');
 const Joi = require('joi');
 
-// Validation schema
-const vendaSchema = Joi.object({
-  loja_id: Joi.string().required(),
-  sku: Joi.string().required(),
-  categoria: Joi.string().required(),
-  quantidade: Joi.number().integer().positive().required(),
-  preco_unitario: Joi.number().precision(2).required(),
-  timestamp: Joi.date().default(() => new Date()),
-  desconto_percentual: Joi.number().default(0)
-});
-
-async function routes(fastify, options) {
-
-  // POST /api/v1/vendas - Ingest sales event
-  fastify.post('/', async (request, reply) => {
+router.post('/', async (req, res) => {
     try {
       // Validate
-      const { error, value } = vendaSchema.validate(request.body);
+      const { error, value } = vendaSchema.validate(req.body);
       if (error) {
-        return reply.code(400).send({
+        return res.code(400).send({
           error: 'validation_error',
           details: error.details
         });
@@ -41,7 +30,7 @@ async function routes(fastify, options) {
       // Verify loja exists
       const lojaResult = await pool.query('SELECT * FROM lojas WHERE loja_id = $1', [loja_id]);
       if (lojaResult.rows.length === 0) {
-        return reply.code(404).send({ error: 'loja_not_found' });
+        return res.code(404).send({ error: 'loja_not_found' });
       }
 
       // Get climate data from cache (usually cached by weather job)
@@ -91,7 +80,7 @@ async function routes(fastify, options) {
 
       logger.info(`Sale recorded: ${loja_id}/${sku} - ${quantidade} units`);
 
-      return reply.code(201).send({
+      return res.code(201).send({
         event_id: `evt_${Date.now()}`,
         status: 'enqueued',
         timestamp: new Date().toISOString()
@@ -99,7 +88,7 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error recording sale:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error',
         message: err.message
       });
@@ -107,16 +96,16 @@ async function routes(fastify, options) {
   });
 
   // GET /api/v1/vendas/:loja_id - Get sales history
-  fastify.get('/:loja_id', async (request, reply) => {
+  router.get('/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
       const {
         categoria,
         data_inicio,
         data_fim,
         limit = 100,
         offset = 0
-      } = request.query;
+      } = req.query;
 
       let query = `
         SELECT 
@@ -148,7 +137,7 @@ async function routes(fastify, options) {
 
       const result = await pool.query(query, params);
 
-      return reply.send({
+      return res.send({
         loja_id,
         total: result.rows.length,
         dados: result.rows
@@ -156,17 +145,17 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error fetching sales:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
   // GET /api/v1/vendas/:loja_id/summary - Sales summary
-  fastify.get('/:loja_id/summary', async (request, reply) => {
+  router.get('/:loja_id/summary', async (req, res) => {
     try {
-      const { loja_id } = request.params;
-      const diasRaw = request.query.dias ?? 7;
+      const { loja_id } = req.params;
+      const diasRaw = req.query.dias ?? 7;
       const dias = Math.max(1, Math.min(365, parseInt(diasRaw, 10) || 7));
 
       const result = await pool.query(
@@ -185,7 +174,7 @@ async function routes(fastify, options) {
         [loja_id, dias]
       );
 
-      return reply.send({
+      return res.send({
         loja_id,
         periodo_dias: dias,
         resumo: result.rows
@@ -193,12 +182,10 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error fetching sales summary:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
-}
-
-module.exports = routes;
+module.exports = router;

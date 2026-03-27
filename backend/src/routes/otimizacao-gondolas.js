@@ -1,26 +1,15 @@
-/**
- * Rotas de Otimização de Gôndolas
- * Endpoints para análise e recomendações de posicionamento estratégico
- * com base em padrões de perda, consumo temporal e análise preditiva
- */
 
-module.exports = async function (fastify, opts) {
-  const { supabase } = fastify;
-  const OtimizacaoGondolas = require('../services/otimizacao-gondolas');
+const express = require('express');
+const router = express.Router();
+const OtimizacaoGondolas = require('../services/otimizacao-gondolas');
 
-  /**
-   * GET /analise/:loja_id
-   * Extrai análise completa de otimização de gôndolas
-   * Inclui: produtos com maior perda, padrões de venda por dia/hora,
-   * produtos top, categorias top
-   */
-  fastify.get('/analise/:loja_id', async (request, reply) => {
+router.get('/analise/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       // Validar loja_id
       if (!loja_id || isNaN(loja_id)) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Invalid loja_id parameter'
         });
@@ -34,7 +23,7 @@ module.exports = async function (fastify, opts) {
         .single();
 
       if (!lojaExists) {
-        return reply.code(404).send({
+        return res.code(404).send({
           success: false,
           error: 'Store not found'
         });
@@ -43,15 +32,15 @@ module.exports = async function (fastify, opts) {
       // Executar análise
       const analise = await OtimizacaoGondolas.analisarOtimizacaoGondolas(loja_id);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: analise,
         timestamp: new Date().toISOString(),
         loja_id: loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(500).send({
+      router.log.error(error);
+      return res.code(500).send({
         success: false,
         error: error.message || 'Error analyzing gondola optimization',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -65,12 +54,12 @@ module.exports = async function (fastify, opts) {
    * Inclui 5 tipos: reposicionamento urgente, otimização semanal, horária,
    * expansão de categoria e redução de perdas
    */
-  fastify.get('/recomendacoes/:loja_id', async (request, reply) => {
+  router.get('/recomendacoes/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       if (!loja_id || isNaN(loja_id)) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Invalid loja_id parameter'
         });
@@ -83,7 +72,7 @@ module.exports = async function (fastify, opts) {
         .single();
 
       if (!lojaExists) {
-        return reply.code(404).send({
+        return res.code(404).send({
           success: false,
           error: 'Store not found'
         });
@@ -91,15 +80,15 @@ module.exports = async function (fastify, opts) {
 
       const recomendacoes = await OtimizacaoGondolas.gerarRecomendacoesGondola(loja_id);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: recomendacoes,
         timestamp: new Date().toISOString(),
         loja_id: loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(500).send({
+      router.log.error(error);
+      return res.code(500).send({
         success: false,
         error: error.message || 'Error generating gondola recommendations',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -113,12 +102,12 @@ module.exports = async function (fastify, opts) {
    * Inclui: posicionamento de seções, cronograma de reposicionamento,
    * KPIs alvo para reduçao de perdas e aumento de receita
    */
-  fastify.get('/layout/:loja_id', async (request, reply) => {
+  router.get('/layout/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       if (!loja_id || isNaN(loja_id)) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Invalid loja_id parameter'
         });
@@ -131,7 +120,7 @@ module.exports = async function (fastify, opts) {
         .single();
 
       if (!lojaExists) {
-        return reply.code(404).send({
+        return res.code(404).send({
           success: false,
           error: 'Store not found'
         });
@@ -139,15 +128,15 @@ module.exports = async function (fastify, opts) {
 
       const layout = await OtimizacaoGondolas.sugerirLayoutOtimizado(loja_id);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: layout,
         timestamp: new Date().toISOString(),
         loja_id: loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(500).send({
+      router.log.error(error);
+      return res.code(500).send({
         success: false,
         error: error.message || 'Error generating store layout',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
@@ -160,12 +149,12 @@ module.exports = async function (fastify, opts) {
    * Retorna relatório completo integrando análise, recomendações e layout
    * Ideal para dashboard ou download de relatório executivo
    */
-  fastify.get('/completo/:loja_id', async (request, reply) => {
+  router.get('/completo/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       if (!loja_id || isNaN(loja_id)) {
-        return reply.code(400).send({
+        return res.code(400).send({
           success: false,
           error: 'Invalid loja_id parameter'
         });
@@ -178,7 +167,7 @@ module.exports = async function (fastify, opts) {
         .single();
 
       if (!lojaExists) {
-        return reply.code(404).send({
+        return res.code(404).send({
           success: false,
           error: 'Store not found'
         });
@@ -191,7 +180,7 @@ module.exports = async function (fastify, opts) {
         OtimizacaoGondolas.sugerirLayoutOtimizado(loja_id)
       ]);
 
-      return reply.code(200).send({
+      return res.code(200).send({
         success: true,
         data: {
           loja: {
@@ -207,12 +196,13 @@ module.exports = async function (fastify, opts) {
         loja_id: loja_id
       });
     } catch (error) {
-      fastify.log.error(error);
-      return reply.code(500).send({
+      router.log.error(error);
+      return res.code(500).send({
         success: false,
         error: error.message || 'Error generating complete gondola optimization report',
         details: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   });
-};
+
+module.exports = router;

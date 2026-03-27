@@ -1,20 +1,20 @@
+
+const express = require('express');
+const router = express.Router();
 const { pool } = require('../config/database');
 const redis = require('../config/redis');
 const logger = require('../config/logger');
 
-async function routes(fastify, options) {
-
-  // GET /api/v1/relatorios/:loja_id/vendas - Sales report
-  fastify.get('/:loja_id/vendas', async (request, reply) => {
+router.get('/:loja_id/vendas', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
       const {
         periodo = 'diario', // diario, semanal, quinzenal, mensal, 90dias, 6meses, 1ano
         data_inicio,
         data_fim,
         categoria,
         setor
-      } = request.query;
+      } = req.query;
 
       // Calculate date range based on period
       let dateRange;
@@ -82,7 +82,7 @@ async function routes(fastify, options) {
       const totalFaturamento = result.rows.reduce((sum, r) => sum + parseFloat(r.total_faturamento || 0), 0);
       const totalQuantidade = result.rows.reduce((sum, r) => sum + parseInt(r.total_quantidade || 0), 0);
 
-      return reply.send({
+      return res.send({
         loja_id,
         periodo,
         dias_analisados: dateRange,
@@ -97,7 +97,7 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error generating sales report:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error',
         message: err.message
       });
@@ -105,9 +105,9 @@ async function routes(fastify, options) {
   });
 
   // GET /api/v1/relatorios/:loja_id/memorial - Item history/memorial
-  fastify.get('/:loja_id/memorial', async (request, reply) => {
+  router.get('/:loja_id/memorial', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
       const {
         sku,
         categoria,
@@ -116,7 +116,7 @@ async function routes(fastify, options) {
         segmentar_por = 'dia', // dia, hora, setor, produto
         limit = 1000,
         offset = 0
-      } = request.query;
+      } = req.query;
 
       let query = `
         SELECT
@@ -174,7 +174,7 @@ async function routes(fastify, options) {
 
       const result = await pool.query(query, params);
 
-      return reply.send({
+      return res.send({
         loja_id,
         segmentacao: segmentar_por,
         total_registros: result.rows.length,
@@ -183,7 +183,7 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error generating memorial report:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error',
         message: err.message
       });
@@ -191,10 +191,10 @@ async function routes(fastify, options) {
   });
 
   // GET /api/v1/relatorios/:loja_id/categoria/:categoria - Category analysis
-  fastify.get('/:loja_id/categoria/:categoria', async (request, reply) => {
+  router.get('/:loja_id/categoria/:categoria', async (req, res) => {
     try {
-      const { loja_id, categoria } = request.params;
-      const { periodo = 'mensal' } = request.query;
+      const { loja_id, categoria } = req.params;
+      const { periodo = 'mensal' } = req.query;
 
       const dateRange = {
         'diario': 1,
@@ -228,7 +228,7 @@ async function routes(fastify, options) {
          result.rows[result.rows.length - 1].total_faturamento * 100).toFixed(2)
         : 0;
 
-      return reply.send({
+      return res.send({
         loja_id,
         categoria,
         periodo,
@@ -238,17 +238,17 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error generating category report:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
   // GET /api/v1/relatorios/:loja_id/horarios - Hourly analysis
-  fastify.get('/:loja_id/horarios', async (request, reply) => {
+  router.get('/:loja_id/horarios', async (req, res) => {
     try {
-      const { loja_id } = request.params;
-      const { periodo = 'semanal' } = request.query;
+      const { loja_id } = req.params;
+      const { periodo = 'semanal' } = req.query;
 
       const dateRange = periodo === 'semanal' ? 7 : 30;
 
@@ -273,7 +273,7 @@ async function routes(fastify, options) {
         .sort((a, b) => b.total_faturamento - a.total_faturamento)
         .slice(0, 5);
 
-      return reply.send({
+      return res.send({
         loja_id,
         periodo,
         horas_pico: peakHours,
@@ -282,17 +282,17 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error generating hourly report:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
   // GET /api/v1/relatorios/:loja_id/desperdicio - Waste analysis
-  fastify.get('/:loja_id/desperdicio', async (request, reply) => {
+  router.get('/:loja_id/desperdicio', async (req, res) => {
     try {
-      const { loja_id } = request.params;
-      const diasRaw = request.query.dias ?? 30;
+      const { loja_id } = req.params;
+      const diasRaw = req.query.dias ?? 30;
       const dias = Math.max(1, Math.min(365, parseInt(diasRaw, 10) || 30));
 
       const result = await pool.query(
@@ -311,7 +311,7 @@ async function routes(fastify, options) {
         [loja_id, dias]
       );
 
-      return reply.send({
+      return res.send({
         loja_id,
         periodo_dias: dias,
         analise_desperdicio: result.rows,
@@ -320,16 +320,16 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error generating waste report:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
   // GET /api/v1/relatorios/:loja_id/comparativo - Comparative analysis
-  fastify.get('/:loja_id/comparativo', async (request, reply) => {
+  router.get('/:loja_id/comparativo', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       // Compare this week vs last week, this month vs last month
       const result = await pool.query(
@@ -355,7 +355,7 @@ async function routes(fastify, options) {
         ? ((data.mes_atual - mes_passado) / mes_passado * 100).toFixed(2)
         : '0.00';
 
-      return reply.send({
+      return res.send({
         loja_id,
         comparativo: {
           semana: {
@@ -377,12 +377,10 @@ async function routes(fastify, options) {
 
     } catch (err) {
       logger.error('Error generating comparative report:', err);
-      return reply.code(500).send({
+      return res.code(500).send({
         error: 'internal_server_error'
       });
     }
   });
 
-}
-
-module.exports = routes;
+module.exports = router;

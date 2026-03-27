@@ -1,53 +1,15 @@
+
+const express = require('express');
+const router = express.Router();
 const fastify = require('fastify');
 const Joi = require('joi');
 const twilio = require('twilio');
 const db = require('../db');
 const redis = require('../redis');
 
-// Twilio client
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
-);
-
-// Schemas
-const createNotificationSchema = Joi.object({
-  tipo: Joi.string()
-    .valid('alerta_critico', 'vencimento', 'falta_estoque', 'desperdicio', 'relatório')
-    .required(),
-  titulo: Joi.string().required(),
-  mensagem: Joi.string().required(),
-  loja_id: Joi.string().required(),
-  setor: Joi.string().optional(), // Categoria/setor para roteamento inteligente
-  canais: Joi.array()
-    .items(Joi.string().valid('email', 'whatsapp', 'sms', 'push'))
-    .required(),
-  dados_adicionais: Joi.object().optional(),
-  urgencia: Joi.string()
-    .valid('alta', 'media', 'baixa')
-    .default('media'),
-  agendado_para: Joi.date().optional(),
-});
-
-const updateNotificationSettingsSchema = Joi.object({
-  loja_id: Joi.string().required(),
-  email: Joi.string().email().optional(),
-  telefone_whatsapp: Joi.string().optional(),
-  telefone_sms: Joi.string().optional(),
-  alertas_criticos: Joi.boolean().default(true),
-  alertas_email: Joi.boolean().default(false),
-  alertas_whatsapp: Joi.boolean().default(false),
-  alertas_sms: Joi.boolean().default(false),
-  relatorios_diarios: Joi.boolean().default(false),
-  relatorios_semanais: Joi.boolean().default(false),
-});
-
-// Routes
-module.exports = async function (fastify, opts) {
-  // POST /notificacoes - Criar notificação
-  fastify.post('/notificacoes', async (request, reply) => {
-    const { error, value } = createNotificationSchema.validate(request.body);
-    if (error) return reply.status(400).send({ error: error.details[0].message });
+router.post('/notificacoes', async (req, res) => {
+    const { error, value } = createNotificationSchema.validate(req.body);
+    if (error) return res.status(400).send({ error: error.details[0].message });
 
     const {
       tipo,
@@ -192,20 +154,20 @@ module.exports = async function (fastify, opts) {
       // Invalidar cache
       await redis.del(`alertas-criticos:${loja_id}`);
 
-      reply.status(201).send({
+      res.status(201).send({
         notificacao_id: notificacaoId,
         resultados,
       });
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao enviar notificação' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao enviar notificação' });
     }
   });
 
   // GET /notificacoes/:loja_id - Listar notificações
-  fastify.get('/notificacoes/:loja_id', async (request, reply) => {
-    const { loja_id } = request.params;
-    const { limite = 50, offset = 0, tipo, status } = request.query;
+  router.get('/notificacoes/:loja_id', async (req, res) => {
+    const { loja_id } = req.params;
+    const { limite = 50, offset = 0, tipo, status } = req.query;
 
     try {
       let query = 'SELECT * FROM notificacoes WHERE loja_id = $1';
@@ -226,19 +188,19 @@ module.exports = async function (fastify, opts) {
 
       const result = await db.query(query, params);
 
-      reply.send({
+      res.send({
         notificacoes: result.rows,
         total: result.rows.length,
       });
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao listar notificações' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao listar notificações' });
     }
   });
 
   // GET /notificacoes/:loja_id/config - Obter configurações
-  fastify.get('/notificacoes/:loja_id/config', async (request, reply) => {
-    const { loja_id } = request.params;
+  router.get('/notificacoes/:loja_id/config', async (req, res) => {
+    const { loja_id } = req.params;
 
     try {
       const result = await db.query(
@@ -247,25 +209,25 @@ module.exports = async function (fastify, opts) {
       );
 
       if (result.rows.length === 0) {
-        return reply.status(404).send({ error: 'Configuração não encontrada' });
+        return res.status(404).send({ error: 'Configuração não encontrada' });
       }
 
-      reply.send(result.rows[0]);
+      res.send(result.rows[0]);
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao obter configuração' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao obter configuração' });
     }
   });
 
   // PUT /notificacoes/:loja_id/config - Atualizar configurações
-  fastify.put('/notificacoes/:loja_id/config', async (request, reply) => {
-    const { loja_id } = request.params;
+  router.put('/notificacoes/:loja_id/config', async (req, res) => {
+    const { loja_id } = req.params;
     const { error, value } = updateNotificationSettingsSchema.validate({
       loja_id,
-      ...request.body,
+      ...req.body,
     });
 
-    if (error) return reply.status(400).send({ error: error.details[0].message });
+    if (error) return res.status(400).send({ error: error.details[0].message });
 
     const {
       email,
@@ -329,48 +291,48 @@ module.exports = async function (fastify, opts) {
         );
       }
 
-      reply.send({ status: 'configuração atualizada' });
+      res.send({ status: 'configuração atualizada' });
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao atualizar configuração' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao atualizar configuração' });
     }
   });
 
   // POST /notificacoes/whatsapp/qrcode - WhatsApp sem API (QR Code)
-  fastify.post('/notificacoes/whatsapp/qrcode', async (request, reply) => {
-    const { loja_id } = request.body;
+  router.post('/notificacoes/whatsapp/qrcode', async (req, res) => {
+    const { loja_id } = req.body;
 
     try {
       // Gerar link para WhatsApp Web
       const codigoQR = `https://web.whatsapp.com/send?phone=${process.env.WHATSAPP_BUSINESS_NUMBER}&text=Olá%20Easy%20Market!`;
 
-      reply.send({
+      res.send({
         qrcode_url: codigoQR,
         instrucoes: 'Escanear QR com WhatsApp para conectar',
         alternativa: 'Enviar mensagem manual para +55 (XX) XXXXX-XXXX',
       });
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao gerar QR Code' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao gerar QR Code' });
     }
   });
 
   // GET /notificacoes/:loja_id/push - Obter notificações push pendentes (SSE)
-  fastify.get('/notificacoes/:loja_id/push', async (request, reply) => {
-    const { loja_id } = request.params;
+  router.get('/notificacoes/:loja_id/push', async (req, res) => {
+    const { loja_id } = req.params;
 
     try {
       // Server-Sent Events para push notifications
-      reply.header('Content-Type', 'text/event-stream');
-      reply.header('Cache-Control', 'no-cache');
-      reply.header('Connection', 'keep-alive');
+      res.header('Content-Type', 'text/event-stream');
+      res.header('Cache-Control', 'no-cache');
+      res.header('Connection', 'keep-alive');
 
       // Buscar notificações pendentes
       const notificacoes = await redis.lrange(`push-notifications:${loja_id}`, 0, -1);
 
       if (notificacoes.length > 0) {
         notificacoes.forEach((notif) => {
-          reply.raw.write(`data: ${notif}\n\n`);
+          res.raw.write(`data: ${notif}\n\n`);
         });
 
         // Limpar depois de enviar
@@ -381,23 +343,23 @@ module.exports = async function (fastify, opts) {
       const interval = setInterval(async () => {
         const newNotif = await redis.rpop(`push-notifications:${loja_id}`);
         if (newNotif) {
-          reply.raw.write(`data: ${newNotif}\n\n`);
+          res.raw.write(`data: ${newNotif}\n\n`);
         }
       }, 1000);
 
-      request.raw.on('close', () => {
+      req.raw.on('close', () => {
         clearInterval(interval);
-        reply.raw.end();
+        res.raw.end();
       });
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao conectar SSE' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao conectar SSE' });
     }
   });
 
   // PUT /notificacoes/:id/marcar-lida - Marcar como lida
-  fastify.put('/notificacoes/:id/marcar-lida', async (request, reply) => {
-    const { id } = request.params;
+  router.put('/notificacoes/:id/marcar-lida', async (req, res) => {
+    const { id } = req.params;
 
     try {
       await db.query(
@@ -405,23 +367,24 @@ module.exports = async function (fastify, opts) {
         ['lida', id]
       );
 
-      reply.send({ status: 'marcada como lida' });
+      res.send({ status: 'marcada como lida' });
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao marcar como lida' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao marcar como lida' });
     }
   });
 
   // DELETE /notificacoes/:id - Deletar notificação
-  fastify.delete('/notificacoes/:id', async (request, reply) => {
-    const { id } = request.params;
+  router.delete('/notificacoes/:id', async (req, res) => {
+    const { id } = req.params;
 
     try {
       await db.query('DELETE FROM notificacoes WHERE id = $1', [id]);
-      reply.send({ status: 'notificação deletada' });
+      res.send({ status: 'notificação deletada' });
     } catch (err) {
-      fastify.log.error(err);
-      reply.status(500).send({ error: 'Erro ao deletar notificação' });
+      router.log.error(err);
+      res.status(500).send({ error: 'Erro ao deletar notificação' });
     }
   });
-};
+
+module.exports = router;

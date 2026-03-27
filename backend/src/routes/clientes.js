@@ -1,12 +1,12 @@
+
+const express = require('express');
+const router = express.Router();
 const { pool } = require('../config/database');
 const logger = require('../config/logger');
 
-async function routes(fastify, options) {
-
-  // GET /clientes/:loja_id - Resumo de fidelidade
-  fastify.get('/:loja_id/resumo', async (request, reply) => {
+router.get('/:loja_id/resumo', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       const result = await pool.query(
         `SELECT
@@ -27,21 +27,21 @@ async function routes(fastify, options) {
 
       const resumo = result.rows[0];
 
-      return reply.send({
+      return res.send({
         resumo,
         timestamp: new Date().toISOString()
       });
     } catch (err) {
       logger.error('Erro ao buscar resumo de fidelidade:', err);
-      return reply.code(500).send({ error: 'internal_error', message: err.message });
+      return res.code(500).send({ error: 'internal_error', message: err.message });
     }
   });
 
   // GET /clientes/:loja_id - Listar clientes com filtros
-  fastify.get('/:loja_id', async (request, reply) => {
+  router.get('/:loja_id', async (req, res) => {
     try {
-      const { loja_id } = request.params;
-      const { status, categoria, limit = 50, offset = 0 } = request.query;
+      const { loja_id } = req.params;
+      const { status, categoria, limit = 50, offset = 0 } = req.query;
 
       let query = 'SELECT * FROM clientes WHERE loja_id = $1';
       const params = [loja_id];
@@ -64,7 +64,7 @@ async function routes(fastify, options) {
 
       const result = await pool.query(query, params);
 
-      return reply.send({
+      return res.send({
         clientes: result.rows,
         total: result.rows.length,
         limit,
@@ -72,14 +72,14 @@ async function routes(fastify, options) {
       });
     } catch (err) {
       logger.error('Erro ao listar clientes:', err);
-      return reply.code(500).send({ error: 'internal_error', message: err.message });
+      return res.code(500).send({ error: 'internal_error', message: err.message });
     }
   });
 
   // POST /clientes/:loja_id/sincronizar - Calcular fidelidade a partir de vendas
-  fastify.post('/:loja_id/sincronizar', async (request, reply) => {
+  router.post('/:loja_id/sincronizar', async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
 
       // Agregar dados de vendas por cliente
       const result = await pool.query(
@@ -139,17 +139,15 @@ async function routes(fastify, options) {
         [loja_id]
       );
 
-      return reply.send({
+      return res.send({
         sincronizado: true,
         clientes_atualizados: result.rowCount,
         timestamp: new Date().toISOString()
       });
     } catch (err) {
       logger.error('Erro ao sincronizar fidelidade:', err);
-      return reply.code(500).send({ error: 'internal_error', message: err.message });
+      return res.code(500).send({ error: 'internal_error', message: err.message });
     }
   });
 
-}
-
-module.exports = routes;
+module.exports = router;
