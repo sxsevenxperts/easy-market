@@ -10,6 +10,9 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+# Build tools necessários para módulos nativos (serialport, bcrypt, etc)
+RUN apk add --no-cache python3 make g++ linux-headers udev
+
 # Install dependencies first (leverages Docker layer cache)
 COPY backend/package*.json ./
 RUN npm ci --only=production && npm cache clean --force
