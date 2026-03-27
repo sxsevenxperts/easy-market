@@ -1,278 +1,219 @@
-
 const express = require('express');
 const router = express.Router();
-const Joi = require('joi');
-const db = require('../db');
-const redis = require('../redis');
-const { CronJob } = require('cron');
 const nodemailer = require('nodemailer');
+const { CronJob } = require('cron');
+const { pool } = require('../config/database');
+const logger = require('../config/logger');
 
-router.post('/relatorios-agendados', async (req, res) => {
-    const { error, value } = agendarRelatórioSchema.validate(req.body);
-    if (error) return res.status(400).send({ error: error.details[0].message });
+// Email transporter (configurar variáveis de ambiente)
+const emailTransporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER || 'seu-email@gmail.com',
+    pass: process.env.EMAIL_PASS || 'sua-senha',
+  },
+});
 
-    const {
-      loja_id,
-      tipo,
-      hora,
-      dia_semana,
-      dia_mes,
-      destinatarios,
-      incluir_analise_impacto,
-    } = value;
+// ==================== ROTAS ====================
 
-    try {
-      const relatorioId = require('crypto').randomUUID();
+// GET - Listar relatórios agendados
+router.get('/', async (req, res) => {
+  try {
+    const { data } = await pool.query(
+      'SELECT * FROM relatorios_agendados ORDER BY created_at DESC LIMIT 50'
+    );
+    return res.json({
+      sucesso: true,
+      total: data.length,
+      relatorios: data,
+    });
+  } catch (error) {
+    logger.error('Erro ao listar relatórios agendados:', error);
+    return res.status(500).json({ erro: error.message });
+  }
+});
 
-      await db.query(
-        `INSERT INTO relatorios_agendados
-         (id, loja_id, tipo, hora, dia_semana, dia_mes, destinatarios, incluir_analise_impacto, ativo)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [relatorioId, loja_id, tipo, hora, dia_semana, dia_mes, JSON.stringify(destinatarios), incluir_analise_impacto, true]
-      );
+// POST - Agendar novo relatório
+router.post('/agendar', async (req, res) => {
+  const { loja_id, tipo, horario, dia_semana, dia_mes, destinatarios, ativo } = req.body;
 
-      // Agendar o cron job
-      agendarCronJob(relatorioId, loja_id, tipo, hora, dia_semana, dia_mes, destinatarios, incluir_analise_impacto);
-
-      res.status(201).send({
-        relatorio_id: relatorioId,
-        status: 'agendado',
-        proximamente: `Próximo envio: ${obterProximaDataEnvio(tipo, hora, dia_semana, dia_mes)}`,
+  try {
+    if (!loja_id || !tipo || !horario || !destinatarios?.length) {
+      return res.status(400).json({
+        erro: 'Campos obrigatórios: loja_id, tipo, horario, destinatarios',
       });
-    } catch (err) {
-      router.log.error(err);
-      res.status(500).send({ error: 'Erro ao agendar relatório' });
     }
-  });
 
-  // GET /relatorios-agendados/:loja_id - Listar agendamentos
-  router.get('/relatorios-agendados/:loja_id', async (req, res) => {
-    const { loja_id } = req.params;
+    const { data: resultado, error } = await pool.query(
+      `INSERT INTO relatorios_agendados 
+       (loja_id, tipo, horario, dia_semana, dia_mes, destinatarios, ativo, criado_em) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW()) 
+       RETURNING *`,
+      [loja_id, tipo, horario, dia_semana || null, dia_mes || null, JSON.stringify(destinatarios), ativo !== false]
+    );
 
-    try {
-      const result = await db.query(
-        'SELECT * FROM relatorios_agendados WHERE loja_id = $1 AND ativo = true ORDER BY tipo ASC',
-        [loja_id]
-      );
+    if (error) throw error;
 
-      const relatorios = result.rows.map((r) => ({
-        ...r,
-        destinatarios: typeof r.destinatarios === 'string' ? JSON.parse(r.destinatarios) : r.destinatarios,
-      }));
+    logger.info(`Relatório agendado: ${tipo} para ${loja_id}`);
 
-      res.send(relatorios);
-    } catch (err) {
-      router.log.error(err);
-      res.status(500).send({ error: 'Erro ao listar agendamentos' });
+    return res.status(201).json({
+      sucesso: true,
+      mensagem: 'Relatório agendado com sucesso',
+      relatorio: resultado[0],
+    });
+  } catch (error) {
+    logger.error('Erro ao agendar relatório:', error);
+    return res.status(500).json({ erro: error.message });
+  }
+});
+
+// PUT - Atualizar agendamento
+router.put('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { horario, destinatarios, ativo } = req.body;
+
+  try {
+    const updates = [];
+    const values = [];
+    let paramCount = 1;
+
+    if (horario) {
+      updates.push(`horario = $${paramCount++}`);
+      values.push(horario);
     }
-  });
-
-  // DELETE /relatorios-agendados/:id - Desativar agendamento
-  router.delete('/relatorios-agendados/:id', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-      await db.query(
-        'UPDATE relatorios_agendados SET ativo = false WHERE id = $1',
-        [id]
-      );
-
-      // Parar o job
-      await cancelarJob(id);
-
-      res.send({ status: 'agendamento cancelado' });
-    } catch (err) {
-      router.log.error(err);
-      res.status(500).send({ error: 'Erro ao cancelar agendamento' });
+    if (destinatarios) {
+      updates.push(`destinatarios = $${paramCount++}`);
+      values.push(JSON.stringify(destinatarios));
     }
-  });
-
-  // Ao inicializar, recarregar agendamentos ativos
-  router.addHook('onReady', async () => {
-    try {
-      const result = await db.query(
-        'SELECT id, loja_id, tipo, hora, dia_semana, dia_mes, destinatarios, incluir_analise_impacto FROM relatorios_agendados WHERE ativo = true'
-      );
-
-      for (const relatorio of result.rows) {
-        const destinatarios = typeof relatorio.destinatarios === 'string'
-          ? JSON.parse(relatorio.destinatarios)
-          : relatorio.destinatarios;
-
-        agendarCronJob(
-          relatorio.id,
-          relatorio.loja_id,
-          relatorio.tipo,
-          relatorio.hora,
-          relatorio.dia_semana,
-          relatorio.dia_mes,
-          destinatarios,
-          relatorio.incluir_analise_impacto
-        );
-      }
-
-      router.log.info(`${result.rows.length} relatórios agendados foram carregados`);
-    } catch (err) {
-      router.log.error('Erro ao carregar relatórios agendados:', err);
+    if (ativo !== undefined) {
+      updates.push(`ativo = $${paramCount++}`);
+      values.push(ativo);
     }
-  });
 
-  // POST /relatorios-agendados/enviar-agora - Testar envio
-  router.post('/relatorios-agendados/:id/enviar-agora', async (req, res) => {
-    const { id } = req.params;
-
-    try {
-      const result = await db.query(
-        'SELECT * FROM relatorios_agendados WHERE id = $1',
-        [id]
-      );
-
-      if (result.rows.length === 0) {
-        return res.status(404).send({ error: 'Agendamento não encontrado' });
-      }
-
-      const agendamento = result.rows[0];
-      const dados = await gerarRelatorio(
-        agendamento.loja_id,
-        agendamento.tipo,
-        agendamento.incluir_analise_impacto
-      );
-
-      // TODO: Enviar por email
-      res.send({
-        status: 'relatório gerado',
-        preview: dados,
-      });
-    } catch (err) {
-      router.log.error(err);
-      res.status(500).send({ error: 'Erro ao enviar relatório' });
+    if (!updates.length) {
+      return res.status(400).json({ erro: 'Nenhum campo para atualizar' });
     }
-  });
 
-  // GET /relatorios-agendados/:loja_id/proximos - Próximos envios
-  router.get('/relatorios-agendados/:loja_id/proximos', async (req, res) => {
-    const { loja_id } = req.params;
+    values.push(id);
 
-    try {
-      const result = await db.query(
-        'SELECT * FROM relatorios_agendados WHERE loja_id = $1 AND ativo = true',
-        [loja_id]
-      );
+    const { data } = await pool.query(
+      `UPDATE relatorios_agendados SET ${updates.join(', ')} WHERE id = $${paramCount} RETURNING *`,
+      values
+    );
 
-      const proximos = result.rows.map((r) => ({
-        tipo: r.tipo,
-        proxima_data: obterProximaDataEnvio(r.tipo, r.hora, r.dia_semana, r.dia_mes),
-        hora: r.hora,
-      }));
+    return res.json({
+      sucesso: true,
+      mensagem: 'Relatório atualizado',
+      relatorio: data[0],
+    });
+  } catch (error) {
+    logger.error('Erro ao atualizar relatório:', error);
+    return res.status(500).json({ erro: error.message });
+  }
+});
 
-      res.send(proximos);
-    } catch (err) {
-      router.log.error(err);
-      res.status(500).send({ error: 'Erro ao obter próximos envios' });
-    }
-  });
-};
+// DELETE - Remover agendamento
+router.delete('/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM relatorios_agendados WHERE id = $1', [req.params.id]);
+    return res.json({
+      sucesso: true,
+      mensagem: 'Relatório removido',
+    });
+  } catch (error) {
+    logger.error('Erro ao remover relatório:', error);
+    return res.status(500).json({ erro: error.message });
+  }
+});
 
 // ==================== FUNÇÕES AUXILIARES ====================
 
-function obterProximaDataEnvio(tipo, hora, dia_semana, dia_mes) {
-  const agora = new Date();
-  const [hours, minutes] = hora.split(':').map(Number);
+async function iniciarSchedulerRelatorios() {
+  try {
+    const { data: relatorios } = await pool.query(
+      'SELECT * FROM relatorios_agendados WHERE ativo = true'
+    );
 
-  let proxima = new Date(agora);
-  proxima.setHours(hours, minutes, 0, 0);
+    for (const relatorio of relatorios) {
+      agendarRelatorio(relatorio);
+    }
 
-  switch (tipo) {
-    case 'diario':
-      if (proxima <= agora) {
-        proxima.setDate(proxima.getDate() + 1);
-      }
-      break;
-
-    case 'semanal':
-      while (proxima.getDay() !== dia_semana || proxima <= agora) {
-        proxima.setDate(proxima.getDate() + 1);
-      }
-      break;
-
-    case 'mensal':
-      if (proxima.getDate() < dia_mes || proxima <= agora) {
-        proxima.setMonth(proxima.getMonth() + 1);
-        proxima.setDate(dia_mes);
-      } else if (proxima.getDate() > dia_mes) {
-        proxima.setMonth(proxima.getMonth() + 1);
-        proxima.setDate(dia_mes);
-      }
-      break;
+    logger.info(`Scheduler iniciado: ${relatorios.length} relatórios agendados`);
+  } catch (error) {
+    logger.error('Erro ao iniciar scheduler de relatórios:', error);
   }
-
-  return proxima.toLocaleString('pt-BR');
 }
 
-function agendarCronJob(relatorioId, loja_id, tipo, hora, dia_semana, dia_mes, destinatarios, incluirAnalise) {
-  let cronExpression;
+function agendarRelatorio(relatorio) {
+  const { id, loja_id, tipo, horario, dia_semana, dia_mes, destinatarios, incluirAnalise } = relatorio;
 
-  // Converter hora HH:MM para minuto e hora do cron
-  const [hours, minutes] = hora.split(':').map(Number);
+  let cronExpression;
+  const [horas, minutos] = horario.split(':');
 
   switch (tipo) {
     case 'diario':
-      cronExpression = `${minutes} ${hours} * * *`; // Todos os dias
+      cronExpression = `${minutos} ${horas} * * *`;
       break;
     case 'semanal':
-      cronExpression = `${minutes} ${hours} * * ${dia_semana}`; // Dia específico da semana
+      cronExpression = `${minutos} ${horas} * * ${dia_semana}`;
       break;
     case 'mensal':
-      cronExpression = `${minutes} ${hours} ${dia_mes} * *`; // Dia específico do mês
+      cronExpression = `${minutos} ${horas} ${dia_mes} * *`;
       break;
     default:
       return;
   }
 
-  // Criar e iniciar job
-  const job = new CronJob(
-    cronExpression,
-    async () => {
-      try {
-        const agora = new Date();
-        let dataInicio, dataFim;
+  const job = new CronJob(cronExpression, async () => {
+    try {
+      const agora = new Date();
+      let dataInicio, dataFim;
 
-        // Determinar período
-        switch (tipo) {
-          case 'diario':
-            dataInicio = new Date(agora);
-            dataInicio.setHours(0, 0, 0, 0);
-            dataFim = new Date(agora);
-            dataFim.setHours(23, 59, 59, 999);
-            break;
-          case 'semanal':
-            dataInicio = new Date(agora);
-            dataInicio.setDate(agora.getDate() - agora.getDay());
-            dataInicio.setHours(0, 0, 0, 0);
-            dataFim = new Date(agora);
-            dataFim.setHours(23, 59, 59, 999);
-            break;
-          case 'mensal':
-            dataInicio = new Date(agora.getFullYear(), agora.getMonth(), 1);
-            dataFim = new Date(agora.getFullYear(), agora.getMonth() + 1, 0);
-            dataFim.setHours(23, 59, 59, 999);
-            break;
+      switch (tipo) {
+        case 'diario':
+          dataInicio = new Date(agora);
+          dataInicio.setHours(0, 0, 0, 0);
+          dataFim = new Date(agora);
+          dataFim.setHours(23, 59, 59, 999);
+          break;
+        case 'semanal':
+          dataInicio = new Date(agora);
+          dataInicio.setDate(agora.getDate() - agora.getDay());
+          dataInicio.setHours(0, 0, 0, 0);
+          dataFim = new Date(agora);
+          dataFim.setHours(23, 59, 59, 999);
+          break;
+        case 'mensal':
+          dataInicio = new Date(agora.getFullYear(), agora.getMonth(), 1);
+          dataFim = new Date(agora.getFullYear(), agora.getMonth() + 1, 0);
+          dataFim.setHours(23, 59, 59, 999);
+          break;
+      }
+
+      const dados = { tipo, dataInicio, dataFim, loja_id };
+      const assunto = `Relatório ${tipo} - Smart Market`;
+      const html = `<h2>Relatório ${tipo}</h2><pre>${JSON.stringify(dados, null, 2)}</pre>`;
+
+      for (const email of JSON.parse(destinatarios)) {
+        try {
+          await emailTransporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: assunto,
+            html: html,
+          });
+          logger.info(`Email enviado para ${email}`);
+        } catch (erro) {
+          logger.warn(`Erro ao enviar email para ${email}:`, erro.message);
         }
+      }
+    } catch (erro) {
+      logger.error(`Erro ao executar relatório agendado ${id}:`, erro);
+    }
+  });
 
-        // Gerar relatório
-        const dados = await gerarRelatorio(loja_id, tipo, incluirAnalise);
-
-        // Enviar por email
-        const assunto = `Relatório ${tipo} - Easy Market`;
-        const html = gerarHTMLRelatorio(dados, tipo);
-
-        for (const email of destinatarios) {
-          try {
-            await emailTransporter.sendMail({
-              from: process.env.EMAIL_USER,
-              to: email,
-              subject: assunto,
-              html: html,
-            });
+  job.start();
+  logger.info(`Job agendado: ${tipo} às ${horario}`);
+}
 
 module.exports = router;
