@@ -6,7 +6,6 @@
 const express = require('express');
 const router = express.Router();
 const RelatoriosPDFService = require('../services/relatorios-pdf');
-const supabase = require('../lib/supabase');
 
 /**
  * POST /relatorios/gerar-completo
@@ -24,7 +23,7 @@ router.post('/gerar-completo', async (req, res) => {
     }
 
     // Fetch store data
-    const { data: lojaData, error: lojaError } = await supabase
+    const { data: lojaData, error: lojaError } = await req.supabase
       .from('lojas')
       .select('*')
       .eq('id', loja_id)
@@ -94,7 +93,7 @@ router.post('/gerar-perdas', async (req, res) => {
     }
 
     // Fetch products with loss data
-    const { data: produtosData, error: produtosError } = await supabase
+    const { data: produtosData, error: produtosError } = await req.supabase
       .from('perdas_produto_loja')
       .select('*')
       .eq('loja_id', loja_id)
@@ -152,7 +151,7 @@ router.post('/gerar-clientes', async (req, res) => {
     }
 
     // Fetch customer data
-    const { data: clientesData, error: clientesError } = await supabase
+    const { data: clientesData, error: clientesError } = await req.supabase
       .from('clientes_loja')
       .select('*')
       .eq('loja_id', loja_id);
@@ -201,7 +200,7 @@ router.post('/gerar-compras', async (req, res) => {
     }
 
     // Fetch purchase optimization data
-    const { data: produtosData, error: produtosError } = await supabase
+    const { data: produtosData, error: produtosError } = await req.supabase
       .from('otimizacao_compras')
       .select('*')
       .eq('loja_id', loja_id);
