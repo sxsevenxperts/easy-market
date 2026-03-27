@@ -267,7 +267,7 @@ class OtimizacaoNutricional {
             produtos: perfilConsumidor.healthConscious.slice(0, 5),
             objetivo: 'Atrair consumidor consciente na entrada',
             impacto_esperado: 'Aumentar ticket em 8-12%',
-            sinaliz acao: 'Bandeira SAUDÁVEL ou ECO'
+            sinalizacao: 'Bandeira SAUDÁVEL ou ECO'
           },
           
           entrada_indulgence: {
