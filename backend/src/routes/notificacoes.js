@@ -1,6 +1,5 @@
 
 const express = require('express');
-const router = express.Router();
 const fastify = require('fastify');
 const Joi = require('joi');
 const twilio = require('twilio');
