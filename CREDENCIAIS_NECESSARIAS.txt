@@ -1,0 +1,141 @@
+═══════════════════════════════════════════════════════════════════════
+  SMART MARKET - 3 CREDENCIAIS NECESSÁRIAS PARA DEPLOY
+═══════════════════════════════════════════════════════════════════════
+
+Você precisa de EXATAMENTE 3 chaves. Não vai levar mais de 10 minutos.
+
+═══════════════════════════════════════════════════════════════════════
+1️⃣  SUPABASE_URL
+═══════════════════════════════════════════════════════════════════════
+
+ONDE ENCONTRAR:
+   → Abra: https://app.supabase.com
+   → Clique no seu projeto (crie um se não tiver)
+   → Vá em: Settings (ícone de engrenagem no lado esquerdo)
+   → Clique em: API
+   → Procure por: "Project URL" (é uma URL assim: https://xxx.supabase.co)
+   → COPIE essa URL
+
+SERÁ PARECIDO COM:
+   https://abcdefghijk.supabase.co
+
+SALVE AQUI:
+   SUPABASE_URL = ___________________________________
+
+
+═══════════════════════════════════════════════════════════════════════
+2️⃣  SUPABASE_SERVICE_KEY
+═══════════════════════════════════════════════════════════════════════
+
+ONDE ENCONTRAR:
+   → Na mesma página Settings > API (não saia de lá)
+   → Procure por: "service_role" (em azul)
+   → Clique no botão "eye" para revelar a chave
+   → COPIE a chave inteira (é uma string muito longa)
+
+SERÁ PARECIDO COM:
+   REMOVED.eyJpc3MiOiJzdXBhYmFz...
+
+⚠️  IMPORTANTE:
+   • Esta é uma chave SECRETA - nunca compartilhe
+   • Guarde em segurança
+   • Não coloque em GitHub públicos
+
+SALVE AQUI:
+   SUPABASE_SERVICE_KEY = ___________________________________
+
+
+═══════════════════════════════════════════════════════════════════════
+3️⃣  OPENWEATHER_API_KEY
+═══════════════════════════════════════════════════════════════════════
+
+ONDE ENCONTRAR:
+   → Abra: https://openweathermap.org/api
+   → Clique em "Sign Up" (canto superior direito)
+   → Preencha formulário (é grátis!)
+   → Confirme email
+   → Vá em: Account (icone de usuário)
+   → Clique em: API Keys
+   → A primeira chave já aparece (Default)
+   → COPIE
+
+SERÁ PARECIDO COM:
+   abc123def456ghi789jkl012mno345pqr
+
+✅ Plano GRÁTIS oferece:
+   • 1.000 chamadas de API por dia
+   • Dados meteorológicos em tempo real
+   • O bastante para 100+ lojas
+
+SALVE AQUI:
+   OPENWEATHER_API_KEY = ___________________________________
+
+
+═══════════════════════════════════════════════════════════════════════
+✅ PRÓXIMO PASSO - Execute no terminal:
+═══════════════════════════════════════════════════════════════════════
+
+1. Abra Terminal (Cmd + Space, digite "terminal")
+
+2. Cole este comando:
+   cd /Users/sergioponte/easy-market && bash DEPLOY_AGORA.sh
+
+3. Quando pedir as chaves, cole as que você copiou acima
+
+4. Esperar ~30 segundos enquanto Docker inicia
+
+5. Ver resultado:
+   ✅ Se tudo OK  → Sistema online! Pronto para vender!
+   ❌ Se falhar    → Ver seção "Troubleshooting" em README_DEPLOY.md
+
+═══════════════════════════════════════════════════════════════════════
+PASSO A PASSO (imagens)
+═══════════════════════════════════════════════════════════════════════
+
+SUPABASE:
+   1. https://app.supabase.com
+   2. Clique seu projeto
+   3. Settings (engrenagem esquerda)
+   4. API (na aba)
+   5. Copie "Project URL" e "service_role key"
+
+OPENWEATHER:
+   1. https://openweathermap.org/api
+   2. Sign Up (topo direito)
+   3. Confirme email
+   4. Account (icone usuário)
+   5. API Keys
+   6. Copie a chave
+
+═══════════════════════════════════════════════════════════════════════
+❓ DÚVIDAS FREQUENTES
+═══════════════════════════════════════════════════════════════════════
+
+P: "Não tenho conta Supabase"
+R: Crie em https://app.supabase.com (grátis, 1 projeto)
+
+P: "Qual a senha do Supabase?"
+R: Não precisa de senha. As chaves (URL + SERVICE_KEY) são suficientes.
+
+P: "OpenWeather cobra?"
+R: Plano gratuito dá 1.000 calls/dia = é bastante para 100+ lojas
+
+P: "Posso usar dados fake para testar?"
+R: Sim, mas o cliente vai ver que é fake. Melhor usar dados reais.
+
+P: "Posso usar meu próprio servidor?"
+R: Sim, mas EasyPanel é mais fácil. Ambos funcionam.
+
+═══════════════════════════════════════════════════════════════════════
+🎯 TIMELINE
+═══════════════════════════════════════════════════════════════════════
+
+5 min   = Copiar 3 chaves
+2 min   = Rodar script de deploy
+30 seg  = Docker inicia
+1 min   = Testes passam
+= 8 minutos = SISTEMA ONLINE
+= 2 horas = CLIENTE ASSINADO
+= R$ 5.000-8.500/mês = RECEITA MENSAL
+
+═══════════════════════════════════════════════════════════════════════
