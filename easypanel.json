@@ -23,7 +23,7 @@
         "SUPABASE_SERVICE_KEY=",
         "JWT_SECRET=",
         "ALLOWED_ORIGINS=",
-        "OPENWEATHER_API_KEY=",
+        "WEATHER_API_KEY_CONFIG=placeholder",
         "REDIS_HOST=localhost",
         "REDIS_PORT=6379",
         "REDIS_PASSWORD=",
