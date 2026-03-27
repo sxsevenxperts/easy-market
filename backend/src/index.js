@@ -38,23 +38,32 @@ try {
 // Injeta supabase em todas as requests
 app.use((req, _res, next) => { req.supabase = supabase; next(); });
 
-// ── Rotas Express nativas (rfm, anomalias, alertas, perdas) ─────────────────
-// Apenas rotas que exportam Express Router são carregadas
+// ── Rotas Express Router ────────────────────────────────────────────────────
 const expressRoutes = [
-  { path: '/api/v1/rfm',       file: './routes/rfm',       name: 'RFM'      },
-  { path: '/api/v1/anomalias', file: './routes/anomalias', name: 'Anomalias'},
-  { path: '/api/v1/alertas',   file: './routes/alertas',   name: 'Alertas'  },
-  { path: '/api/v1/perdas',    file: './routes/perdas',    name: 'Perdas'   },
+  { path: '/api/v1/rfm',                  file: './routes/rfm',                  name: 'RFM'               },
+  { path: '/api/v1/anomalias',            file: './routes/anomalias',            name: 'Anomalias'         },
+  { path: '/api/v1/alertas',              file: './routes/alertas',              name: 'Alertas'           },
+  { path: '/api/v1/perdas',               file: './routes/perdas',               name: 'Perdas'            },
+  { path: '/api/v1/predicoes',            file: './routes/predictive-forecast',  name: 'Predicoes (forecast)' },
+  { path: '/api/v1/analise-clientes',     file: './routes/predicoes',            name: 'Predicoes (clientes)' },
+  { path: '/api/v1/cross-sell',           file: './routes/cross-sell',           name: 'Cross-Sell'        },
+  { path: '/api/v1/store-forecast',       file: './routes/store-size-forecast',  name: 'StoreForecast'     },
+  { path: '/api/v1/relatorios-pdf',       file: './routes/relatorios-pdf',       name: 'RelatoriosPDF'     },
+  { path: '/api/v1/integracao-pdv',       file: './routes/integracao-pdv',       name: 'IntegracaoPDV'     },
+  { path: '/api/v1/integracao-balancas',  file: './routes/integracao-balancas',  name: 'IntegracaoBalancas'},
+  { path: '/api/v1/scraper',              file: './routes/scraper',              name: 'Scraper'           },
 ];
 
 for (const r of expressRoutes) {
   try {
     const router = require(r.file);
-    if (typeof router === 'function' && router.name !== 'routes') {
+    // Accept: Express Router (function) but NOT Fastify plugin (named 'routes' with 3 params)
+    const isFastify = typeof router === 'function' && router.name === 'routes' && router.length === 3;
+    if (typeof router === 'function' && !isFastify) {
       app.use(r.path, router);
       console.log(`[SmartMarket] ✅ ${r.name} → ${r.path}`);
     } else {
-      console.warn(`[SmartMarket] ⚠️  ${r.name} ignorado (não é Express Router)`);
+      console.warn(`[SmartMarket] ⚠️  ${r.name} ignorado (Fastify plugin — não compatível com Express)`);
     }
   } catch (e) {
     console.warn(`[SmartMarket] ⚠️  ${r.name} ignorado:`, e.message);

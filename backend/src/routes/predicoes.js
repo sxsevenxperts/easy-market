@@ -13,30 +13,33 @@ const {
 
 const logger = require('../config/logger');
 
-module.exports = function (fastify, opts, done) {
+const express = require('express');
+const router = express.Router();
+
+module.exports = (function() {
   // ============================================
   // GET /variacoes/:cliente_id
   // Extrai as 50 variações de padrão
   // ============================================
-  fastify.get(`/variacoes/:cliente_id`, async (request, reply) => {
+  router.get(`/variacoes/:cliente_id`, async (req, res) => {
     try {
-      const { cliente_id } = request.params;
-      const { loja_id } = request.query;
+      const { cliente_id } = req.params;
+      const { loja_id } = req.query;
 
       if (!loja_id) {
-        return reply.code(400).send({ erro: 'loja_id é obrigatório' });
+        return res.status(400).json({ erro: 'loja_id é obrigatório' });
       }
 
       const resultado = await extrairVariacoesDePadrao(loja_id, cliente_id);
 
-      return reply.code(200).send({
+      return res.status(200).json({
         sucesso: true,
         data: resultado,
         timestamp: new Date().toISOString()
       });
     } catch (error) {
       logger.error('Erro em GET /predicoes/variacoes:', error);
-      return reply.code(500).send({ erro: error.message });
+      return res.status(500).json({ erro: error.message });
     }
   });
 
@@ -45,18 +48,18 @@ module.exports = function (fastify, opts, done) {
   // Calcula churn score com 50 variações
   // Assertividade: 90-95%
   // ============================================
-  fastify.get(`/churn/:cliente_id`, async (request, reply) => {
+  router.get(`/churn/:cliente_id`, async (req, res) => {
     try {
-      const { cliente_id } = request.params;
-      const { loja_id } = request.query;
+      const { cliente_id } = req.params;
+      const { loja_id } = req.query;
 
       if (!loja_id) {
-        return reply.code(400).send({ erro: 'loja_id é obrigatório' });
+        return res.status(400).json({ erro: 'loja_id é obrigatório' });
       }
 
       const resultado = await calcularChurnScore(loja_id, cliente_id, true);
 
-      return reply.code(200).send({
+      return res.status(200).json({
         sucesso: true,
         data: resultado,
         assertividade: resultado.assertividade_esperada,
@@ -64,7 +67,7 @@ module.exports = function (fastify, opts, done) {
       });
     } catch (error) {
       logger.error('Erro em GET /predicoes/churn:', error);
-      return reply.code(500).send({ erro: error.message });
+      return res.status(500).json({ erro: error.message });
     }
   });
 
@@ -73,18 +76,18 @@ module.exports = function (fastify, opts, done) {
   // Prevê próxima compra com 50 variações
   // Assertividade: 92-95%
   // ============================================
-  fastify.get(`/proxima-compra/:cliente_id`, async (request, reply) => {
+  router.get(`/proxima-compra/:cliente_id`, async (req, res) => {
     try {
-      const { cliente_id } = request.params;
-      const { loja_id } = request.query;
+      const { cliente_id } = req.params;
+      const { loja_id } = req.query;
 
       if (!loja_id) {
-        return reply.code(400).send({ erro: 'loja_id é obrigatório' });
+        return res.status(400).json({ erro: 'loja_id é obrigatório' });
       }
 
       const resultado = await preverProximaCompra(loja_id, cliente_id);
 
-      return reply.code(200).send({
+      return res.status(200).json({
         sucesso: true,
         data: resultado,
         assertividade: resultado.assertividade_esperada || '92-95%',
@@ -92,7 +95,7 @@ module.exports = function (fastify, opts, done) {
       });
     } catch (error) {
       logger.error('Erro em GET /predicoes/proxima-compra:', error);
-      return reply.code(500).send({ erro: error.message });
+      return res.status(500).json({ erro: error.message });
     }
   });
 
@@ -101,18 +104,18 @@ module.exports = function (fastify, opts, done) {
   // Analisa padrão de marca com 50 variações
   // Assertividade: 91-94%
   // ============================================
-  fastify.get(`/marca/:cliente_id`, async (request, reply) => {
+  router.get(`/marca/:cliente_id`, async (req, res) => {
     try {
-      const { cliente_id } = request.params;
-      const { loja_id } = request.query;
+      const { cliente_id } = req.params;
+      const { loja_id } = req.query;
 
       if (!loja_id) {
-        return reply.code(400).send({ erro: 'loja_id é obrigatório' });
+        return res.status(400).json({ erro: 'loja_id é obrigatório' });
       }
 
       const resultado = await analisarPadrãoDeMarca(loja_id, cliente_id);
 
-      return reply.code(200).send({
+      return res.status(200).json({
         sucesso: true,
         data: resultado,
         assertividade: resultado.assertividade_esperada || '91-94%',
@@ -120,7 +123,7 @@ module.exports = function (fastify, opts, done) {
       });
     } catch (error) {
       logger.error('Erro em GET /predicoes/marca:', error);
-      return reply.code(500).send({ erro: error.message });
+      return res.status(500).json({ erro: error.message });
     }
   });
 
@@ -129,18 +132,18 @@ module.exports = function (fastify, opts, done) {
   // Identifica oportunidades com 50 variações
   // Assertividade: 90-93%
   // ============================================
-  fastify.get(`/oportunidades/:cliente_id`, async (request, reply) => {
+  router.get(`/oportunidades/:cliente_id`, async (req, res) => {
     try {
-      const { cliente_id } = request.params;
-      const { loja_id } = request.query;
+      const { cliente_id } = req.params;
+      const { loja_id } = req.query;
 
       if (!loja_id) {
-        return reply.code(400).send({ erro: 'loja_id é obrigatório' });
+        return res.status(400).json({ erro: 'loja_id é obrigatório' });
       }
 
       const resultado = await identificarOportunidades(loja_id, cliente_id);
 
-      return reply.code(200).send({
+      return res.status(200).json({
         sucesso: true,
         data: resultado,
         assertividade: resultado.assertividade_esperada || '90-93%',
@@ -148,7 +151,7 @@ module.exports = function (fastify, opts, done) {
       });
     } catch (error) {
       logger.error('Erro em GET /predicoes/oportunidades:', error);
-      return reply.code(500).send({ erro: error.message });
+      return res.status(500).json({ erro: error.message });
     }
   });
 
@@ -157,13 +160,13 @@ module.exports = function (fastify, opts, done) {
   // Análise COMPLETA do cliente (todas as 4 análises)
   // Assertividade: 91-94%
   // ============================================
-  fastify.get(`/cliente/:cliente_id`, async (request, reply) => {
+  router.get(`/cliente/:cliente_id`, async (req, res) => {
     try {
-      const { cliente_id } = request.params;
-      const { loja_id } = request.query;
+      const { cliente_id } = req.params;
+      const { loja_id } = req.query;
 
       if (!loja_id) {
-        return reply.code(400).send({ erro: 'loja_id é obrigatório' });
+        return res.status(400).json({ erro: 'loja_id é obrigatório' });
       }
 
       // Executar as 4 análises em paralelo
@@ -178,7 +181,7 @@ module.exports = function (fastify, opts, done) {
       // Calcular assertividade média
       const assertividadeMedia = '91-94%';
 
-      return reply.code(200).send({
+      return res.status(200).json({
         sucesso: true,
         cliente_id: cliente_id,
         loja_id: loja_id,
@@ -224,7 +227,7 @@ module.exports = function (fastify, opts, done) {
       });
     } catch (error) {
       logger.error('Erro em GET /predicoes/cliente:', error);
-      return reply.code(500).send({ erro: error.message });
+      return res.status(500).json({ erro: error.message });
     }
   });
 
@@ -233,10 +236,10 @@ module.exports = function (fastify, opts, done) {
   // Lista clientes em risco de churn
   // Filtra por nível de risco
   // ============================================
-  fastify.get(`/churn-risk/:loja_id`, async (request, reply) => {
+  router.get(`/churn-risk/:loja_id`, async (req, res) => {
     try {
-      const { loja_id } = request.params;
-      const { risco, limite = 50 } = request.query;
+      const { loja_id } = req.params;
+      const { risco, limite = 50 } = req.query;
 
       const { pool } = require('../config/database');
 
@@ -277,7 +280,7 @@ module.exports = function (fastify, opts, done) {
         ? clientesComRisco.filter(c => c.nivel_risco === risco)
         : clientesComRisco;
 
-      return reply.code(200).send({
+      return res.status(200).json({
         sucesso: true,
         loja_id: loja_id,
         total_clientes: filtrados.length,
@@ -286,7 +289,7 @@ module.exports = function (fastify, opts, done) {
       });
     } catch (error) {
       logger.error('Erro em GET /predicoes/churn-risk:', error);
-      return reply.code(500).send({ erro: error.message });
+      return res.status(500).json({ erro: error.message });
     }
   });
 
@@ -295,16 +298,16 @@ module.exports = function (fastify, opts, done) {
   // Processar múltiplos clientes em batch
   // Assertividade: 90-93% por cliente
   // ============================================
-  fastify.post(`/batch`, async (request, reply) => {
+  router.post(`/batch`, async (req, res) => {
     try {
-      const { clientes, loja_id, analises = ['churn', 'proxima_compra'] } = request.body;
+      const { clientes, loja_id, analises = ['churn', 'proxima_compra'] } = req.body;
 
       if (!clientes || !Array.isArray(clientes) || clientes.length === 0) {
-        return reply.code(400).send({ erro: 'clientes array é obrigatório' });
+        return res.status(400).json({ erro: 'clientes array é obrigatório' });
       }
 
       if (!loja_id) {
-        return reply.code(400).send({ erro: 'loja_id é obrigatório' });
+        return res.status(400).json({ erro: 'loja_id é obrigatório' });
       }
 
       const resultados = [];
@@ -344,7 +347,7 @@ module.exports = function (fastify, opts, done) {
         }
       }
 
-      return reply.code(200).send({
+      return res.status(200).json({
         sucesso: true,
         processados: resultados.length,
         com_erro: erros.length,
@@ -355,7 +358,7 @@ module.exports = function (fastify, opts, done) {
       });
     } catch (error) {
       logger.error('Erro em POST /predicoes/batch:', error);
-      return reply.code(500).send({ erro: error.message });
+      return res.status(500).json({ erro: error.message });
     }
   });
 
@@ -363,9 +366,9 @@ module.exports = function (fastify, opts, done) {
   // GET /relatorio/:loja_id
   // Relatório completo da loja com assertividade
   // ============================================
-  fastify.get(`/relatorio/:loja_id`, async (request, reply) => {
+  router.get(`/relatorio/:loja_id`, async (req, res) => {
     try {
-      const { loja_id } = request.params;
+      const { loja_id } = req.params;
       const { pool } = require('../config/database');
 
       const resultado = await pool.query(`
@@ -384,7 +387,7 @@ module.exports = function (fastify, opts, done) {
 
       const stats = resultado.rows[0];
 
-      return reply.code(200).send({
+      return res.status(200).json({
         sucesso: true,
         loja_id: loja_id,
         estatisticas: {
@@ -406,7 +409,7 @@ module.exports = function (fastify, opts, done) {
       });
     } catch (error) {
       logger.error('Erro em GET /predicoes/relatorio:', error);
-      return reply.code(500).send({ erro: error.message });
+      return res.status(500).json({ erro: error.message });
     }
   });
 
@@ -415,7 +418,7 @@ module.exports = function (fastify, opts, done) {
   // Registrar feedback para calibração do modelo
   // Melhora assertividade com o tempo
   // ============================================
-  fastify.post(`/feedback`, async (request, reply) => {
+  router.post(`/feedback`, async (req, res) => {
     try {
       const {
         cliente_id,
@@ -424,10 +427,10 @@ module.exports = function (fastify, opts, done) {
         predicao_valor,
         valor_real,
         acerto
-      } = request.body;
+      } = req.body;
 
       if (!cliente_id || !loja_id || !tipo_predicao) {
-        return reply.code(400).send({ 
+        return res.status(400).json({ 
           erro: 'cliente_id, loja_id e tipo_predicao são obrigatórios' 
         });
       }
@@ -436,7 +439,7 @@ module.exports = function (fastify, opts, done) {
       // para calibração contínua dos modelos
       logger.info(`Feedback registrado: ${cliente_id} - ${tipo_predicao} - Acerto: ${acerto}`);
 
-      return reply.code(200).send({
+      return res.status(200).json({
         sucesso: true,
         mensagem: 'Feedback registrado com sucesso',
         impacto: 'Modelo será calibrado com este feedback',
@@ -444,9 +447,9 @@ module.exports = function (fastify, opts, done) {
       });
     } catch (error) {
       logger.error('Erro em POST /predicoes/feedback:', error);
-      return reply.code(500).send({ erro: error.message });
+      return res.status(500).json({ erro: error.message });
     }
   });
 
-  done();
-};
+  return router;
+}());
