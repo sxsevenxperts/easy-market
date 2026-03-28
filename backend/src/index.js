@@ -38,6 +38,9 @@ try {
 // Injeta supabase em todas as requests
 app.use((req, _res, next) => { req.supabase = supabase; next(); });
 
+// ── Auth route (pública — antes do verifyToken) ───────────────────────────────
+app.use('/api/v1/auth', require('./routes/auth'));
+
 // ── Authentication Middleware ──────────────────────────────────────────────────
 const { verifyToken } = require('./middleware/auth');
 app.use(verifyToken);
@@ -200,6 +203,14 @@ app.all('/api/*', (req, res) => {
 
 // ── Frontend estático ─────────────────────────────────────────────────────────
 const frontendPath = path.resolve(__dirname, '../../frontend');
+const loginPath    = path.join(frontendPath, 'login');
+
+// Login SPA (React)
+app.use('/login', express.static(loginPath));
+app.get('/login', (_req, res) => res.sendFile(path.join(loginPath, 'index.html')));
+app.get('/login/*', (_req, res) => res.sendFile(path.join(loginPath, 'index.html')));
+
+// Smart Market frontend
 app.use(express.static(frontendPath));
 
 app.get('*', (_req, res) => {
