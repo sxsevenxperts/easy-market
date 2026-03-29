@@ -16,6 +16,21 @@ function voltarSecao() {
  * Initialize Application
  */
 document.addEventListener('DOMContentLoaded', () => {
+  // Ler token e loja_id da URL (redirecionado após login)
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlToken = urlParams.get('token');
+  const urlLojaId = urlParams.get('loja_id');
+  if (urlToken) {
+    localStorage.setItem('sm_token', urlToken);
+    // Limpar params da URL sem recarregar
+    window.history.replaceState({}, '', window.location.pathname);
+  }
+  if (urlLojaId) {
+    currentStore = urlLojaId;
+    const sel = document.getElementById('storeSelect');
+    if (sel) sel.value = urlLojaId;
+  }
+
   initializeEventListeners();
   loadSection('dashboard');
   startAutoRefresh();
@@ -520,7 +535,9 @@ function loadSection(section) {
  */
 async function fetchData(endpoint) {
   try {
-    const response = await fetch(`${API_BASE}${endpoint}`);
+    const token = localStorage.getItem('sm_token');
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const response = await fetch(`${API_BASE}${endpoint}`, { headers });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
