@@ -7,6 +7,13 @@
       "runtimeArgs": ["serve", "-s", "frontend"],
       "port": 4321,
       "autoPort": true
+    },
+    {
+      "name": "dashboard",
+      "runtimeExecutable": "/usr/local/bin/npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "/Users/sergioponte/easy-market/dashboard",
+      "port": 3000
     }
   ]
 }

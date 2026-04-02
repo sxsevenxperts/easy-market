@@ -108,9 +108,9 @@ export default function PrevisõesPage() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Previsões de Demanda</h1>
+        <h1 className="text-3xl font-bold mb-2">Previsão de Vendas</h1>
         <p className="text-gray-400">
-          Análise preditiva com Prophet + XGBoost Ensemble
+          O que o sistema espera vender — e em quais horários
         </p>
       </div>
 
@@ -142,15 +142,15 @@ export default function PrevisõesPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="card">
-          <p className="text-sm text-gray-400 mb-2">Confiança Média</p>
+          <p className="text-sm text-gray-400 mb-2">Certeza da Previsão</p>
           <p className="text-3xl font-bold">{avgConfidence}%</p>
           <p className="text-xs text-green-400 mt-2">
-            Concordância dos modelos
+            {Number(avgConfidence) >= 85 ? 'Alta certeza' : Number(avgConfidence) >= 70 ? 'Certeza moderada' : 'Baixa certeza'}
           </p>
         </div>
 
         <div className="card">
-          <p className="text-sm text-gray-400 mb-2">Quantidade Esperada</p>
+          <p className="text-sm text-gray-400 mb-2">Itens Esperados / Hora</p>
           <p className="text-3xl font-bold">
             {predictions.length > 0
               ? Math.round(
@@ -159,29 +159,28 @@ export default function PrevisõesPage() {
                 )
               : 0}
           </p>
-          <p className="text-xs text-blue-400 mt-2">Média por hora</p>
+          <p className="text-xs text-blue-400 mt-2">Média no período selecionado</p>
         </div>
 
         <div className="card">
-          <p className="text-sm text-gray-400 mb-2">Intervalo de Confiança</p>
-          <p className="text-sm font-mono">
-            [
+          <p className="text-sm text-gray-400 mb-2">Margem de Segurança</p>
+          <p className="text-sm font-semibold text-white">
             {predictions.length > 0
               ? Math.round(predictions[0].intervalo_confianca[0])
               : 0}{' '}
-            -{' '}
+            a{' '}
             {predictions.length > 0
               ? Math.round(predictions[0].intervalo_confianca[1])
-              : 0}
-            ]
+              : 0}{' '}
+            itens
           </p>
-          <p className="text-xs text-purple-400 mt-2">95% confidence</p>
+          <p className="text-xs text-purple-400 mt-2">Faixa esperada de vendas</p>
         </div>
       </div>
 
       {/* Prediction Chart */}
       <div className="card">
-        <h3 className="text-lg font-bold mb-6">Previsão com Intervalo de Confiança</h3>
+        <h3 className="text-lg font-bold mb-6">Previsão por Hora</h3>
         <ResponsiveContainer width="100%" height={300}>
           <AreaChart data={predictionData}>
             <defs>
@@ -215,7 +214,7 @@ export default function PrevisõesPage() {
 
       {/* Model Comparison */}
       <div className="card">
-        <h3 className="text-lg font-bold mb-6">Comparação de Modelos</h3>
+        <h3 className="text-lg font-bold mb-6">Validação da Previsão</h3>
         <ResponsiveContainer width="100%" height={300}>
           <BarChart data={modelComparison}>
             <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
@@ -230,16 +229,16 @@ export default function PrevisõesPage() {
               labelStyle={{ color: '#fff' }}
             />
             <Legend wrapperStyle={{ paddingTop: '20px' }} />
-            <Bar dataKey="Prophet" fill="#3b82f6" />
-            <Bar dataKey="XGBoost" fill="#10b981" />
-            <Bar dataKey="Ensemble" fill="#f59e0b" />
+            <Bar dataKey="Prophet" name="Análise Histórica" fill="#3b82f6" />
+            <Bar dataKey="XGBoost" name="Padrão de Consumo" fill="#10b981" />
+            <Bar dataKey="Ensemble" name="Resultado Final" fill="#f59e0b" />
           </BarChart>
         </ResponsiveContainer>
       </div>
 
       {/* Confidence by Hour */}
       <div className="card">
-        <h3 className="text-lg font-bold mb-6">Confiança por Hora</h3>
+        <h3 className="text-lg font-bold mb-6">Certeza hora a hora</h3>
         <div className="space-y-2 max-h-96 overflow-y-auto">
           {predictions.slice(0, 12).map((p, idx) => (
             <div key={idx} className="flex items-center justify-between p-2 bg-gray-700 rounded">
@@ -262,27 +261,24 @@ export default function PrevisõesPage() {
 
       {/* Insights */}
       <div className="card border-l-4 border-blue-500">
-        <h3 className="text-lg font-bold mb-4">Insights da Previsão</h3>
+        <h3 className="text-lg font-bold mb-4">O que fazer agora</h3>
         <div className="space-y-3 text-sm">
           <div className="flex gap-3">
             <TrendingUp className="text-green-500 flex-shrink-0" size={20} />
             <p className="text-gray-300">
-              Previsão indica aumento de <strong>15-20%</strong> na demanda para
-              hoje no período da tarde
+              Espera-se aumento de <strong>15-20%</strong> nas vendas hoje à tarde — verifique se o estoque cobre a demanda
             </p>
           </div>
           <div className="flex gap-3">
             <AlertCircle className="text-yellow-500 flex-shrink-0" size={20} />
             <p className="text-gray-300">
-              Modelo XGBoost mostra divergência de <strong>8%</strong> vs Prophet
-              - investigar possível anomalia
+              Duas análises mostram divergência de <strong>8%</strong> — monitore as vendas nas próximas horas
             </p>
           </div>
           <div className="flex gap-3">
             <TrendingDown className="text-blue-500 flex-shrink-0" size={20} />
             <p className="text-gray-300">
-              Confiança média de <strong>{avgConfidence}%</strong> indica modelo
-              bem calibrado
+              Previsão com <strong>{avgConfidence}% de certeza</strong> — pode planejar reposição com segurança
             </p>
           </div>
         </div>

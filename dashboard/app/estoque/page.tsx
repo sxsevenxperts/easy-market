@@ -85,8 +85,8 @@ export default function EstoquePage() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Gestão de Estoque</h1>
-        <p className="text-gray-400">Monitore produtos, taxa de entrada (Sell-In) e saída (Sell-Out)</p>
+        <h1 className="text-3xl font-bold mb-2">Estoque</h1>
+        <p className="text-gray-400">Produtos com baixo estoque aparecem primeiro — ação imediata em vermelho</p>
       </div>
 
       {/* Search and Filter */}
@@ -145,8 +145,8 @@ export default function EstoquePage() {
               <th className="text-left py-3 px-4">Categoria</th>
               <th className="text-center py-3 px-4">Estoque Atual</th>
               <th className="text-center py-3 px-4">Mín/Máx</th>
-              <th className="text-center py-3 px-4">Sell-In/dia</th>
-              <th className="text-center py-3 px-4">Sell-Out/dia</th>
+              <th className="text-center py-3 px-4">Entrada/dia</th>
+              <th className="text-center py-3 px-4">Saída/dia</th>
               <th className="text-center py-3 px-4">Status</th>
               <th className="text-center py-3 px-4">Preço</th>
             </tr>
@@ -209,10 +209,10 @@ export default function EstoquePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
             <p className="text-gray-400 mb-2">
-              <strong>Sell-In:</strong> Unidades recebidas por dia (entrada no estoque)
+              <strong>Entrada/dia:</strong> Unidades recebidas por dia (reposição)
             </p>
             <p className="text-gray-400">
-              <strong>Sell-Out:</strong> Unidades vendidas por dia (saída do estoque)
+              <strong>Saída/dia:</strong> Unidades vendidas por dia (giro)
             </p>
           </div>
           <div>

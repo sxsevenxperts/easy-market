@@ -130,8 +130,48 @@ export default function AlertasPage() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Alertas do Sistema</h1>
-        <p className="text-gray-400">Monitore problemas críticos e oportunidades de ROI</p>
+        <h1 className="text-3xl font-bold mb-2">Alertas</h1>
+        <p className="text-gray-400">Problemas que precisam da sua decisão — comece pelos vermelhos</p>
+      </div>
+
+      {/* Atalhos rápidos */}
+      <div className="flex flex-wrap gap-2">
+        <button
+          onClick={() => { setFilterUrgencia('alta'); setFilterStatus('aberto'); }}
+          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            filterUrgencia === 'alta' && filterStatus === 'aberto'
+              ? 'bg-red-600 text-white'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+          }`}
+        >
+          Urgentes agora
+        </button>
+        <button
+          onClick={() => { setFilterType('falta_estoque'); setFilterUrgencia(''); setFilterStatus(''); }}
+          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            filterType === 'falta_estoque'
+              ? 'bg-orange-600 text-white'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+          }`}
+        >
+          Falta de produto
+        </button>
+        <button
+          onClick={() => { setFilterType('vencimento_proximo'); setFilterUrgencia(''); setFilterStatus(''); }}
+          className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+            filterType === 'vencimento_proximo'
+              ? 'bg-purple-600 text-white'
+              : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+          }`}
+        >
+          Vencendo em breve
+        </button>
+        <button
+          onClick={() => { setFilterType(''); setFilterUrgencia(''); setFilterStatus(''); }}
+          className="px-3 py-1.5 rounded-full text-sm font-medium bg-gray-700 text-gray-300 hover:bg-gray-600 transition-colors"
+        >
+          Ver todos
+        </button>
       </div>
 
       {/* Stats Cards */}
@@ -338,31 +378,36 @@ export default function AlertasPage() {
 
       {/* Insights */}
       <div className="card border-l-4 border-blue-500">
-        <h3 className="text-lg font-bold mb-4">Insights de Alertas</h3>
+        <h3 className="text-lg font-bold mb-4">Resumo do dia</h3>
         <div className="space-y-3 text-sm">
           <div className="flex gap-3">
             <AlertCircle className="text-red-500 flex-shrink-0" size={20} />
             <p className="text-gray-300">
-              Você tem <strong>{alertStats.abertos} alertas abertos</strong> que requerem
-              atenção imediata
+              {alertStats.abertos > 0
+                ? <>Você tem <strong>{alertStats.abertos} {alertStats.abertos === 1 ? 'alerta aberto' : 'alertas abertos'}</strong> — resolva antes de fechar o turno</>
+                : 'Nenhum alerta aberto — dia tranquilo'}
             </p>
           </div>
           <div className="flex gap-3">
             <TrendingDown className="text-yellow-500 flex-shrink-0" size={20} />
             <p className="text-gray-300">
-              Resolvendo todos os alertas poderia gerar uma economia de
-              <strong> R$ {alertStats.totalROI.toLocaleString('pt-BR', {
-                maximumFractionDigits: 0,
-              })}</strong>
+              Resolver tudo hoje pode economizar{' '}
+              <strong>
+                R${' '}
+                {alertStats.totalROI.toLocaleString('pt-BR', {
+                  maximumFractionDigits: 0,
+                })}
+              </strong>
             </p>
           </div>
-          <div className="flex gap-3">
-            <Clock className="text-blue-500 flex-shrink-0" size={20} />
-            <p className="text-gray-300">
-              <strong>{alertStats.emAcao} alertas</strong> estão sendo processados - monitore
-              seu progresso
-            </p>
-          </div>
+          {alertStats.emAcao > 0 && (
+            <div className="flex gap-3">
+              <Clock className="text-blue-500 flex-shrink-0" size={20} />
+              <p className="text-gray-300">
+                <strong>{alertStats.emAcao} {alertStats.emAcao === 1 ? 'alerta está' : 'alertas estão'} em andamento</strong> — não esqueça de marcar como resolvido
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
