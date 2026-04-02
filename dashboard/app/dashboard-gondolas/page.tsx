@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { useStore } from '@/store/dashboard';
 import GondolaMap from '@/components/GondolaMap';
 import GondolaSugestoes from '@/components/GondolaSugestoes';
-import { AlertCircle, Save, X } from 'lucide-react';
+import GondolaSugestoesIA from '@/components/GondolaSugestoesIA';
+import { AlertCircle, Save, X, Brain } from 'lucide-react';
 
 interface Posicao {
   id: string;
@@ -22,6 +23,7 @@ export default function GondolasPage() {
   const [corredorSelecionado, setCorredorSelecionado] = useState(1);
   const [posicaoEditando, setPosicaoEditando] = useState<Posicao | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [usarIA, setUsarIA] = useState(true);
 
   const PRODUTOS_DISPONIVEIS = [
     { nome: 'Arroz Tio João 5kg', sku: 'RZ-001' },
@@ -190,23 +192,63 @@ export default function GondolasPage() {
               </div>
 
               {/* Sugestões de Upsell/Cross-sell */}
-              <div>
-                <h4 className="text-sm font-semibold text-gray-300 mb-3">Otimizações</h4>
-                <GondolaSugestoes
-                  produtoAtual={
-                    posicaoEditando.produto_nome
-                      ? {
-                          nome: posicaoEditando.produto_nome,
-                          sku: posicaoEditando.produto_sku || '',
-                          categoria: posicaoEditando.produto_nome.toLowerCase().split(' ')[0],
-                        }
-                      : undefined
-                  }
-                  localizacao={{
-                    corredor: posicaoEditando.corredor,
-                    prateleira: posicaoEditando.prateleira,
-                  }}
-                />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-gray-300">Oportunidades</h4>
+                  <div className="flex gap-1 bg-gray-800 p-1 rounded-lg">
+                    <button
+                      onClick={() => setUsarIA(true)}
+                      className={`px-3 py-1 rounded text-xs font-medium transition-colors flex items-center gap-1 ${
+                        usarIA
+                          ? 'bg-purple-700 text-purple-100'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      <Brain size={14} />
+                      IA
+                    </button>
+                    <button
+                      onClick={() => setUsarIA(false)}
+                      className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
+                        !usarIA
+                          ? 'bg-blue-700 text-blue-100'
+                          : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      Padrão
+                    </button>
+                  </div>
+                </div>
+
+                {usarIA ? (
+                  <GondolaSugestoesIA
+                    produtoAtual={
+                      posicaoEditando.produto_nome
+                        ? {
+                            nome: posicaoEditando.produto_nome,
+                            sku: posicaoEditando.produto_sku || '',
+                          }
+                        : undefined
+                    }
+                    lojaId={loja_id}
+                  />
+                ) : (
+                  <GondolaSugestoes
+                    produtoAtual={
+                      posicaoEditando.produto_nome
+                        ? {
+                            nome: posicaoEditando.produto_nome,
+                            sku: posicaoEditando.produto_sku || '',
+                            categoria: posicaoEditando.produto_nome.toLowerCase().split(' ')[0],
+                          }
+                        : undefined
+                    }
+                    localizacao={{
+                      corredor: posicaoEditando.corredor,
+                      prateleira: posicaoEditando.prateleira,
+                    }}
+                  />
+                )}
               </div>
             </div>
           </div>
