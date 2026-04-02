@@ -13,6 +13,7 @@ import {
   X,
   ShoppingCart,
   Activity,
+  Grid3x3,
 } from 'lucide-react';
 
 const menuItems = [
@@ -21,6 +22,7 @@ const menuItems = [
   { label: 'Estoque', href: '/estoque', icon: Package },
   { label: 'Previsões', href: '/previsoes', icon: TrendingUp },
   { label: 'Alertas', href: '/alertas', icon: AlertCircle },
+  { label: 'Gôndolas', href: '/dashboard-gondolas', icon: Grid3x3 },
   { label: 'Relatórios', href: '/relatorios', icon: Activity },
   { label: 'Configurações', href: '/configuracoes', icon: Settings },
 ];
