@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useStore } from '@/store/dashboard';
 import GondolaMap from '@/components/GondolaMap';
+import GondolaSugestoes from '@/components/GondolaSugestoes';
 import { AlertCircle, Save, X } from 'lucide-react';
 
 interface Posicao {
@@ -90,8 +91,8 @@ export default function GondolasPage() {
 
       {/* Modal de Edição */}
       {showModal && posicaoEditando && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="card max-w-md w-full space-y-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
+          <div className="card max-w-4xl w-full space-y-4 my-8">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-bold">
                 {posicaoEditando.produto_nome ? 'Editar Posição' : 'Nova Posição'}
@@ -101,88 +102,112 @@ export default function GondolasPage() {
               </button>
             </div>
 
-            <div className="bg-gray-700 p-3 rounded text-sm">
-              <p className="text-gray-300">
-                Corredor <strong>{posicaoEditando.corredor}</strong> · Prateleira{' '}
-                <strong>
-                  {posicaoEditando.prateleira === 3 ? 'Altura' : posicaoEditando.prateleira === 2 ? 'Média' : 'Chão'}
-                </strong>
-              </p>
-            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Formulário */}
+              <div className="space-y-4">
+                <div className="bg-gray-700 p-3 rounded text-sm">
+                  <p className="text-gray-300">
+                    Corredor <strong>{posicaoEditando.corredor}</strong> · Prateleira{' '}
+                    <strong>
+                      {posicaoEditando.prateleira === 3 ? 'Altura' : posicaoEditando.prateleira === 2 ? 'Média' : 'Chão'}
+                    </strong>
+                  </p>
+                </div>
 
-            <div className="space-y-3">
+                    <div>
+                    <label className="block text-sm font-medium mb-2">Produto</label>
+                    <select
+                      value={posicaoEditando.produto_sku || ''}
+                      onChange={(e) => {
+                        const produto = PRODUTOS_DISPONIVEIS.find(p => p.sku === e.target.value);
+                        setPosicaoEditando({
+                          ...posicaoEditando,
+                          produto_sku: e.target.value,
+                          produto_nome: produto?.nome,
+                        });
+                      }}
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-accent"
+                    >
+                      <option value="">Selecionar produto</option>
+                      {PRODUTOS_DISPONIVEIS.map(p => (
+                        <option key={p.sku} value={p.sku}>
+                          {p.nome}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Estoque Atual</label>
+                      <input
+                        type="number"
+                        value={posicaoEditando.estoque_atual || 0}
+                        onChange={(e) => setPosicaoEditando({ ...posicaoEditando, estoque_atual: parseInt(e.target.value) })}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-accent"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">Mínimo</label>
+                      <input
+                        type="number"
+                        value={posicaoEditando.estoque_minimo || 0}
+                        onChange={(e) => setPosicaoEditando({ ...posicaoEditando, estoque_minimo: parseInt(e.target.value) })}
+                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-accent"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Status</label>
+                    <select
+                      value={posicaoEditando.status}
+                      onChange={(e) => setPosicaoEditando({ ...posicaoEditando, status: e.target.value as any })}
+                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-accent"
+                    >
+                      <option value="ok">OK</option>
+                      <option value="ruptura">Ruptura</option>
+                      <option value="excesso">Excesso</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    onClick={handleSavePosicao}
+                    className="btn btn-primary flex-1 flex items-center justify-center gap-2"
+                  >
+                    <Save size={18} />
+                    Salvar
+                  </button>
+                  <button
+                    onClick={() => setShowModal(false)}
+                    className="btn btn-secondary flex-1"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+
+              {/* Sugestões de Upsell/Cross-sell */}
               <div>
-                <label className="block text-sm font-medium mb-2">Produto</label>
-                <select
-                  value={posicaoEditando.produto_sku || ''}
-                  onChange={(e) => {
-                    const produto = PRODUTOS_DISPONIVEIS.find(p => p.sku === e.target.value);
-                    setPosicaoEditando({
-                      ...posicaoEditando,
-                      produto_sku: e.target.value,
-                      produto_nome: produto?.nome,
-                    });
+                <h4 className="text-sm font-semibold text-gray-300 mb-3">Otimizações</h4>
+                <GondolaSugestoes
+                  produtoAtual={
+                    posicaoEditando.produto_nome
+                      ? {
+                          nome: posicaoEditando.produto_nome,
+                          sku: posicaoEditando.produto_sku || '',
+                          categoria: posicaoEditando.produto_nome.toLowerCase().split(' ')[0],
+                        }
+                      : undefined
+                  }
+                  localizacao={{
+                    corredor: posicaoEditando.corredor,
+                    prateleira: posicaoEditando.prateleira,
                   }}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-accent"
-                >
-                  <option value="">Selecionar produto</option>
-                  {PRODUTOS_DISPONIVEIS.map(p => (
-                    <option key={p.sku} value={p.sku}>
-                      {p.nome}
-                    </option>
-                  ))}
-                </select>
+                />
               </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium mb-2">Estoque Atual</label>
-                  <input
-                    type="number"
-                    value={posicaoEditando.estoque_atual || 0}
-                    onChange={(e) => setPosicaoEditando({ ...posicaoEditando, estoque_atual: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-accent"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">Mínimo</label>
-                  <input
-                    type="number"
-                    value={posicaoEditando.estoque_minimo || 0}
-                    onChange={(e) => setPosicaoEditando({ ...posicaoEditando, estoque_minimo: parseInt(e.target.value) })}
-                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-accent"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-2">Status</label>
-                <select
-                  value={posicaoEditando.status}
-                  onChange={(e) => setPosicaoEditando({ ...posicaoEditando, status: e.target.value as any })}
-                  className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-accent"
-                >
-                  <option value="ok">OK</option>
-                  <option value="ruptura">Ruptura</option>
-                  <option value="excesso">Excesso</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex gap-2 pt-2">
-              <button
-                onClick={handleSavePosicao}
-                className="btn btn-primary flex-1 flex items-center justify-center gap-2"
-              >
-                <Save size={18} />
-                Salvar
-              </button>
-              <button
-                onClick={() => setShowModal(false)}
-                className="btn btn-secondary flex-1"
-              >
-                Cancelar
-              </button>
             </div>
           </div>
         </div>
