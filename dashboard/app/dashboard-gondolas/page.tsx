@@ -49,7 +49,8 @@ export default function GondolasPage() {
     estoque_minimo: '',
   });
 
-  // Mock de posições
+  // TODO: substituir por fetch da API — /otimizacao-gondolas/layout/:lojaId
+  // Mock temporário para demonstração visual
   const posicoes: Posicao[] = [
     { id: '1', corredor: 1, prateleira: 'Altura', produto_nome: 'Arroz 5kg', estoque_atual: 12, estoque_minimo: 5, status: 'ok' },
     { id: '2', corredor: 1, prateleira: 'Média', produto_nome: 'Feijão 1kg', estoque_atual: 0, estoque_minimo: 3, status: 'ruptura' },

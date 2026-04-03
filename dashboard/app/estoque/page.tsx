@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useStore } from '@/store/dashboard';
 import { apiClient } from '@/lib/api';
 import { TrendingUp, TrendingDown, AlertTriangle, Search } from 'lucide-react';
-import { useState as useReactState } from 'react';
 
 interface Product {
   sku: string;
@@ -24,8 +23,8 @@ export default function EstoquePage() {
   const { loja_id } = useStore();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useReactState('');
-  const [filterStatus, setFilterStatus] = useReactState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
 
   useEffect(() => {
     const fetchInventory = async () => {
@@ -149,19 +148,33 @@ export default function EstoquePage() {
               <th className="text-center py-3 px-4">Saída/dia</th>
               <th className="text-center py-3 px-4">Status</th>
               <th className="text-center py-3 px-4">Preço</th>
+              <th className="text-center py-3 px-4">Ações</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
                 <td colSpan={9} className="py-8 text-center text-gray-400">
-                  Carregando...
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="animate-spin">⏳</div>
+                    <span>Carregando inventário...</span>
+                  </div>
                 </td>
               </tr>
             ) : filteredProducts.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-8 text-center text-gray-400">
-                  Nenhum produto encontrado
+                <td colSpan={9} className="py-12 text-center">
+                  <div className="flex flex-col items-center gap-3 text-gray-400">
+                    <AlertTriangle size={48} className="opacity-40" />
+                    <div>
+                      <h4 className="text-lg font-medium mb-1">Nenhum produto encontrado</h4>
+                      <p className="text-sm">
+                        {products.length === 0
+                          ? 'Nenhum produto no inventário'
+                          : 'Tente ajustar sua busca ou filtros'}
+                      </p>
+                    </div>
+                  </div>
                 </td>
               </tr>
             ) : (
@@ -195,6 +208,24 @@ export default function EstoquePage() {
                   </td>
                   <td className="py-3 px-4 text-center font-medium">
                     R$ {product.preco_venda?.toFixed(2)}
+                  </td>
+                  <td className="py-3 px-4 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      {product.status_estoque === 'critico' && (
+                        <button
+                          title="Repor Estoque"
+                          className="p-1.5 rounded bg-orange-900/30 hover:bg-orange-900/50 text-orange-400 transition"
+                        >
+                          <TrendingUp size={16} />
+                        </button>
+                      )}
+                      <button
+                        title="Ver Detalhes"
+                        className="p-1.5 rounded bg-blue-900/30 hover:bg-blue-900/50 text-blue-400 transition"
+                      >
+                        📋
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

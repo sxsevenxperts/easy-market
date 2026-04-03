@@ -1,348 +1,233 @@
 /**
  * API Integration Store (Zustand)
- * Centraliza todas as chamadas aos 25 endpoints do backend
+ * Centraliza todas as chamadas aos 25 endpoints do backend.
+ * Usa a instância axios canônica de lib/api.ts (com interceptor 401 → /login).
  */
 
-import axios from 'axios';
 import { create } from 'zustand';
+import { apiClient } from '@/lib/api';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api/v1';
+// ─── Tipos de retorno ────────────────────────────────────────────────────────
 
-// Instância axios com auth token
-const apiClient = axios.create({ baseURL: API_URL });
-apiClient.interceptors.request.use((config) => {
-  if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('token');
-    if (token) config.headers = config.headers ?? {};
-    if (token) config.headers['Authorization'] = `Bearer ${token}`;
-  }
-  return config;
-});
-
-interface ApiStore {
-  // Predicoes
-  fetchPredictionsAnalysis: (lojaId: number, clienteId: number) => Promise<any>;
-  fetchChurnScore: (lojaId: number, clienteId: number) => Promise<any>;
-  fetchBrandAnalysis: (lojaId: number, clienteId: number) => Promise<any>;
-  fetchOpportunities: (lojaId: number, clienteId: number) => Promise<any>;
-  
-  // Perdas
-  fetchLossRate: (lojaId: number) => Promise<any>;
-  fetchLossReduction: (lojaId: number) => Promise<any>;
-  fetchProductsHighLoss: (lojaId: number) => Promise<any>;
-  
-  // Otimizacao Gondolas
-  fetchGondolaAnalysis: (lojaId: number) => Promise<any>;
-  fetchGondolaRecommendations: (lojaId: number) => Promise<any>;
-  fetchGondolaLayout: (lojaId: number) => Promise<any>;
-  fetchGondolaComplete: (lojaId: number) => Promise<any>;
-  
-  // Otimizacao Nutricional
-  fetchNutritionalProfile: (lojaId: number) => Promise<any>;
-  fetchNutritionalClassification: (lojaId: number) => Promise<any>;
-  fetchComplementarityMatrix: (lojaId: number) => Promise<any>;
-  
-  // Otimizacao Compras
-  fetchOptimalQuantity: (lojaId: number, produtoId: number, gordura?: number) => Promise<any>;
-  fetchPurchaseAnalysis: (lojaId: number) => Promise<any>;
-  fetchPurchaseScenarios: (lojaId: number, produtoId: number) => Promise<any>;
-  fetchStockoutRisk: (lojaId: number) => Promise<any>;
-  
-  // Configuracao Seguranca
-  fetchSecurityConfig: (lojaId: number) => Promise<any>;
-  updateSecurityConfig: (lojaId: number, taxa: number) => Promise<any>;
-  setProductSecurityRate: (lojaId: number, produtoId: number, taxa: number, obs?: string) => Promise<any>;
-  
-  // Utility
-  isLoading: boolean;
-  error: string | null;
+export interface PredictionAnalysis {
+  cliente_id: string;
+  segmento: string;
+  probabilidade_compra: number;
+  produtos_recomendados: string[];
 }
 
-export const useApiStore = create<ApiStore>((set) => ({
-  isLoading: false,
+export interface ChurnScore {
+  cliente_id: string;
+  score: number;
+  risco: 'alto' | 'medio' | 'baixo';
+}
+
+export interface LossData {
+  taxa: number;
+  valor_estimado: number;
+  periodo: string;
+}
+
+export interface GondolaData {
+  posicoes: Array<{
+    id: string;
+    produto_id: string;
+    corredor: number;
+    prateleira: string;
+    status: string;
+  }>;
+}
+
+export interface SecurityConfig {
+  taxa_padrao: number;
+  produtos_customizados: Array<{ produto_id: string; taxa: number }>;
+}
+
+// ─── Interface do Store ──────────────────────────────────────────────────────
+
+interface ApiStore {
+  // loadingCount ao invés de boolean — evita race condition com múltiplas requests
+  loadingCount: number;
+  error: string | null;
+
+  // Predicoes
+  fetchPredictionsAnalysis: (lojaId: string, clienteId: string) => Promise<PredictionAnalysis>;
+  fetchChurnScore: (lojaId: string, clienteId: string) => Promise<ChurnScore>;
+  fetchBrandAnalysis: (lojaId: string, clienteId: string) => Promise<unknown>;
+  fetchOpportunities: (lojaId: string, clienteId: string) => Promise<unknown>;
+
+  // Perdas
+  fetchLossRate: (lojaId: string) => Promise<LossData>;
+  fetchLossReduction: (lojaId: string) => Promise<LossData>;
+  fetchProductsHighLoss: (lojaId: string) => Promise<unknown>;
+
+  // Otimizacao Gondolas
+  fetchGondolaAnalysis: (lojaId: string) => Promise<GondolaData>;
+  fetchGondolaRecommendations: (lojaId: string) => Promise<unknown>;
+  fetchGondolaLayout: (lojaId: string) => Promise<GondolaData>;
+  fetchGondolaComplete: (lojaId: string) => Promise<GondolaData>;
+
+  // Otimizacao Nutricional
+  fetchNutritionalProfile: (lojaId: string) => Promise<unknown>;
+  fetchNutritionalClassification: (lojaId: string) => Promise<unknown>;
+  fetchComplementarityMatrix: (lojaId: string) => Promise<unknown>;
+
+  // Otimizacao Compras
+  fetchOptimalQuantity: (lojaId: string, produtoId: string, gordura?: number) => Promise<unknown>;
+  fetchPurchaseAnalysis: (lojaId: string) => Promise<unknown>;
+  fetchPurchaseScenarios: (lojaId: string, produtoId: string) => Promise<unknown>;
+  fetchStockoutRisk: (lojaId: string) => Promise<unknown>;
+
+  // Configuracao Seguranca
+  fetchSecurityConfig: (lojaId: string) => Promise<SecurityConfig>;
+  updateSecurityConfig: (lojaId: string, taxa: number) => Promise<SecurityConfig>;
+  setProductSecurityRate: (lojaId: string, produtoId: string, taxa: number, obs?: string) => Promise<unknown>;
+}
+
+// ─── Helper ──────────────────────────────────────────────────────────────────
+
+function makeRequest<T>(
+  set: (partial: Partial<ApiStore>) => void,
+  get: () => ApiStore,
+  fn: () => Promise<T>
+): Promise<T> {
+  set({ loadingCount: get().loadingCount + 1, error: null });
+  return fn()
+    .catch((error: Error) => {
+      set({ error: error.message });
+      throw error;
+    })
+    .finally(() => {
+      set({ loadingCount: get().loadingCount - 1 });
+    });
+}
+
+// ─── Store ───────────────────────────────────────────────────────────────────
+
+export const useApiStore = create<ApiStore>((set, get) => ({
+  loadingCount: 0,
   error: null,
 
   // PREDICOES
-  fetchPredictionsAnalysis: async (lojaId, clienteId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/predicoes/cliente/${clienteId}?loja_id=${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchPredictionsAnalysis: (lojaId, clienteId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/predicoes/cliente/${clienteId}?loja_id=${lojaId}`).then((r) => r.data)
+    ),
 
-  fetchChurnScore: async (lojaId, clienteId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/predicoes/churn/${clienteId}?loja_id=${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchChurnScore: (lojaId, clienteId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/predicoes/churn/${clienteId}?loja_id=${lojaId}`).then((r) => r.data)
+    ),
 
-  fetchBrandAnalysis: async (lojaId, clienteId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/predicoes/marca/${clienteId}?loja_id=${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchBrandAnalysis: (lojaId, clienteId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/predicoes/marca/${clienteId}?loja_id=${lojaId}`).then((r) => r.data)
+    ),
 
-  fetchOpportunities: async (lojaId, clienteId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/predicoes/oportunidades/${clienteId}?loja_id=${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchOpportunities: (lojaId, clienteId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/predicoes/oportunidades/${clienteId}?loja_id=${lojaId}`).then((r) => r.data)
+    ),
 
   // PERDAS
-  fetchLossRate: async (lojaId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/perdas/taxa-atual/${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchLossRate: (lojaId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/perdas/taxa-atual/${lojaId}`).then((r) => r.data)
+    ),
 
-  fetchLossReduction: async (lojaId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/perdas/reducao/${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchLossReduction: (lojaId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/perdas/reducao/${lojaId}`).then((r) => r.data)
+    ),
 
-  fetchProductsHighLoss: async (lojaId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/perdas/produtos-maior-perda/${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchProductsHighLoss: (lojaId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/perdas/produtos-maior-perda/${lojaId}`).then((r) => r.data)
+    ),
 
   // GONDOLAS
-  fetchGondolaAnalysis: async (lojaId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/otimizacao-gondolas/analise/${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchGondolaAnalysis: (lojaId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/otimizacao-gondolas/analise/${lojaId}`).then((r) => r.data)
+    ),
 
-  fetchGondolaRecommendations: async (lojaId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/otimizacao-gondolas/recomendacoes/${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchGondolaRecommendations: (lojaId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/otimizacao-gondolas/recomendacoes/${lojaId}`).then((r) => r.data)
+    ),
 
-  fetchGondolaLayout: async (lojaId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/otimizacao-gondolas/layout/${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchGondolaLayout: (lojaId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/otimizacao-gondolas/layout/${lojaId}`).then((r) => r.data)
+    ),
 
-  fetchGondolaComplete: async (lojaId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/otimizacao-gondolas/completo/${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchGondolaComplete: (lojaId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/otimizacao-gondolas/completo/${lojaId}`).then((r) => r.data)
+    ),
 
   // NUTRICIONAL
-  fetchNutritionalProfile: async (lojaId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/otimizacao-nutricional/perfil/${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchNutritionalProfile: (lojaId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/otimizacao-nutricional/perfil/${lojaId}`).then((r) => r.data)
+    ),
 
-  fetchNutritionalClassification: async (lojaId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/otimizacao-nutricional/classificacao/${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchNutritionalClassification: (lojaId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/otimizacao-nutricional/classificacao/${lojaId}`).then((r) => r.data)
+    ),
 
-  fetchComplementarityMatrix: async (lojaId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/otimizacao-nutricional/complementaridade/${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchComplementarityMatrix: (lojaId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/otimizacao-nutricional/complementaridade/${lojaId}`).then((r) => r.data)
+    ),
 
   // COMPRAS
-  fetchOptimalQuantity: async (lojaId, produtoId, gordura = 0.15) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/otimizacao-compras/quantidade-otima/${lojaId}/${produtoId}?gordura=${gordura}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchOptimalQuantity: (lojaId, produtoId, gordura = 0.15) =>
+    makeRequest(set, get, () =>
+      apiClient
+        .get(`/otimizacao-compras/quantidade-otima/${lojaId}/${produtoId}?gordura=${gordura}`)
+        .then((r) => r.data)
+    ),
 
-  fetchPurchaseAnalysis: async (lojaId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/otimizacao-compras/analise-loja/${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchPurchaseAnalysis: (lojaId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/otimizacao-compras/analise-loja/${lojaId}`).then((r) => r.data)
+    ),
 
-  fetchPurchaseScenarios: async (lojaId, produtoId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/otimizacao-compras/cenarios/${lojaId}/${produtoId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchPurchaseScenarios: (lojaId, produtoId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/otimizacao-compras/cenarios/${lojaId}/${produtoId}`).then((r) => r.data)
+    ),
 
-  fetchStockoutRisk: async (lojaId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/otimizacao-compras/risco-falta/${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchStockoutRisk: (lojaId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/otimizacao-compras/risco-falta/${lojaId}`).then((r) => r.data)
+    ),
 
   // CONFIGURACAO
-  fetchSecurityConfig: async (lojaId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.get(`${API_URL}/configuracao-seguranca/loja/${lojaId}`);
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  fetchSecurityConfig: (lojaId) =>
+    makeRequest(set, get, () =>
+      apiClient.get(`/configuracao-seguranca/loja/${lojaId}`).then((r) => r.data)
+    ),
 
-  updateSecurityConfig: async (lojaId, taxa) => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.put(`${API_URL}/configuracao-seguranca/loja/${lojaId}/taxa-padrao`, {
-        taxa_padrao: taxa
-      });
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  updateSecurityConfig: (lojaId, taxa) =>
+    makeRequest(set, get, () =>
+      apiClient
+        .put(`/configuracao-seguranca/loja/${lojaId}/taxa-padrao`, { taxa_padrao: taxa })
+        .then((r) => r.data)
+    ),
 
-  setProductSecurityRate: async (lojaId, produtoId, taxa, obs = '') => {
-    set({ isLoading: true, error: null });
-    try {
-      const res = await apiClient.put(
-        `${API_URL}/configuracao-seguranca/loja/${lojaId}/produto/${produtoId}/taxa-customizada`,
-        { taxa, observacoes: obs }
-      );
-      return res.data;
-    } catch (error: any) {
-      set({ error: error.message });
-      throw error;
-    } finally {
-      set({ isLoading: false });
-    }
-  },
+  setProductSecurityRate: (lojaId, produtoId, taxa, obs = '') =>
+    makeRequest(set, get, () =>
+      apiClient
+        .put(`/configuracao-seguranca/loja/${lojaId}/produto/${produtoId}/taxa-customizada`, {
+          taxa,
+          observacoes: obs,
+        })
+        .then((r) => r.data)
+    ),
 }));
+
+// Selector conveniente para verificar se há alguma request em andamento
+export const selectIsLoading = (state: ApiStore) => state.loadingCount > 0;

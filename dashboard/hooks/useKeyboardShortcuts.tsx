@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface KeyboardShortcut {
   key: string;
@@ -11,9 +11,14 @@ interface KeyboardShortcut {
 }
 
 export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
+  // Usar ref para evitar que o efeito re-execute quando o array muda de referência
+  // mas não de conteúdo (arrays literais criam nova referência a cada render)
+  const shortcutsRef = useRef(shortcuts);
+  shortcutsRef.current = shortcuts;
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      shortcuts.forEach(shortcut => {
+      shortcutsRef.current.forEach((shortcut) => {
         const keyMatch = event.key.toLowerCase() === shortcut.key.toLowerCase();
         const ctrlMatch = shortcut.ctrl ? event.ctrlKey || event.metaKey : true;
         const shiftMatch = shortcut.shift ? event.shiftKey : true;
@@ -28,7 +33,8 @@ export function useKeyboardShortcuts(shortcuts: KeyboardShortcut[]) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [shortcuts]);
+  // Efeito roda apenas uma vez — shortcutsRef.current é atualizado via ref sem re-executar o efeito
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
 // Common shortcuts

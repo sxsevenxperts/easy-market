@@ -43,11 +43,12 @@ export default function Sidebar() {
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:static w-64 h-screen bg-secondary border-r border-gray-700 transition-transform duration-300 ease-in-out z-40 ${
+        className={`fixed md:static w-64 h-screen bg-secondary border-r border-gray-700 transition-transform duration-300 ease-in-out z-40 flex flex-col ${
           isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
       >
-        <div className="p-6">
+        {/* Scrollable area: logo + nav */}
+        <div className="flex-1 overflow-y-auto p-6">
           <div className="flex items-center gap-3 mb-8">
             <div className="w-10 h-10 bg-accent rounded-lg flex items-center justify-center font-bold text-white">
               EM
@@ -82,8 +83,8 @@ export default function Sidebar() {
           </nav>
         </div>
 
-        {/* Bottom info */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-gray-700">
+        {/* Bottom info — sempre visível, nunca sobreposto */}
+        <div className="flex-shrink-0 p-6 border-t border-gray-700">
           <div className="text-xs text-gray-400 space-y-2">
             <p>Versão: 1.0.0</p>
             <p>© 2026 Easy Market</p>

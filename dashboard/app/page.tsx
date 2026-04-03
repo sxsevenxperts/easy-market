@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Activity, AlertCircle, Package, TrendingUp, Users, Target, UserPlus, LogOut } from 'lucide-react';
+import { Activity, AlertCircle, Package, TrendingUp, Target, UserPlus, LogOut, WifiOff } from 'lucide-react';
 import DashboardCard from '@/components/DashboardCard';
 import SalesChart from '@/components/charts/SalesChart';
 import AlertsPanel from '@/components/AlertsPanel';
@@ -11,29 +11,81 @@ import TurnoDashboard from '@/components/TurnoDashboard';
 import { useStore } from '@/store/dashboard';
 import { apiClient } from '@/lib/api';
 
+// Dados de demonstração exibidos quando o backend não está disponível
+const DEMO_DATA: DashboardData = {
+  resumo: {
+    faturamento: 48320.5,
+    transacoes: 312,
+    itens_vendidos: 1874,
+    categorias: [
+      { nome: 'Alimentos', faturamento: 18500 },
+      { nome: 'Bebidas', faturamento: 12400 },
+      { nome: 'Higiene', faturamento: 8200 },
+      { nome: 'Limpeza', faturamento: 5600 },
+      { nome: 'Perecíveis', faturamento: 3620.5 },
+    ],
+  },
+  fidelidade: {
+    total_clientes: 1240,
+    taxa_fidelidade_media_percentual: 68.4,
+    clientes_ativos: 847,
+    ltv_medio: 320.5,
+  },
+  movimento_clientes: {
+    taxa_novos_percentual: 12.3,
+    novos_clientes: 38,
+    taxa_churn_percentual: 4.1,
+    churn_clientes: 13,
+  },
+};
+
+interface DashboardData {
+  resumo: {
+    faturamento: number;
+    transacoes: number;
+    itens_vendidos: number;
+    categorias?: Array<{ nome: string; faturamento: number }>;
+  };
+  fidelidade: {
+    total_clientes: number;
+    taxa_fidelidade_media_percentual: number;
+    clientes_ativos: number;
+    ltv_medio: number;
+  };
+  movimento_clientes: {
+    taxa_novos_percentual: number;
+    novos_clientes: number;
+    taxa_churn_percentual: number;
+    churn_clientes: number;
+  };
+}
+
 export default function DashboardHome() {
   const { loja_id } = useStore();
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<any>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [isDemo, setIsDemo] = useState(false);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await apiClient.get(`/dashboard/${loja_id}`);
+      setData(response.data);
+      setIsDemo(false);
+    } catch {
+      // Backend indisponível — exibir dados de demonstração
+      setData(DEMO_DATA);
+      setIsDemo(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        const response = await apiClient.get(`/dashboard/${loja_id}`);
-        setData(response.data);
-      } catch (err) {
-        setError('Erro ao carregar dados do dashboard');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (loja_id) {
       fetchDashboardData();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loja_id]);
 
   if (loading) {
@@ -44,17 +96,9 @@ export default function DashboardHome() {
             <div key={i} className="card skeleton h-32" />
           ))}
         </div>
-      </div>
-    );
-  }
-
-  // Don't show error if data loaded partially
-  if (error && !data) {
-    return (
-      <div className="p-6">
-        <div className="alert alert-danger">
-          <AlertCircle className="inline mr-2" size={20} />
-          {error}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 card skeleton h-64" />
+          <div className="card skeleton h-64" />
         </div>
       </div>
     );
@@ -66,6 +110,22 @@ export default function DashboardHome() {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Banner modo demonstração */}
+      {isDemo && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-yellow-900/30 border border-yellow-700/50 rounded-lg text-yellow-300 text-sm">
+          <WifiOff size={16} className="flex-shrink-0" />
+          <span>
+            <strong>Modo demonstração</strong> — backend indisponível. Conecte o servidor para ver dados reais.
+          </span>
+          <button
+            onClick={fetchDashboardData}
+            className="ml-auto text-xs underline hover:no-underline"
+          >
+            Tentar reconectar
+          </button>
+        </div>
+      )}
+
       {/* Tela de Turno — 3 cliques */}
       <TurnoDashboard lojaId={loja_id} />
 

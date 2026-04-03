@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useStore } from '@/store/dashboard';
 import { apiClient } from '@/lib/api';
 import {
@@ -88,20 +88,27 @@ export default function AlertasPage() {
     }
   }, [loja_id]);
 
-  const filteredAlerts = alerts.filter((alert) => {
-    const matchesType = !filterType || alert.tipo === filterType;
-    const matchesUrgencia = !filterUrgencia || alert.urgencia === filterUrgencia;
-    const matchesStatus = !filterStatus || alert.status === filterStatus;
-    return matchesType && matchesUrgencia && matchesStatus;
-  });
+  const filteredAlerts = useMemo(
+    () =>
+      alerts.filter((alert) => {
+        const matchesType = !filterType || alert.tipo === filterType;
+        const matchesUrgencia = !filterUrgencia || alert.urgencia === filterUrgencia;
+        const matchesStatus = !filterStatus || alert.status === filterStatus;
+        return matchesType && matchesUrgencia && matchesStatus;
+      }),
+    [alerts, filterType, filterUrgencia, filterStatus]
+  );
 
-  const alertStats = {
-    total: alerts.length,
-    abertos: alerts.filter((a) => a.status === 'aberto').length,
-    emAcao: alerts.filter((a) => a.status === 'em_acao').length,
-    resolvidos: alerts.filter((a) => a.status === 'resolvido').length,
-    totalROI: alerts.reduce((sum, a) => sum + (a.valor_roi_estimado || 0), 0),
-  };
+  const alertStats = useMemo(
+    () => ({
+      total: alerts.length,
+      abertos: alerts.filter((a) => a.status === 'aberto').length,
+      emAcao: alerts.filter((a) => a.status === 'em_acao').length,
+      resolvidos: alerts.filter((a) => a.status === 'resolvido').length,
+      totalROI: alerts.reduce((sum, a) => sum + (a.valor_roi_estimado || 0), 0),
+    }),
+    [alerts]
+  );
 
   const handleStatusChange = async (alertId: string, newStatus: string) => {
     try {
@@ -258,9 +265,26 @@ export default function AlertasPage() {
         </h3>
 
         {filteredAlerts.length === 0 ? (
-          <div className="text-center py-8 text-gray-400">
-            <AlertCircle size={48} className="mx-auto mb-4 opacity-50" />
-            <p>Nenhum alerta encontrado com os filtros selecionados</p>
+          <div className="text-center py-12 text-gray-400">
+            <AlertCircle size={56} className="mx-auto mb-4 opacity-40" />
+            <h4 className="text-lg font-medium mb-2">Nenhum alerta encontrado</h4>
+            <p className="text-sm mb-4">
+              {alerts.length === 0
+                ? 'Sem alertas — sua loja está operando normalmente!'
+                : 'Tente ajustar seus filtros para ver mais alertas'}
+            </p>
+            {alerts.length > 0 && (
+              <button
+                onClick={() => {
+                  setFilterType('');
+                  setFilterUrgencia('');
+                  setFilterStatus('');
+                }}
+                className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm"
+              >
+                Limpar Filtros
+              </button>
+            )}
           </div>
         ) : (
           <div className="space-y-3">
@@ -272,12 +296,11 @@ export default function AlertasPage() {
               return (
                 <div
                   key={alert.id}
-                  className="border border-gray-700 rounded-lg p-4 hover:bg-gray-800 transition cursor-pointer"
-                  onClick={() => setExpandedAlert(isExpanded ? null : alert.id)}
+                  className="border border-gray-700 rounded-lg p-4 hover:bg-gray-800 transition"
                 >
                   {/* Header */}
                   <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 flex-1">
+                    <div className="flex items-start gap-3 flex-1 cursor-pointer" onClick={() => setExpandedAlert(isExpanded ? null : alert.id)}>
                       <TypeIcon className="text-gray-400 mt-1 flex-shrink-0" size={20} />
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2 flex-wrap">
@@ -301,18 +324,58 @@ export default function AlertasPage() {
                       </div>
                     </div>
 
-                    {/* ROI and Date */}
-                    <div className="text-right ml-4 flex-shrink-0">
-                      {alert.valor_roi_estimado && (
-                        <p className="text-sm font-bold text-green-400">
-                          ROI: R$ {alert.valor_roi_estimado.toLocaleString('pt-BR', {
-                            maximumFractionDigits: 2,
-                          })}
+                    {/* ROI, Date, and Quick Actions */}
+                    <div className="flex items-start gap-4 ml-4 flex-shrink-0">
+                      <div className="text-right">
+                        {alert.valor_roi_estimado && (
+                          <p className="text-sm font-bold text-green-400">
+                            ROI: R$ {alert.valor_roi_estimado.toLocaleString('pt-BR', {
+                              maximumFractionDigits: 2,
+                            })}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(alert.data_criacao).toLocaleDateString('pt-BR')}
                         </p>
-                      )}
-                      <p className="text-xs text-gray-500 mt-1">
-                        {new Date(alert.data_criacao).toLocaleDateString('pt-BR')}
-                      </p>
+                      </div>
+
+                      {/* Quick Action Buttons */}
+                      <div className="flex gap-1">
+                        {alert.status === 'aberto' && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(alert.id, 'em_acao');
+                            }}
+                            title="Iniciar Ação"
+                            className="p-2 rounded bg-yellow-900/30 hover:bg-yellow-900/50 text-yellow-400 transition"
+                          >
+                            <Clock size={16} />
+                          </button>
+                        )}
+                        {alert.status !== 'resolvido' && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleStatusChange(alert.id, 'resolvido');
+                            }}
+                            title="Marcar como Resolvido"
+                            className="p-2 rounded bg-green-900/30 hover:bg-green-900/50 text-green-400 transition"
+                          >
+                            <CheckCircle size={16} />
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setExpandedAlert(isExpanded ? null : alert.id);
+                          }}
+                          title={isExpanded ? 'Fechar' : 'Expandir'}
+                          className="p-2 rounded bg-blue-900/30 hover:bg-blue-900/50 text-blue-400 transition"
+                        >
+                          {isExpanded ? '−' : '+'}
+                        </button>
+                      </div>
                     </div>
                   </div>
 
@@ -336,35 +399,10 @@ export default function AlertasPage() {
                         )}
                       </div>
 
-                      {/* Action Buttons */}
-                      {alert.status !== 'resolvido' && (
-                        <div className="flex gap-2 pt-2">
-                          {alert.status === 'aberto' && (
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleStatusChange(alert.id, 'em_acao');
-                              }}
-                              className="btn btn-primary text-sm flex-1"
-                            >
-                              Iniciar Ação
-                            </button>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleStatusChange(alert.id, 'resolvido');
-                            }}
-                            className="btn btn-secondary text-sm flex-1"
-                          >
-                            Marcar como Resolvido
-                          </button>
-                        </div>
-                      )}
-
                       {alert.status === 'resolvido' && (
-                        <div className="text-sm text-green-400">
-                          ✓ Alerta resolvido
+                        <div className="text-sm text-green-400 flex items-center gap-2">
+                          <CheckCircle size={16} />
+                          Alerta resolvido
                         </div>
                       )}
                     </div>

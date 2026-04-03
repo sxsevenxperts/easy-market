@@ -44,6 +44,11 @@ export const useStore = create<DashboardStore>()(
     }),
     {
       name: 'dashboard-store',
+      // api_key não deve ser persistida — credencial sensível
+      partialize: (state) =>
+        Object.fromEntries(
+          Object.entries(state).filter(([key]) => key !== 'api_key')
+        ) as DashboardStore,
     }
   )
 );

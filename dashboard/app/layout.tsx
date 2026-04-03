@@ -5,7 +5,7 @@ import Header from '@/components/layout/Header';
 import PWAProvider from '@/components/PWAProvider';
 import Breadcrumbs from '@/components/Breadcrumbs';
 import { ToastProvider } from '@/hooks/useToast';
-import { ToastContainer } from '@/components/Toast';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -37,6 +37,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // suppressHydrationWarning: evita warning do tema dark/light lido do localStorage antes do 1º render
   return (
     <html lang="pt-BR" suppressHydrationWarning>
       <head>
@@ -57,7 +58,9 @@ export default function RootLayout({
                 <Header />
                 <Breadcrumbs />
                 <main className="flex-1 overflow-auto">
-                  {children}
+                  <ErrorBoundary>
+                    {children}
+                  </ErrorBoundary>
                 </main>
               </div>
             </div>
