@@ -10,9 +10,8 @@
     },
     {
       "name": "dashboard",
-      "runtimeExecutable": "/usr/local/bin/npm",
-      "runtimeArgs": ["run", "dev"],
-      "cwd": "/Users/sergioponte/easy-market/dashboard",
+      "runtimeExecutable": "/Users/sergioponte/easy-market/dashboard/start-dev.sh",
+      "runtimeArgs": [],
       "port": 3000
     }
   ]

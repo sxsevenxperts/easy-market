@@ -3,6 +3,9 @@ import { Toaster } from 'react-hot-toast';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
 import PWAProvider from '@/components/PWAProvider';
+import Breadcrumbs from '@/components/Breadcrumbs';
+import { ToastProvider } from '@/hooks/useToast';
+import { ToastContainer } from '@/components/Toast';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -46,18 +49,21 @@ export default function RootLayout({
         <link rel="icon" type="image/png" href="/icons/favicon-16x16.png" sizes="16x16" />
       </head>
       <body className="bg-primary text-white antialiased">
-        <PWAProvider>
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar />
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <Header />
-              <main className="flex-1 overflow-auto">
-                {children}
-              </main>
+        <ToastProvider>
+          <PWAProvider>
+            <div className="flex h-screen overflow-hidden">
+              <Sidebar />
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <Header />
+                <Breadcrumbs />
+                <main className="flex-1 overflow-auto">
+                  {children}
+                </main>
+              </div>
             </div>
-          </div>
-        </PWAProvider>
-        <Toaster position="top-right" />
+          </PWAProvider>
+          <Toaster position="top-right" />
+        </ToastProvider>
       </body>
     </html>
   );

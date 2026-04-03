@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { AlertCircle, Grid3X3, TrendingUp, Brain, X } from 'lucide-react';
+import { useToast } from '@/hooks/useToast';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 
 interface Posicao {
   id: string;
@@ -22,10 +24,24 @@ const PRODUTOS = [
 ];
 
 export default function GondolasPage() {
+  const toast = useToast();
   const [corredorSelecionado, setCorredorSelecionado] = useState(1);
   const [posicaoEditando, setPosicaoEditando] = useState<Posicao | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [usarIA, setUsarIA] = useState(false);
+
+  // Atalhos de teclado
+  useKeyboardShortcuts([
+    {
+      key: 'Escape',
+      callback: () => {
+        if (showModal) {
+          setShowModal(false);
+          setPosicaoEditando(null);
+        }
+      },
+    },
+  ]);
 
   const [formData, setFormData] = useState({
     produto: '',
@@ -57,6 +73,7 @@ export default function GondolasPage() {
 
   const handleSalvar = () => {
     console.log('Salvando:', formData);
+    toast.success(`Posição salva com sucesso!`);
     handleFechar();
   };
 
