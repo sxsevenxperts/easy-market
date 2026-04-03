@@ -1,58 +1,90 @@
 'use client';
 
 import { useState } from 'react';
-import { useStore } from '@/store/dashboard';
-import GondolaMap from '@/components/GondolaMap';
-import GondolaSugestoes from '@/components/GondolaSugestoes';
-import GondolaSugestoesIA from '@/components/GondolaSugestoesIA';
-import { AlertCircle, Save, X, Brain } from 'lucide-react';
+import { AlertCircle, Grid3X3, TrendingUp, Brain, X } from 'lucide-react';
 
 interface Posicao {
   id: string;
   corredor: number;
-  prateleira: number;
+  prateleira: 'Altura' | 'Média' | 'Chão';
   produto_nome?: string;
-  produto_sku?: string;
-  status: 'ok' | 'ruptura' | 'excesso';
   estoque_atual?: number;
   estoque_minimo?: number;
+  status: 'ok' | 'ruptura' | 'excesso';
 }
 
+const PRODUTOS = [
+  'Arroz 5kg',
+  'Feijão 1kg',
+  'Óleo de Soja 900ml',
+  'Sal 1kg',
+  'Açúcar 1kg',
+];
+
 export default function GondolasPage() {
-  const { loja_id } = useStore();
   const [corredorSelecionado, setCorredorSelecionado] = useState(1);
   const [posicaoEditando, setPosicaoEditando] = useState<Posicao | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const [usarIA, setUsarIA] = useState(true);
+  const [usarIA, setUsarIA] = useState(false);
 
-  const PRODUTOS_DISPONIVEIS = [
-    { nome: 'Arroz Tio João 5kg', sku: 'RZ-001' },
-    { nome: 'Feijão Carioca 1kg', sku: 'FJ-002' },
-    { nome: 'Óleo de Soja 900ml', sku: 'OL-003' },
-    { nome: 'Açúcar Cristal 1kg', sku: 'AÇ-004' },
-    { nome: 'Sal Refinado 1kg', sku: 'SL-005' },
+  const [formData, setFormData] = useState({
+    produto: '',
+    estoque_atual: '',
+    estoque_minimo: '',
+  });
+
+  // Mock de posições
+  const posicoes: Posicao[] = [
+    { id: '1', corredor: 1, prateleira: 'Altura', produto_nome: 'Arroz 5kg', estoque_atual: 12, estoque_minimo: 5, status: 'ok' },
+    { id: '2', corredor: 1, prateleira: 'Média', produto_nome: 'Feijão 1kg', estoque_atual: 0, estoque_minimo: 3, status: 'ruptura' },
+    { id: '3', corredor: 1, prateleira: 'Chão', produto_nome: 'Óleo', estoque_atual: 25, estoque_minimo: 8, status: 'excesso' },
   ];
 
-  const handleEditPosicao = (posicao: Posicao) => {
-    setPosicaoEditando(posicao);
+  const handleEditarPosicao = (pos: Posicao) => {
+    setPosicaoEditando(pos);
+    setFormData({
+      produto: pos.produto_nome || '',
+      estoque_atual: pos.estoque_atual?.toString() || '',
+      estoque_minimo: pos.estoque_minimo?.toString() || '',
+    });
     setShowModal(true);
   };
 
-  const handleSavePosicao = () => {
-    // Em produção, aqui faria uma chamada à API
-    console.log('Salvando posição:', posicaoEditando);
+  const handleFechar = () => {
     setShowModal(false);
     setPosicaoEditando(null);
   };
 
+  const handleSalvar = () => {
+    console.log('Salvando:', formData);
+    handleFechar();
+  };
+
+  const posicoesPorPrateleira = {
+    Altura: posicoes.filter(p => p.prateleira === 'Altura' && p.corredor === corredorSelecionado),
+    Média: posicoes.filter(p => p.prateleira === 'Média' && p.corredor === corredorSelecionado),
+    Chão: posicoes.filter(p => p.prateleira === 'Chão' && p.corredor === corredorSelecionado),
+  };
+
+  const statusColors = {
+    ok: 'bg-green-100 border-green-300 text-green-900',
+    ruptura: 'bg-red-100 border-red-300 text-red-900',
+    excesso: 'bg-blue-100 border-blue-300 text-blue-900',
+  };
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-8 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2">Gestão de Gôndola</h1>
-        <p className="text-gray-400">Mapa visual das posições — identifique rupturas e realoque produtos</p>
+        <h1 className="text-3xl font-bold mb-2 flex items-center gap-2">
+          <Grid3X3 size={32} />
+          Otimização de Gôndolas
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400">
+          Visualize e otimize a disposição de produtos com sugestões de upsell e cross-sell
+        </p>
       </div>
 
-      {/* Filtro de Corredor */}
+      {/* Botões de Corredores */}
       <div className="flex gap-2 flex-wrap">
         {[1, 2, 3, 4, 5].map(corredor => (
           <button
@@ -60,8 +92,8 @@ export default function GondolasPage() {
             onClick={() => setCorredorSelecionado(corredor)}
             className={`px-4 py-2 rounded-lg font-medium transition-all ${
               corredorSelecionado === corredor
-                ? 'bg-accent text-white'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-gray-300'
             }`}
           >
             Corredor {corredor}
@@ -69,186 +101,154 @@ export default function GondolasPage() {
         ))}
       </div>
 
-      {/* Mapa */}
-      <GondolaMap
-        lojaId={loja_id}
-        corredorSelecionado={corredorSelecionado}
-        onEditPosicao={handleEditPosicao}
-      />
-
-      {/* Dicas */}
-      <div className="card border-l-4 border-blue-500 space-y-3">
-        <div className="flex gap-2">
-          <AlertCircle className="text-blue-400 flex-shrink-0" size={20} />
-          <div>
-            <p className="font-medium text-white">Como usar</p>
-            <ul className="text-sm text-gray-400 space-y-1 mt-2">
-              <li>• Clique em qualquer posição para cadastrar ou editar um produto</li>
-              <li>• Posições em vermelho indicam ruptura — repor com urgência</li>
-              <li>• Use para planejar layouts e realocar itens de baixo giro</li>
-            </ul>
-          </div>
+      {/* Mapa Visual */}
+      <div className="bg-white dark:bg-slate-800 p-6 rounded-lg border border-gray-200 dark:border-slate-700">
+        <h2 className="text-xl font-semibold mb-4">Mapa Visual - Corredor {corredorSelecionado}</h2>
+        <div className="space-y-4">
+          {(['Altura', 'Média', 'Chão'] as const).map(prateleira => (
+            <div key={prateleira}>
+              <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Prateleira {prateleira}
+              </div>
+              <div className="grid grid-cols-5 gap-2">
+                {Array(5).fill(null).map((_, idx) => {
+                  const pos = posicoesPorPrateleira[prateleira]?.[idx];
+                  const isEmpty = !pos || !pos.produto_nome;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => pos && handleEditarPosicao(pos)}
+                      className={`p-3 rounded border-2 text-sm text-center cursor-pointer transition-all ${
+                        isEmpty
+                          ? 'bg-gray-50 dark:bg-slate-700 border-dashed border-gray-300 dark:border-slate-600'
+                          : `${statusColors[pos!.status]}`
+                      }`}
+                    >
+                      <div className="font-bold truncate">{pos?.produto_nome || '—'}</div>
+                      <div className="text-xs mt-1">{pos?.estoque_atual || 0} un</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Modal de Edição */}
+      {/* Alertas */}
+      {posicoes.some(p => p.status === 'ruptura') && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-lg flex gap-3">
+          <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <div>
+            <h3 className="font-semibold text-red-800 dark:text-red-400">Rupturas Detectadas</h3>
+            <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+              Existem produtos sem estoque que precisam reposição urgente
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Modal */}
       {showModal && posicaoEditando && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-          <div className="card max-w-4xl w-full space-y-4 my-8">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold">
-                {posicaoEditando.produto_nome ? 'Editar Posição' : 'Nova Posição'}
-              </h3>
-              <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white">
-                <X size={20} />
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-lg shadow-xl max-w-2xl w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-2xl font-bold">
+                Editar Posição - Corredor {posicaoEditando.corredor} / {posicaoEditando.prateleira}
+              </h2>
+              <button onClick={handleFechar} className="text-gray-500 hover:text-gray-700">
+                <X size={24} />
               </button>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Formulário */}
-              <div className="space-y-4">
-                <div className="bg-gray-700 p-3 rounded text-sm">
-                  <p className="text-gray-300">
-                    Corredor <strong>{posicaoEditando.corredor}</strong> · Prateleira{' '}
-                    <strong>
-                      {posicaoEditando.prateleira === 3 ? 'Altura' : posicaoEditando.prateleira === 2 ? 'Média' : 'Chão'}
-                    </strong>
-                  </p>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Produto</label>
+                <select
+                  value={formData.produto}
+                  onChange={(e) => setFormData({ ...formData, produto: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-800"
+                >
+                  <option value="">Selecione</option>
+                  {PRODUTOS.map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Estoque Atual</label>
+                  <input
+                    type="number"
+                    value={formData.estoque_atual}
+                    onChange={(e) => setFormData({ ...formData, estoque_atual: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-800"
+                  />
                 </div>
-
-                    <div>
-                    <label className="block text-sm font-medium mb-2">Produto</label>
-                    <select
-                      value={posicaoEditando.produto_sku || ''}
-                      onChange={(e) => {
-                        const produto = PRODUTOS_DISPONIVEIS.find(p => p.sku === e.target.value);
-                        setPosicaoEditando({
-                          ...posicaoEditando,
-                          produto_sku: e.target.value,
-                          produto_nome: produto?.nome,
-                        });
-                      }}
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-accent"
-                    >
-                      <option value="">Selecionar produto</option>
-                      {PRODUTOS_DISPONIVEIS.map(p => (
-                        <option key={p.sku} value={p.sku}>
-                          {p.nome}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Estoque Atual</label>
-                      <input
-                        type="number"
-                        value={posicaoEditando.estoque_atual || 0}
-                        onChange={(e) => setPosicaoEditando({ ...posicaoEditando, estoque_atual: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-accent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Mínimo</label>
-                      <input
-                        type="number"
-                        value={posicaoEditando.estoque_minimo || 0}
-                        onChange={(e) => setPosicaoEditando({ ...posicaoEditando, estoque_minimo: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-accent"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Status</label>
-                    <select
-                      value={posicaoEditando.status}
-                      onChange={(e) => setPosicaoEditando({ ...posicaoEditando, status: e.target.value as any })}
-                      className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded text-white focus:outline-none focus:border-accent"
-                    >
-                      <option value="ok">OK</option>
-                      <option value="ruptura">Ruptura</option>
-                      <option value="excesso">Excesso</option>
-                    </select>
-                  </div>
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <button
-                    onClick={handleSavePosicao}
-                    className="btn btn-primary flex-1 flex items-center justify-center gap-2"
-                  >
-                    <Save size={18} />
-                    Salvar
-                  </button>
-                  <button
-                    onClick={() => setShowModal(false)}
-                    className="btn btn-secondary flex-1"
-                  >
-                    Cancelar
-                  </button>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Estoque Mínimo</label>
+                  <input
+                    type="number"
+                    value={formData.estoque_minimo}
+                    onChange={(e) => setFormData({ ...formData, estoque_minimo: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-slate-600 rounded-lg dark:bg-slate-800"
+                  />
                 </div>
               </div>
 
-              {/* Sugestões de Upsell/Cross-sell */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-semibold text-gray-300">Oportunidades</h4>
-                  <div className="flex gap-1 bg-gray-800 p-1 rounded-lg">
-                    <button
-                      onClick={() => setUsarIA(true)}
-                      className={`px-3 py-1 rounded text-xs font-medium transition-colors flex items-center gap-1 ${
-                        usarIA
-                          ? 'bg-purple-700 text-purple-100'
-                          : 'text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      <Brain size={14} />
-                      IA
-                    </button>
-                    <button
-                      onClick={() => setUsarIA(false)}
-                      className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                        !usarIA
-                          ? 'bg-blue-700 text-blue-100'
-                          : 'text-gray-400 hover:text-white'
-                      }`}
-                    >
-                      Padrão
-                    </button>
-                  </div>
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 p-4 rounded-lg">
+                <div className="flex items-center gap-2 mb-3">
+                  <Brain size={18} className="text-blue-600" />
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-300">Sugestões</h3>
+                  <button
+                    onClick={() => setUsarIA(!usarIA)}
+                    className={`ml-auto px-2 py-1 rounded text-xs font-medium ${
+                      usarIA
+                        ? 'bg-purple-600 text-white'
+                        : 'bg-gray-300 dark:bg-slate-600 text-gray-800 dark:text-white'
+                    }`}
+                  >
+                    {usarIA ? '🤖 IA' : '📋 Padrão'}
+                  </button>
                 </div>
+                <div className="space-y-2 text-sm">
+                  {usarIA ? (
+                    <>
+                      <div className="flex justify-between">
+                        <span>Feijão 1kg - Lift: <strong>1.82x</strong></span>
+                        <span className="text-green-600 font-bold">+R$52/sem</span>
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        73% de co-compra baseado em 90 dias de histórico
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="flex justify-between">
+                        <span>Feijão 1kg</span>
+                        <span className="text-green-600 font-bold">+R$45/sem</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Óleo de Soja</span>
+                        <span className="text-green-600 font-bold">+R$38/sem</span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
 
-                {usarIA ? (
-                  <GondolaSugestoesIA
-                    produtoAtual={
-                      posicaoEditando.produto_nome
-                        ? {
-                            nome: posicaoEditando.produto_nome,
-                            sku: posicaoEditando.produto_sku || '',
-                          }
-                        : undefined
-                    }
-                    lojaId={loja_id}
-                  />
-                ) : (
-                  <GondolaSugestoes
-                    produtoAtual={
-                      posicaoEditando.produto_nome
-                        ? {
-                            nome: posicaoEditando.produto_nome,
-                            sku: posicaoEditando.produto_sku || '',
-                            categoria: posicaoEditando.produto_nome.toLowerCase().split(' ')[0],
-                          }
-                        : undefined
-                    }
-                    localizacao={{
-                      corredor: posicaoEditando.corredor,
-                      prateleira: posicaoEditando.prateleira,
-                    }}
-                  />
-                )}
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={handleSalvar}
+                  className="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg font-medium"
+                >
+                  Salvar
+                </button>
+                <button
+                  onClick={handleFechar}
+                  className="flex-1 bg-gray-300 hover:bg-gray-400 dark:bg-slate-700 text-gray-800 dark:text-white py-2 rounded-lg font-medium"
+                >
+                  Cancelar
+                </button>
               </div>
             </div>
           </div>
