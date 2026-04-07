@@ -185,13 +185,26 @@ app.all('/api/*', (req, res) => {
 const frontendPath = path.resolve(__dirname, '../../frontend');
 const loginPath    = path.join(frontendPath, 'login');
 
-// Login SPA (React)
+// Login SPA (React) — servida em /login
 app.use('/login', express.static(loginPath));
-app.get('/login', (_req, res) => res.sendFile(path.join(loginPath, 'index.html')));
 app.get('/login/*', (_req, res) => res.sendFile(path.join(loginPath, 'index.html')));
 
-// Smart Market frontend
+// Setup teste (rota do React)
+app.get('/setup-teste', (_req, res) => res.sendFile(path.join(loginPath, 'index.html')));
+
+// Smart Market dashboard (index.html original com 15 seções)
 app.use(express.static(frontendPath));
+
+// Rota raiz: se tem loja_id na URL → dashboard real, senão → login
+app.get('/', (req, res) => {
+  const lojaId = req.query.loja_id;
+  if (lojaId) {
+    // Usuário autenticado — servir dashboard real
+    return res.sendFile(path.join(frontendPath, 'index.html'));
+  }
+  // Sem loja_id — redirecionar para login
+  res.redirect('/login');
+});
 
 app.get('*', (_req, res) => {
   const indexFile = path.join(frontendPath, 'index.html');
