@@ -6,25 +6,9 @@
 const express = require('express');
 const router = express.Router();
 
-// Função para garantir que as tabelas existem
-async function ensureTables(supabase) {
-  try {
-    // Verificar se tabelas existem
-    const { error } = await supabase
-      .from('loja_configuracoes')
-      .select('id')
-      .limit(1);
-
-    // Se tabela não existe, será erro - criar tabelas
-    if (error && error.code === 'PGRST100') {
-      console.warn('Criando tabelas de configuração...');
-      // As tabelas serão criadas manualmente via Supabase SQL editor
-      // ou via migration
-    }
-  } catch (err) {
-    console.error('Erro ao verificar tabelas:', err.message);
-  }
-}
+// Códigos de erro PostgREST relevantes
+const PGRST_NO_ROWS = 'PGRST116';   // .single() sem resultado
+const PGRST_RELATION_NOT_FOUND = '42P01'; // tabela não existe
 
 // GET configurações
 router.get('/:loja_id', async (req, res) => {
@@ -82,11 +66,16 @@ router.put('/:loja_id', async (req, res) => {
   if (!supabase) return res.status(503).json({ erro: 'BD indisponível' });
 
   try {
-    const { data: existing } = await supabase
+    const { data: existing, error: fetchError } = await supabase
       .from('loja_configuracoes')
       .select('id')
       .eq('loja_id', loja_id)
       .single();
+
+    // Ignorar PGRST116 (sem resultado) — qualquer outro erro é real
+    if (fetchError && fetchError.code !== PGRST_NO_ROWS) {
+      throw fetchError;
+    }
 
     const configData = {
       loja_id,

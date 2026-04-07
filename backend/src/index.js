@@ -134,71 +134,49 @@ app.get('/status', (_req, res) => {
   });
 });
 
-// ── API endpoints com dados do Supabase ──────────────────────────────────────
-app.get('/api/v1/dashboard/:loja_id?', async (req, res) => {
-  try {
-    const loja_id = req.params.loja_id || 'loja_001';
-    if (!supabase) return res.json({ sucesso: true, dados: mockDashboard(loja_id) });
+// ── Scheduler Routes (ANTES do catch-all) ────────────────────────────────────
+let scraperScheduler = null;
 
-    const { data: vendas } = await supabase
-      .from('vendas').select('*').eq('loja_id', loja_id).limit(100);
-
-    res.json({ sucesso: true, loja_id, vendas: vendas || [], mock: !vendas });
-  } catch (e) {
-    res.json({ sucesso: true, dados: mockDashboard(req.params.loja_id) });
+app.get('/api/v1/scheduler/status', (req, res) => {
+  if (!scraperScheduler) {
+    return res.json({ sucesso: false, erro: 'Scheduler não inicializado' });
   }
+  const status = scraperScheduler.getStatus();
+  res.json({ sucesso: true, scheduler: status });
 });
 
-app.get('/api/v1/lojas', async (_req, res) => {
-  try {
-    if (!supabase) return res.json({ sucesso: true, lojas: mockLojas() });
-    const { data } = await supabase.from('lojas').select('*').limit(50);
-    res.json({ sucesso: true, lojas: data || mockLojas() });
-  } catch (e) {
-    res.json({ sucesso: true, lojas: mockLojas() });
+app.post('/api/v1/scheduler/start', async (req, res) => {
+  if (!supabase) {
+    return res.json({ sucesso: false, erro: 'Supabase não conectado' });
   }
+  if (scraperScheduler && scraperScheduler.isRunning) {
+    return res.json({ sucesso: false, erro: 'Scheduler já está rodando' });
+  }
+
+  const ScraperScheduler = require('./scrapers/scheduler');
+  scraperScheduler = new ScraperScheduler(supabase);
+  const lojaIds = req.body?.lojaIds || ['loja_001'];
+  const intervalMinutes = req.body?.intervalMinutes || 60;
+
+  scraperScheduler.start(lojaIds, intervalMinutes);
+  res.json({ sucesso: true, message: 'Scheduler iniciado', lojaIds, intervalMinutes });
 });
 
-app.get('/api/v1/vendas', async (req, res) => {
-  try {
-    if (!supabase) return res.json({ sucesso: true, vendas: [] });
-    const { loja_id } = req.query;
-    let q = supabase.from('vendas').select('*').limit(100);
-    if (loja_id) q = q.eq('loja_id', loja_id);
-    const { data } = await q;
-    res.json({ sucesso: true, vendas: data || [] });
-  } catch (e) {
-    res.json({ sucesso: true, vendas: [] });
+app.post('/api/v1/scheduler/stop', (req, res) => {
+  if (!scraperScheduler) {
+    return res.json({ sucesso: false, erro: 'Scheduler não inicializado' });
   }
+  scraperScheduler.stop();
+  res.json({ sucesso: true, message: 'Scheduler parado' });
 });
 
-app.get('/api/v1/clientes', async (req, res) => {
-  try {
-    if (!supabase) return res.json({ sucesso: true, clientes: [] });
-    const { data } = await supabase.from('clientes').select('*').limit(50);
-    res.json({ sucesso: true, clientes: data || [] });
-  } catch (e) {
-    res.json({ sucesso: true, clientes: [] });
-  }
-});
-
-app.get('/api/v1/inventario', async (req, res) => {
-  try {
-    if (!supabase) return res.json({ sucesso: true, inventario: [] });
-    const { data } = await supabase.from('inventario').select('*').limit(100);
-    res.json({ sucesso: true, inventario: data || [] });
-  } catch (e) {
-    res.json({ sucesso: true, inventario: [] });
-  }
-});
-
-// Catch-all para outras rotas da API
+// ── Catch-all para rotas API não encontradas (404) ──────────────────────────
 app.all('/api/*', (req, res) => {
-  res.json({
-    sucesso:  true,
+  res.status(404).json({
+    sucesso:  false,
     endpoint: req.path,
     metodo:   req.method,
-    message:  'Endpoint Smart Market — Em produção',
+    erro:     'Endpoint não encontrado',
     timestamp: new Date().toISOString()
   });
 });
@@ -254,42 +232,6 @@ function mockLojas() {
 app.use((err, _req, res, _next) => {
   console.error('[SmartMarket] Erro:', err.message);
   res.status(500).json({ sucesso: false, erro: err.message });
-});
-
-// ── Scheduler Status Route ─────────────────────────────────────────────────────
-let scraperScheduler = null;
-
-app.get('/api/v1/scheduler/status', (req, res) => {
-  if (!scraperScheduler) {
-    return res.json({ sucesso: false, erro: 'Scheduler não inicializado' });
-  }
-  const status = scraperScheduler.getStatus();
-  res.json({ sucesso: true, scheduler: status });
-});
-
-app.post('/api/v1/scheduler/start', async (req, res) => {
-  if (!supabase) {
-    return res.json({ sucesso: false, erro: 'Supabase não conectado' });
-  }
-  if (scraperScheduler && scraperScheduler.isRunning) {
-    return res.json({ sucesso: false, erro: 'Scheduler já está rodando' });
-  }
-  
-  const ScraperScheduler = require('./scrapers/scheduler');
-  scraperScheduler = new ScraperScheduler(supabase);
-  const lojaIds = req.body?.lojaIds || ['loja_001'];
-  const intervalMinutes = req.body?.intervalMinutes || 60;
-  
-  scraperScheduler.start(lojaIds, intervalMinutes);
-  res.json({ sucesso: true, message: 'Scheduler iniciado', lojaIds, intervalMinutes });
-});
-
-app.post('/api/v1/scheduler/stop', (req, res) => {
-  if (!scraperScheduler) {
-    return res.json({ sucesso: false, erro: 'Scheduler não inicializado' });
-  }
-  scraperScheduler.stop();
-  res.json({ sucesso: true, message: 'Scheduler parado' });
 });
 
 // ── Start ─────────────────────────────────────────────────────────────────────
