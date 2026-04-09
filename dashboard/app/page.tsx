@@ -7,7 +7,6 @@ import SalesChart from '@/components/charts/SalesChart';
 import AlertsPanel from '@/components/AlertsPanel';
 import InventoryStatus from '@/components/InventoryStatus';
 import PredictionChart from '@/components/charts/PredictionChart';
-import TurnoDashboard from '@/components/TurnoDashboard';
 import { useStore } from '@/store/dashboard';
 import { apiClient } from '@/lib/api';
 
@@ -125,9 +124,6 @@ export default function DashboardHome() {
           </button>
         </div>
       )}
-
-      {/* Tela de Turno — 3 cliques */}
-      <TurnoDashboard lojaId={loja_id} />
 
       {/* KPI Cards - Vendas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
