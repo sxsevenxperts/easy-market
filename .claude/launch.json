@@ -2,17 +2,11 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "smart-market-frontend",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "-s", "frontend"],
-      "port": 4321,
-      "autoPort": true
-    },
-    {
-      "name": "dashboard",
-      "runtimeExecutable": "/Users/sergioponte/easy-market/dashboard/start-dev.sh",
-      "runtimeArgs": [],
-      "port": 3000
+      "name": "dashboard-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 3000,
+      "cwd": "dashboard"
     }
   ]
 }
