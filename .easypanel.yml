@@ -1,0 +1,43 @@
+name: easy-market-dashboard
+displayName: Easy Market Dashboard
+description: Dashboard inteligente de varejo - Perdas, Vendas e Análise Fiscal
+icon: dashboard
+
+services:
+  dashboard:
+    image: easy-market-dashboard
+    dockerfile: dashboard/Dockerfile
+    buildArgs:
+      NEXT_PUBLIC_API_URL: https://diversos-smartmarket.yuhqmc.easypanel.host/api
+    ports:
+      - 3001:3001
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      NEXT_PUBLIC_API_URL: https://diversos-smartmarket.yuhqmc.easypanel.host/api
+    volumes: []
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+domains:
+  - domain: diversos-smartmarket.yuhqmc.easypanel.host
+    service: dashboard
+    https: true
+    certificateProvider: letsencrypt
+
+repository:
+  provider: github
+  owner: sxsevenxperts
+  repo: easy-market
+  branch: main
+  token: github_token_here
+
+autoDeploy:
+  enabled: true
+  onPush: true
+  branches:
+    - main
