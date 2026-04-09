@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Market v3.0 - Apresentação Completa</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #f5f5f5;
+            color: #1a1a1a;
+            line-height: 1.6;
+        }
+
+        .slide {
+            width: 100%;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 60px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            page-break-after: always;
+            min-height: 600px;
+        }
+
+        .slide.title {
+            background: linear-gradient(135deg, #2C5F2D 0%, #97BC62 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .slide.title h1 {
+            font-size: 64px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        .slide.title h2 {
+            font-size: 32px;
+            margin-bottom: 40px;
+            color: #97BC62;
+        }
+
+        .slide.title .footer {
+            position: absolute;
+            bottom: 40px;
+            right: 60px;
+            font-size: 14px;
+            color: #f5f5f5;
+        }
+
+        h1 {
+            color: #2C5F2D;
+            font-size: 48px;
+            margin-bottom: 40px;
+            border-bottom: 4px solid #97BC62;
+            padding-bottom: 20px;
+        }
+
+        h2 {
+            color: #2F3C7E;
+            font-size: 24px;
+            margin: 30px 0 20px 0;
+        }
+
+        h3 {
+            color: #2C5F2D;
+            font-size: 18px;
+            margin: 20px 0 15px 0;
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .box {
+            background: #F5F5F5;
+            padding: 25px;
+            border-left: 4px solid #97BC62;
+            border-radius: 4px;
+        }
+
+        .box-success {
+            border-left-color: #27AE60;
+            background: #E8F5E9;
+        }
+
+        .box-warning {
+            border-left-color: #E67E22;
+            background: #FFF3E0;
+        }
+
+        .stat-box {
+            background: #97BC62;
+            color: white;
+            padding: 30px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .stat-box .number {
+            font-size: 48px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-box .label {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        ul {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .highlight {
+            background: #FFFACD;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th {
+            background: #2C5F2D;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .example-box {
+            background: #E3F2FD;
+            border-left: 4px solid #2F3C7E;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .example-box strong {
+            color: #2F3C7E;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .comparison-item {
+            padding: 20px;
+            border-radius: 4px;
+        }
+
+        .before {
+            background: #FFEBEE;
+            border-left: 4px solid #E74C3C;
+        }
+
+        .after {
+            background: #E8F5E9;
+            border-left: 4px solid #27AE60;
+        }
+
+        .before h3 {
+            color: #E74C3C;
+        }
+
+        .after h3 {
+            color: #27AE60;
+        }
+
+        .benefits {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .benefit-card {
+            background: white;
+            border: 2px solid #97BC62;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .benefit-card .emoji {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .benefit-card h3 {
+            color: #2C5F2D;
+            margin-bottom: 10px;
+        }
+
+        .roi-box {
+            background: linear-gradient(135deg, #2C5F2D 0%, #97BC62 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        .roi-box .big-number {
+            font-size: 72px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .footer-text {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+        }
+
+        .slide.end {
+            background: linear-gradient(135deg, #2C5F2D 0%, #97BC62 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .slide.end h1 {
+            color: white;
+            border-bottom-color: white;
+        }
+
+        @media print {
+            .slide {
+                page-break-after: always;
+                margin: 0;
+                padding: 40px;
+            }
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<!-- SLIDE 1: CAPA -->
+<div class="slide title">
+    <h1>🏪 Smart Market v3.0</h1>
+    <h2>Sistema Inteligente de Varejo</h2>
+    <p style="font-size: 18px; margin-top: 30px;">Reduce Taxa de Perdas • Aumenta Receita • Previsões Precisas</p>
+    <div class="footer">Seven Xperts CNPJ 32.794.007/0001-19</div>
+</div>
+
+<!-- SLIDE 2: O PROBLEMA -->
+<div class="slide">
+    <h1>📉 O Problema do Varejo</h1>
+    
+    <h2>Desafios que Custam Dinheiro</h2>
+    
+    <div class="comparison">
+        <div class="comparison-item before">
+            <h3>❌ Sem Dados</h3>
+            <ul>
+                <li><strong>Taxa Perdas:</strong> 3-4% do faturamento</li>
+                <li><strong>Previsões:</strong> ±15% imprecisas</li>
+                <li><strong>Cross-Sell:</strong> apenas 5% realizado</li>
+                <li><strong>Causa Raiz:</strong> desconhecida</li>
+            </ul>
+            <p style="margin-top: 20px; color: #E74C3C; font-weight: bold;">💸 R$ 4-8k/mês perdidos</p>
+        </div>
+        
+        <div class="comparison-item after">
+            <h3>✅ Com Smart Market</h3>
+            <ul>
+                <li><strong>Taxa Perdas:</strong> <1%</li>
+                <li><strong>Previsões:</strong> ±5% precisas</li>
+                <li><strong>Cross-Sell:</strong> 22% realizado</li>
+                <li><strong>Causa Raiz:</strong> identificada automáticamente</li>
+            </ul>
+            <p style="margin-top: 20px; color: #27AE60; font-weight: bold;">📈 +R$ 9.7k/mês ganhos</p>
+        </div>
+    </div>
+
+    <div class="example-box">
+        <strong>Exemplo:</strong> Loja média fatura R$ 120k/mês<br>
+        ❌ Sem sistema: R$ 4.080/mês em perdas<br>
+        ✅ Com Smart Market: R$ 960/mês em perdas<br>
+        <strong>Economia: R$ 3.120/mês apenas em redução de perdas!</strong>
+    </div>
+</div>
+
+<!-- SLIDE 3: A SOLUÇÃO -->
+<div class="slide">
+    <h1>💡 A Solução: Smart Market</h1>
+    
+    <div class="benefits">
+        <div class="benefit-card">
+            <div class="emoji">🌤️💹📅</div>
+            <h3>50 Variáveis</h3>
+            <p>Clima, economia, eventos, concorrentes monitorados em tempo real</p>
+        </div>
+        
+        <div class="benefit-card">
+            <div class="emoji">📊</div>
+            <h3>Previsões ±5%</h3>
+            <p>EMA com ajustes por sazonalidade (vs ±15% tradicional)</p>
+        </div>
+        
+        <div class="benefit-card">
+            <div class="emoji">👥</div>
+            <h3>RFM Automático</h3>
+            <p>Segmenta clientes (Premium, Regular, Em Risco)</p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="emoji">🛍️</div>
+            <h3>Cross/Up-Sell</h3>
+            <p>Recomendações inteligentes (5% → 22%)</p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="emoji">⚠️</div>
+            <h3>Anomalias</h3>
+            <p>Z-Score detecta desvios automaticamente</p>
+        </div>
+
+        <div class="benefit-card">
+            <div class="emoji">📈</div>
+            <h3>Taxa de Saída</h3>
+            <p>Identifica produtos parados antes de perder</p>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 4: AS 50 VARIÁVEIS -->
+<div class="slide">
+    <h1>📊 As 50 Variáveis Monitoradas</h1>
+    
+    <div class="grid-2">
+        <div class="box">
+            <h3>🌤️ Clima (12)</h3>
+            <ul style="font-size: 14px;">
+                <li>Temperatura, chuva, umidade</li>
+                <li>UV, pressão, vento</li>
+                <li>Cobertura nuvem, fenômenos</li>
+                <li><strong>Impacto: 20-40%</strong></li>
+            </ul>
+        </div>
+        
+        <div class="box">
+            <h3>💹 Economia (10)</h3>
+            <ul style="font-size: 14px;">
+                <li>Selic, inflação, desemprego</li>
+                <li>PIB, salário, combustível</li>
+                <li>Câmbio, frete, confiança</li>
+                <li><strong>Impacto: 15-25%</strong></li>
+            </ul>
+        </div>
+        
+        <div class="box">
+            <h3>📅 Eventos (12)</h3>
+            <ul style="font-size: 14px;">
+                <li>Carnaval, Páscoa, Natal</li>
+                <li>Black Friday, eleições</li>
+                <li>Feriados, fim de semana</li>
+                <li><strong>Impacto: 30-500%</strong></li>
+            </ul>
+        </div>
+        
+        <div class="box">
+            <h3>🏪 Outros (16)</h3>
+            <ul style="font-size: 14px;">
+                <li>Concorrentes (8 variáveis)</li>
+                <li>Inventário (5 variáveis)</li>
+                <li>Redes Sociais (3 variáveis)</li>
+                <li><strong>Impacto: 5-40%</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="stat-box">
+        <div class="number">50</div>
+        <div class="label">Variáveis monitoradas continuamente, 24h/dia</div>
+    </div>
+</div>
+
+<!-- SLIDE 5: COMO REDUZ PERDAS -->
+<div class="slide">
+    <h1>📉 Como Reduz Taxa de Perdas</h1>
+    
+    <h2>Processo Automático em 4 Passos</h2>
+    
+    <div class="grid-2">
+        <div style="text-align: center;">
+            <div class="stat-box" style="background: #FF6B6B; margin: 0 0 20px 0;">
+                <div style="font-size: 32px;">1️⃣</div>
+                <div class="label">Detecta</div>
+            </div>
+            <p>Identifica produtos parados 5+ dias ou com risco de expiração</p>
+        </div>
+
+        <div style="text-align: center;">
+            <div class="stat-box" style="background: #FFA726; margin: 0 0 20px 0;">
+                <div style="font-size: 32px;">2️⃣</div>
+                <div class="label">Analisa</div>
+            </div>
+            <p>Descobre por que parou: clima? preço? concorrente?</p>
+        </div>
+
+        <div style="text-align: center;">
+            <div class="stat-box" style="background: #66BB6A; margin: 0 0 20px 0;">
+                <div style="font-size: 32px;">3️⃣</div>
+                <div class="label">Recomenda</div>
+            </div>
+            <p>Sugere ação (promoção, realocação, desconto)</p>
+        </div>
+
+        <div style="text-align: center;">
+            <div class="stat-box" style="background: #29B6F6; margin: 0 0 20px 0;">
+                <div style="font-size: 32px;">4️⃣</div>
+                <div class="label">Executa</div>
+            </div>
+            <p>Implementa e monitora resultado</p>
+        </div>
+    </div>
+
+    <h2 style="margin-top: 40px;">Resultado: De 3-4% para <1%</h2>
+    
+    <table>
+        <tr>
+            <th>Loja Tipo</th>
+            <th>Faturamento</th>
+            <th>Perdas Antes</th>
+            <th>Perdas Depois</th>
+            <th>Economia</th>
+        </tr>
+        <tr>
+            <td><strong>Padaria</strong></td>
+            <td>R$ 40k/mês</td>
+            <td>R$ 1.360</td>
+            <td>R$ 270</td>
+            <td><strong>R$ 1.090/mês</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Supermercado Médio</strong></td>
+            <td>R$ 120k/mês</td>
+            <td>R$ 4.080</td>
+            <td>R$ 960</td>
+            <td><strong>R$ 3.120/mês</strong></td>
+        </tr>
+        <tr>
+            <td><strong>Supermercado Grande</strong></td>
+            <td>R$ 300k/mês</td>
+            <td>R$ 10.200</td>
+            <td>R$ 2.400</td>
+            <td><strong>R$ 7.800/mês</strong></td>
+        </tr>
+    </table>
+</div>
+
+<!-- SLIDE 6: CROSS-SELL INTELIGENTE -->
+<div class="slide">
+    <h1>🛍️ Como Aumenta Receita: Cross-Sell</h1>
+    
+    <h2>De 5% para 22% em Cross-Sell Realizado</h2>
+    
+    <div class="example-box">
+        <strong>Cenário:</strong> 200 clientes/dia compram carne<br><br>
+        ❌ <strong>Sem dados (5% cross-sell):</strong><br>
+        10 clientes compram vinho = R$ 300/dia (lucro R$ 80)<br><br>
+        ✅ <strong>Com Smart Market (44% cross-sell):</strong><br>
+        88 clientes compram vinho = R$ 1.650/dia (lucro R$ 560)<br><br>
+        <strong style="color: #27AE60;">📈 AUMENTO: +R$ 480/dia = +R$ 14.400/mês!</strong>
+    </div>
+
+    <h2>Estratégia por Cliente</h2>
+    
+    <table>
+        <tr>
+            <th>Segmento</th>
+            <th>Estratégia</th>
+            <th>Taxa Conversão</th>
+            <th>Impacto</th>
+        </tr>
+        <tr>
+            <td><strong>👑 Premium</strong></td>
+            <td>Ofereça premium (vinho importado)</td>
+            <td>60-70%</td>
+            <td>Alto ticket</td>
+        </tr>
+        <tr>
+            <td><strong>📊 Regular</strong></td>
+            <td>Ofereça combado com desconto</td>
+            <td>35-45%</td>
+            <td>Médio ticket</td>
+        </tr>
+        <tr>
+            <td><strong>⚠️ Em Risco</strong></td>
+            <td>NÃO ofereça (pode afastar)</td>
+            <td>5-10%</td>
+            <td>Baixo impacto</td>
+        </tr>
+    </table>
+
+    <div class="stat-box">
+        <div class="number">+22%</div>
+        <div class="label">Cross-sell realizado (vs 5% sem sistema)</div>
+    </div>
+</div>
+
+<!-- SLIDE 7: UP-SELL -->
+<div class="slide">
+    <h1>⬆️ Como Aumenta Receita: Up-Sell</h1>
+    
+    <h2>Vender Versão Premium (Mais Cara)</h2>
+    
+    <div class="grid-2">
+        <div class="box">
+            <h3>🥛 Leite</h3>
+            <ul>
+                <li><strong>Comum:</strong> R$ 4,50</li>
+                <li><strong>Integral:</strong> R$ 7,50</li>
+                <li><strong>Diferença:</strong> +67%</li>
+                <li><strong>Conversão Premium:</strong> 40-50%</li>
+            </ul>
+        </div>
+
+        <div class="box">
+            <h3>🍫 Chocolate</h3>
+            <ul>
+                <li><strong>Comum:</strong> R$ 3,00</li>
+                <li><strong>Artesanal:</strong> R$ 12,00</li>
+                <li><strong>Diferença:</strong> +300%</li>
+                <li><strong>Conversão Premium:</strong> 15-20%</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2 style="margin-top: 40px;">Impacto Financeiro</h2>
+    
+    <div class="example-box">
+        <strong>João (Cliente Premium) compra 4 itens/semana</strong><br><br>
+        Se conseguir up-sell em 1 item/semana:<br>
+        1 up-sell × R$ 10 = <strong>+R$ 10/semana = +R$ 40/mês</strong><br><br>
+        15 clientes Premium × R$ 40 = <strong>+R$ 600/mês apenas em up-sell</strong><br><br>
+        Multiplicado por 12 meses = <strong style="color: #27AE60;">+R$ 7.200/ano</strong>
+    </div>
+</div>
+
+<!-- SLIDE 8: PREVISÃO EMA -->
+<div class="slide">
+    <h1>📊 Função 1: Previsão de Vendas (EMA ±5%)</h1>
+    
+    <h2>Exponential Moving Average com Sazonalidade</h2>
+    
+    <div class="example-box">
+        <strong>Exemplo Real: Pão Francês</strong><br><br>
+        Histórico: 150, 148, 160, 165, 155 un (últimos 5 dias)<br>
+        EMA Base: 157 unidades<br><br>
+        <strong>Segunda:</strong> 157 × 0.80 = 126 un (pessoas cansadas)<br>
+        <strong>Sábado:</strong> 157 × 1.70 = 267 un (maior movimento)<br>
+        <strong>Com chuva:</strong> 267 × 0.85 = 227 un (impacto -15%)<br><br>
+        ✅ Intervalo confiança: 216-238 un (±5% de precisão!)<br>
+        vs ❌ Tradicional: 133-210 un (±15%, muito grande)
+    </div>
+
+    <h2>Padrões Automáticos Calibrados</h2>
+    
+    <table>
+        <tr>
+            <th>Dia</th>
+            <th>Multiplicador</th>
+            <th>Impacto</th>
+        </tr>
+        <tr>
+            <td>Segunda</td>
+            <td>× 0.80</td>
+            <td>-20% (pessoas cansadas)</td>
+        </tr>
+        <tr>
+            <td>Sexta</td>
+            <td>× 1.50</td>
+            <td>+50% (abastecimento fim semana)</td>
+        </tr>
+        <tr>
+            <td>Sábado</td>
+            <td>× 1.70</td>
+            <td>+70% (maior movimento)</td>
+        </tr>
+        <tr>
+            <td>Domingo</td>
+            <td>× 1.40</td>
+            <td>+40% (abastecimento final)</td>
+        </tr>
+    </table>
+
+    <div class="stat-box">
+        <div class="number">±5%</div>
+        <div class="label">Precisão de previsões (vs ±15% tradicional)</div>
+    </div>
+</div>
+
+<!-- SLIDE 9: RFM SEGMENTATION -->
+<div class="slide">
+    <h1>👥 Função 3: RFM Segmentation</h1>
+    
+    <h2>Recency × Frequency × Monetary</h2>
+    
+    <div class="grid-3">
+        <div class="box" style="background: #FFF9C4; border-left-color: #FFB300;">
+            <h3>👑 Premium</h3>
+            <ul style="font-size: 14px;">
+                <li>Recency: <7 dias</li>
+                <li>Frequency: 4+ vezes/semana</li>
+                <li>Monetary: R$ 200+/mês</li>
+                <li><strong>% clientes: 20%</strong></li>
+                <li><strong>% receita: 80%</strong></li>
+            </ul>
+        </div>
+
+        <div class="box" style="background: #E0F2F1; border-left-color: #00897B;">
+            <h3>📊 Regular</h3>
+            <ul style="font-size: 14px;">
+                <li>Recency: 7-30 dias</li>
+                <li>Frequency: 2-3 vezes/semana</li>
+                <li>Monetary: R$ 50-200/mês</li>
+                <li><strong>% clientes: 60%</strong></li>
+                <li><strong>% receita: 15%</strong></li>
+            </ul>
+        </div>
+
+        <div class="box" style="background: #FCE4EC; border-left-color: #C2185B;">
+            <h3>⚠️ Em Risco</h3>
+            <ul style="font-size: 14px;">
+                <li>Recency: 30+ dias</li>
+                <li>Frequency: <1 vez/mês</li>
+                <li>Monetary: <R$ 50/mês</li>
+                <li><strong>% clientes: 15%</strong></li>
+                <li><strong>% receita: 4%</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <h2 style="margin-top: 30px;">Estratégia por Segmento</h2>
+    
+    <ul>
+        <li><strong>👑 Premium:</strong> Up-sell agressivo, programa VIP, desconto lealdade</li>
+        <li><strong>📊 Regular:</strong> Cross-sell casado, programa points, combos</li>
+        <li><strong>⚠️ Em Risco:</strong> Reativação desconto 10-15%, email pessoal</li>
+    </ul>
+
+    <div class="stat-box">
+        <div class="number">3</div>
+        <div class="label">Segmentos automáticos, 3 estratégias diferentes</div>
+    </div>
+</div>
+
+<!-- SLIDE 10: ANOMALIAS -->
+<div class="slide">
+    <h1>⚠️ Função 5: Detecção de Anomalias</h1>
+    
+    <h2>Z-Score: Detecta Desvios Automaticamente</h2>
+    
+    <div class="example-box">
+        <strong>Fórmula:</strong><br>
+        Z = (Valor Atual - Média) / Desvio Padrão<br><br>
+        <strong>Exemplo: Pão Francês</strong><br>
+        Média: 150 un | Desvio: 20 un | Hoje: 65 un<br>
+        Z = (65-150)/20 = <strong>-4.25</strong> (CRÍTICA!)<br><br>
+        ✅ Interpretação:<br>
+        Z > 3 ou Z < -3 = ANOMALIA (alerta automático)<br>
+        -3 < Z < 3 = NORMAL (esperado)
+    </div>
+
+    <h2>Exemplos de Anomalias</h2>
+    
+    <table>
+        <tr>
+            <th>Situação</th>
+            <th>Z-Score</th>
+            <th>Causa Provável</th>
+            <th>Ação</th>
+        </tr>
+        <tr>
+            <td>Vendas -50%</td>
+            <td>-3.8</td>
+            <td>PDV offline ou bug</td>
+            <td>Investigar urgente</td>
+        </tr>
+        <tr>
+            <td>Vendas +200%</td>
+            <td>+4.2</td>
+            <td>Black Friday ou viral</td>
+            <td>Aproveitar, pedir estoque</td>
+        </tr>
+        <tr>
+            <td>Dia normal, chuva</td>
+            <td>-1.5</td>
+            <td>Chuva (esperado)</td>
+            <td>Nenhuma (é normal)</td>
+        </tr>
+    </table>
+
+    <div class="stat-box">
+        <div class="number">99.7%</div>
+        <div class="label">Confiança estatística de detecção (|Z| > 3)</div>
+    </div>
+</div>
+
+<!-- SLIDE 11: RESULTADOS -->
+<div class="slide">
+    <h1>📈 Resultados Esperados em 90 Dias</h1>
+    
+    <table>
+        <tr>
+            <th>Métrica</th>
+            <th>Antes</th>
+            <th>Depois</th>
+            <th>Melhoria</th>
+        </tr>
+        <tr>
+            <td><strong>Precisão Vendas</strong></td>
+            <td>±15%</td>
+            <td>±5%</td>
+            <td>3x melhor ✅</td>
+        </tr>
+        <tr>
+            <td><strong>Taxa de Perdas</strong></td>
+            <td>3-4%</td>
+            <td><1%</td>
+            <td>70% redução ✅</td>
+        </tr>
+        <tr>
+            <td><strong>Cross-Sell</strong></td>
+            <td>5%</td>
+            <td>18-22%</td>
+            <td>4x aumento ✅</td>
+        </tr>
+        <tr>
+            <td><strong>Up-Sell</strong></td>
+            <td>8%</td>
+            <td>15-20%</td>
+            <td>2.5x aumento ✅</td>
+        </tr>
+        <tr>
+            <td><strong>Detecção Anomalias</strong></td>
+            <td>Manual</td>
+            <td>Automática</td>
+            <td>Contínuo ✅</td>
+        </tr>
+    </table>
+
+    <h2 style="margin-top: 40px;">Impacto Financeiro (Loja Média)</h2>
+    
+    <div class="comparison">
+        <div class="comparison-item before">
+            <h3>❌ Antes</h3>
+            <ul>
+                <li>Faturamento: R$ 40.000/dia</li>
+                <li>Lucro: R$ 8.000/dia</li>
+                <li>Perdas: R$ 160/dia</li>
+            </ul>
+        </div>
+
+        <div class="comparison-item after">
+            <h3>✅ Depois (90 dias)</h3>
+            <ul>
+                <li>Faturamento: R$ 49.760/dia</li>
+                <li>Lucro: R$ 17.760/dia</li>
+                <li>Perdas: R$ 38/dia</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- SLIDE 12: ROI & PAYBACK -->
+<div class="slide">
+    <h1>💰 ROI: Investimento vs Retorno</h1>
+    
+    <h2>Supermercado/Padaria Médio</h2>
+    
+    <div class="comparison">
+        <div class="comparison-item before">
+            <h3>Investimento Inicial</h3>
+            <ul>
+                <li>Server: R$ 5.000</li>
+                <li>Integração: R$ 2.000</li>
+                <li>Treinamento: R$ 1.500</li>
+                <li style="margin-top: 10px; border-top: 1px solid #ccc; padding-top: 10px;"><strong>TOTAL: R$ 8.500</strong></li>
+            </ul>
+        </div>
+
+        <div class="comparison-item after">
+            <h3>Retorno Mensal (Mês 1)</h3>
+            <ul>
+                <li>Redução Perdas: +R$ 4.000</li>
+                <li>Cross-Sell: +R$ 3.600</li>
+                <li>Up-Sell: +R$ 2.160</li>
+                <li style="margin-top: 10px; border-top: 1px solid #ccc; padding-top: 10px;"><strong>TOTAL: +R$ 9.760</strong></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="roi-box">
+        <div style="font-size: 32px;">🎯 PAYBACK: 25 DIAS</div>
+        <div class="big-number">R$ 107.560</div>
+        <div style="font-size: 20px;">Lucro Anual Estimado</div>
+    </div>
+
+    <h2 style="margin-top: 30px;">Timeline</h2>
+    
+    <ul>
+        <li><strong>Dia 1-7:</strong> Instalação e integração PDV</li>
+        <li><strong>Dia 8-12:</strong> Treinamento da equipe</li>
+        <li><strong>Dia 13-20:</strong> Go-live e otimizações</li>
+        <li><strong>Dia 21-25:</strong> Payback completo! 🎉</li>
+        <li><strong>Mês 2 onwards:</strong> Lucro puro +R$ 9.760/mês</li>
+    </ul>
+</div>
+
+<!-- SLIDE 13: DASHBOARD -->
+<div class="slide">
+    <h1>📱 Dashboard Executivo</h1>
+    
+    <h2>Interface Intuitiva com 4 Abas</h2>
+    
+    <div class="grid-2">
+        <div class="box">
+            <h3>📊 Dashboard</h3>
+            <ul style="font-size: 14px;">
+                <li>Gráficos de vendas</li>
+                <li>Previsões vs real</li>
+                <li>Anomalias detectadas</li>
+                <li>KPIs principais</li>
+            </ul>
+        </div>
+
+        <div class="box">
+            <h3>📈 Análises</h3>
+            <ul style="font-size: 14px;">
+                <li>RFM segmentation</li>
+                <li>Cross-sell oportunidades</li>
+                <li>Taxa de saída produtos</li>
+                <li>Variáveis correlatas</li>
+            </ul>
+        </div>
+
+        <div class="box">
+            <h3>🔍 Busca</h3>
+            <ul style="font-size: 14px;">
+                <li>Busque qualquer variável</li>
+                <li>Filtros avançados</li>
+                <li>Atalhos de teclado</li>
+                <li>Resultados em <50ms</li>
+            </ul>
+        </div>
+
+        <div class="box">
+            <h3>⚙️ Configurações</h3>
+            <ul style="font-size: 14px;">
+                <li>Alertas customizados</li>
+                <li>Integrações PDV</li>
+                <li>Plano de assinatura</li>
+                <li>Backup & segurança</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2 style="margin-top: 30px;">Filtros Inteligentes</h2>
+    
+    <ul>
+        <li><strong>Período:</strong> Dia, Semana, Quinzena, Mês, Ano (muda tudo automaticamente)</li>
+        <li><strong>Categoria:</strong> Padaria, Laticínios, Carnes, Bebidas, etc</li>
+        <li><strong>Segmento:</strong> Premium, Regular, Em Risco, Novo</li>
+        <li><strong>Variáveis:</strong> Selecione quais das 50 monitorar</li>
+    </ul>
+</div>
+
+<!-- SLIDE 14: INTEGRAÇÃO PDV -->
+<div class="slide">
+    <h1>🔗 Integração Perfeita com PDV</h1>
+    
+    <h2>Suporta Todos os Principais Sistemas</h2>
+    
+    <div class="grid-3">
+        <div class="box">
+            <h3>✅ Microvix</h3>
+            <p>Integração nativa via ODBC/SQL</p>
+        </div>
+
+        <div class="box">
+            <h3>✅ Técnapolis</h3>
+            <p>API completa disponível</p>
+        </div>
+
+        <div class="box">
+            <h3>✅ SAT Fiscal</h3>
+            <p>Leitura de arquivos XML</p>
+        </div>
+
+        <div class="box">
+            <h3>✅ PAF/ECF</h3>
+            <p>Protocolo padrão</p>
+        </div>
+
+        <div class="box">
+            <h3>✅ Custom API</h3>
+            <p>Seu PDV proprietário</p>
+        </div>
+
+        <div class="box">
+            <h3>✅ CSV/Excel</h3>
+            <p>Último recurso (manual)</p>
+        </div>
+    </div>
+
+    <h2 style="margin-top: 30px;">Sincronização</h2>
+    
+    <ul>
+        <li>✅ <strong>Automática a cada 5 minutos</strong></li>
+        <li>✅ Dados: vendas, estoque, clientes</li>
+        <li>✅ Sincronização 2-way (sem perda de dados)</li>
+        <li>✅ Suporta operação offline com cache local</li>
+        <li>✅ Banco: PostgreSQL local ou Supabase cloud</li>
+        <li>✅ Histórico: 24 meses completos</li>
+        <li>✅ Backup automático 24/24h</li>
+    </ul>
+</div>
+
+<!-- SLIDE 15: PLANOS -->
+<div class="slide">
+    <h1>💳 Planos de Assinatura</h1>
+    
+    <div class="grid-3">
+        <div class="box" style="border-left-color: #FF6B6B; background: #FFEBEE;">
+            <h3>🥉 Básico</h3>
+            <div class="stat-box" style="background: #FF6B6B; margin: 10px 0;">
+                <div class="number" style="font-size: 32px;">R$ 299</div>
+                <div class="label" style="font-size: 12px;">por mês</div>
+            </div>
+            <ul style="font-size: 14px;">
+                <li>1 loja</li>
+                <li>50 SKUs</li>
+                <li>Dashboard básico</li>
+                <li>Sem RFM</li>
+            </ul>
+        </div>
+
+        <div class="box" style="border-left-color: #FFB300; background: #FFF9C4;">
+            <h3>⭐ Profissional</h3>
+            <div class="stat-box" style="background: #FFB300; margin: 10px 0;">
+                <div class="number" style="font-size: 32px;">R$ 799</div>
+                <div class="label" style="font-size: 12px;">por mês</div>
+            </div>
+            <ul style="font-size: 14px;">
+                <li>5 lojas</li>
+                <li>5.000 SKUs</li>
+                <li><strong>✅ RFM</strong></li>
+                <li><strong>✅ API</strong></li>
+            </ul>
+        </div>
+
+        <div class="box" style="border-left-color: #27AE60; background: #E8F5E9;">
+            <h3>🚀 Enterprise</h3>
+            <div class="stat-box" style="background: #27AE60; margin: 10px 0;">
+                <div class="number" style="font-size: 24px;">Contato</div>
+                <div class="label" style="font-size: 12px;">personalizado</div>
+            </div>
+            <ul style="font-size: 14px;">
+                <li>Ilimitado</li>
+                <li>Suporte 24/7</li>
+                <li>Custom dev</li>
+                <li>Consultoria</li>
+            </ul>
+        </div>
+    </div>
+
+    <h2 style="margin-top: 30px;">O que Inclui Profissional</h2>
+    
+    <ul style="display: grid; grid-template-columns: 1fr 1fr;">
+        <li>✅ 50 variáveis completas</li>
+        <li>✅ Todas 5 análises preditivas</li>
+        <li>✅ RFM automático</li>
+        <li>✅ Integração PDV</li>
+        <li>✅ 24 meses histórico</li>
+        <li>✅ Suporte 8-18h</li>
+    </ul>
+</div>
+
+<!-- SLIDE 16: IMPLEMENTAÇÃO -->
+<div class="slide">
+    <h1>🚀 Implementação: 15-20 dias</h1>
+    
+    <h2>5 Fases Estruturadas</h2>
+    
+    <div style="margin-bottom: 30px;">
+        <div class="box" style="margin-bottom: 15px;">
+            <h3>📍 Fase 1 (Dia 1-2): Pré-Instalação</h3>
+            <ul style="font-size: 14px;">
+                <li>Diagnosticar internet (velocidade, latência)</li>
+                <li>Documentar PDV atual</li>
+                <li>Backup de dados históricos</li>
+                <li>Preparar espaço para servidor</li>
+            </ul>
+        </div>
+
+        <div class="box" style="margin-bottom: 15px;">
+            <h3>📍 Fase 2 (Dia 3-7): Instalação</h3>
+            <ul style="font-size: 14px;">
+                <li>Instalar servidor (hardware/software)</li>
+                <li>Integração com PDV</li>
+                <li>Importar dados históricos</li>
+                <li>Testes de sincronização</li>
+            </ul>
+        </div>
+
+        <div class="box" style="margin-bottom: 15px;">
+            <h3>📍 Fase 3 (Dia 8-12): Configuração</h3>
+            <ul style="font-size: 14px;">
+                <li>Mapear 50 variáveis</li>
+                <li>Calibrar limites de alerta</li>
+                <li>Treinar staff técnico</li>
+            </ul>
+        </div>
+
+        <div class="box" style="margin-bottom: 15px;">
+            <h3>📍 Fase 4 (Dia 13-17): Treinamento</h3>
+            <ul style="font-size: 14px;">
+                <li>Gerente: 4h (decisões e dashboards)</li>
+                <li>Operacional: 2h (usar recomendações)</li>
+                <li>TI: 8h (manutenção e backup)</li>
+            </ul>
+        </div>
+
+        <div class="box">
+            <h3>📍 Fase 5 (Dia 18-20): Go-Live</h3>
+            <ul style="font-size: 14px;">
+                <li>Ativar sistema</li>
+                <li>Monitoramento 24h</li>
+                <li>Ajustes finos</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="stat-box">
+        <div class="number">15</div>
+        <div class="label">Dias até sistema operacional (timeline mínimo)</div>
+    </div>
+</div>
+
+<!-- SLIDE 17: PRÓXIMOS PASSOS -->
+<div class="slide">
+    <h1>📞 Próximos Passos</h1>
+    
+    <h2>Como Começar Agora</h2>
+    
+    <div class="grid-2" style="margin: 30px 0;">
+        <div class="box">
+            <h3>1️⃣ Entre em Contato</h3>
+            <p style="font-size: 18px; margin: 20px 0;">
+                <strong>📧 Email</strong><br>
+                suporte@sevenxperts.com.br<br><br>
+                <strong>☎️ Telefone</strong><br>
+                (11) 3000-0000<br><br>
+                <strong>💬 WhatsApp</strong><br>
+                (11) 99999-0000
+            </p>
+        </div>
+
+        <div class="box">
+            <h3>2️⃣ Demo Online (30 min)</h3>
+            <ul style="font-size: 14px;">
+                <li>✅ Ver sistema funcionando</li>
+                <li>✅ Tirar dúvidas técnicas</li>
+                <li>✅ Customizar para sua loja</li>
+                <li>✅ Discutir timeline</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="stat-box">
+        <div style="font-size: 24px; margin-bottom: 15px;">3️⃣ Proposta Personalizada em 48h</div>
+        <ul style="font-size: 16px; color: white; text-align: left;">
+            <li>✅ Plano customizado para sua loja</li>
+            <li>✅ Timeline exato</li>
+            <li>✅ Investimento e ROI</li>
+            <li>✅ Garantia de satisfação 30 dias</li>
+        </ul>
+    </div>
+</div>
+
+<!-- SLIDE 18: FECHAMENTO -->
+<div class="slide end">
+    <h1>Pronto para Transformar seu Varejo?</h1>
+    
+    <p style="font-size: 24px; margin: 30px 0; color: #97BC62;">
+        <strong>De 3-4% para <1% em taxa de perdas</strong><br>
+        <strong>De 5% para 22% em cross-sell</strong><br>
+        <strong>Payback: 25 dias</strong>
+    </p>
+
+    <div style="background: rgba(255,255,255,0.2); padding: 30px; border-radius: 8px; margin: 30px 0;">
+        <h2 style="color: white; border-bottom-color: white;">Contate-nos Agora</h2>
+        <p style="font-size: 18px; margin-top: 20px;">
+            📧 <strong>suporte@sevenxperts.com.br</strong><br>
+            ☎️ <strong>(11) 3000-0000</strong><br>
+            💬 <strong>WhatsApp: (11) 99999-0000</strong>
+        </p>
+    </div>
+
+    <p style="margin-top: 40px; font-size: 16px; opacity: 0.9;">
+        <strong>Seven Xperts CNPJ 32.794.007/0001-19</strong><br>
+        Transformando Varejo com Inteligência de Dados
+    </p>
+</div>
+
+</body>
+</html>
