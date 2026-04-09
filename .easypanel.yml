@@ -1,31 +1,42 @@
-name: easy-market-dashboard
-displayName: Easy Market Dashboard
-description: Dashboard inteligente de varejo - Perdas, Vendas e Análise Fiscal
-icon: dashboard
+name: smart-market
+displayName: Smart Market — Retail Intelligence
+description: Plataforma de inteligência de varejo powered by Seven Xperts
+icon: chart-bar
 
 services:
-  dashboard:
-    image: easy-market-dashboard
-    dockerfile: dashboard/Dockerfile
-    buildArgs:
-      NEXT_PUBLIC_API_URL: https://diversos-smartmarket.yuhqmc.easypanel.host/api
+  frontend:
+    dockerfile: frontend/Dockerfile
+    context: .
     ports:
-      - 3001:3001
-    environment:
-      NODE_ENV: production
-      PORT: 3001
-      NEXT_PUBLIC_API_URL: https://diversos-smartmarket.yuhqmc.easypanel.host/api
-    volumes: []
+      - 80:80
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backend:
+    dockerfile: Dockerfile
+    context: .
+    ports:
+      - 3000:3000
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      SUPABASE_URL: https://qfkwqfrnemqregjqxkcr.supabase.co
+      SUPABASE_SERVICE_KEY: ${SUPABASE_SERVICE_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
 domains:
   - domain: diversos-smartmarket.yuhqmc.easypanel.host
-    service: dashboard
+    service: frontend
     https: true
     certificateProvider: letsencrypt
 
@@ -34,7 +45,6 @@ repository:
   owner: sxsevenxperts
   repo: easy-market
   branch: main
-  token: github_token_here
 
 autoDeploy:
   enabled: true
