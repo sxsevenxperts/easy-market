@@ -106,28 +106,33 @@ router.get('/:loja_id', async (req, res) => {
 /**
  * PUT /:loja_id - Update a store
  */
-router.put('/:loja_id', async (req, res) => {
+async function updateLoja(req, res) {
   try {
     const { loja_id } = req.params;
-    const { nome, endereco, cidade, estado, telefone, ativo } = req.body;
+    const { nome, endereco, cidade, estado, telefone, ativo, cep, latitude, longitude } = req.body;
 
     const supabase = req.supabase;
     if (!supabase) {
       return res.json({ sucesso: true, loja: { id: loja_id, nome }, mock: true });
     }
 
+    const updateData = { nome, endereco, cidade, estado, telefone, ativo };
+    if (cep       !== undefined) updateData.cep       = cep;
+    if (latitude  !== undefined) updateData.latitude  = latitude;
+    if (longitude !== undefined) updateData.longitude = longitude;
+
     try {
       const { data, error } = await supabase
         .from('lojas')
-        .update({ nome, endereco, cidade, estado, telefone, ativo })
-        .eq('id', loja_id)
+        .upsert({ id: loja_id, ...updateData }, { onConflict: 'id' })
         .select();
 
       if (error) {
-        console.warn('[Lojas] Update error:', error.message);
-        return res.status(404).json({ sucesso: false, erro: 'Loja não encontrada' });
+        console.warn('[Lojas] Upsert error:', error.message);
+        return res.status(500).json({ sucesso: false, erro: error.message });
       }
 
+      console.log(`[Lojas] Loja ${loja_id} atualizada: ${updateData.cidade}/${updateData.estado} CEP:${updateData.cep} lat:${updateData.latitude}`);
       res.json({ sucesso: true, loja: data?.[0] });
     } catch (e) {
       res.status(404).json({ sucesso: false, erro: 'Loja não encontrada' });
@@ -136,7 +141,10 @@ router.put('/:loja_id', async (req, res) => {
     console.error('[Lojas] PUT error:', error.message);
     res.status(500).json({ sucesso: false, erro: 'Erro ao atualizar loja' });
   }
-});
+}
+
+router.put('/:loja_id', updateLoja);
+router.patch('/:loja_id', updateLoja);
 
 /**
  * DELETE /:loja_id - Delete a store

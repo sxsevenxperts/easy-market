@@ -533,11 +533,12 @@ function loadSection(section) {
 /**
  * Fetch Data with Error Handling
  */
-async function fetchData(endpoint) {
+async function fetchData(endpoint, options = {}) {
   try {
     const token = localStorage.getItem('sm_token');
-    const headers = token ? { Authorization: `Bearer ${token}` } : {};
-    const response = await fetch(`${API_BASE}${endpoint}`, { headers });
+    const headers = { ...(token ? { Authorization: `Bearer ${token}` } : {}) };
+    if (options.body) headers['Content-Type'] = 'application/json';
+    const response = await fetch(`${API_BASE}${endpoint}`, { ...options, headers });
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -1740,16 +1741,65 @@ function loadConfig() {
   carregarPerfil();
 }
 
-function salvarPerfil() {
+async function buscarCep(cep) {
+  const clean = cep.replace(/\D/g, '');
+  if (clean.length !== 8) return;
+  const statusEl = document.getElementById('cfg-cep-status');
+  statusEl.textContent = 'Buscando...';
+  try {
+    const res = await fetch(`https://brasilapi.com.br/api/cep/v2/${clean}`);
+    if (!res.ok) throw new Error('CEP não encontrado');
+    const data = await res.json();
+    // Fill address fields
+    const endereco = document.getElementById('cfg-endereco');
+    const cidade = document.getElementById('cfg-cidade');
+    if (endereco && !endereco.value) endereco.value = data.street ? `${data.street}, ${data.neighborhood || ''}`.trim() : '';
+    if (cidade) cidade.value = `${data.city || ''} / ${data.state || ''}`.trim().replace(/^\/ |\/$/,'').trim();
+    // Store coordinates
+    if (data.location?.coordinates?.latitude) {
+      document.getElementById('cfg-latitude').value = data.location.coordinates.latitude;
+      document.getElementById('cfg-longitude').value = data.location.coordinates.longitude;
+      statusEl.textContent = `📍 ${data.city}/${data.state}`;
+      statusEl.style.color = '#10b981';
+    } else {
+      statusEl.textContent = `✅ ${data.city}/${data.state}`;
+      statusEl.style.color = '#10b981';
+    }
+  } catch (e) {
+    statusEl.textContent = 'CEP não encontrado';
+    statusEl.style.color = '#ef4444';
+  }
+}
+
+async function salvarPerfil() {
   const campos = ['razao-social', 'nome-fantasia', 'cnpj', 'segmento', 'num-lojas',
-    'faturamento', 'responsavel', 'cargo', 'email', 'telefone', 'cidade', 'endereco'];
+    'faturamento', 'responsavel', 'cargo', 'email', 'telefone', 'cidade', 'endereco', 'cep'];
   const perfil = {};
   campos.forEach(c => {
     const el = document.getElementById(`cfg-${c}`);
     if (el) perfil[c] = el.value;
   });
+  perfil.latitude  = document.getElementById('cfg-latitude')?.value  || '';
+  perfil.longitude = document.getElementById('cfg-longitude')?.value || '';
   localStorage.setItem('sm_perfil_loja', JSON.stringify(perfil));
-  showToast('Perfil salvo com sucesso!', 'success');
+
+  // Sync to backend so scraper uses real location
+  try {
+    const cepClean = (perfil.cep || '').replace(/\D/g, '');
+    const payload = {
+      nome:      perfil['nome-fantasia'] || perfil['razao-social'],
+      cidade:    (perfil.cidade || '').split('/')[0].trim(),
+      estado:    (perfil.cidade || '').split('/')[1]?.trim() || '',
+      endereco:  perfil.endereco,
+      cep:       cepClean || null,
+      latitude:  perfil.latitude  ? parseFloat(perfil.latitude)  : null,
+      longitude: perfil.longitude ? parseFloat(perfil.longitude) : null,
+    };
+    await fetchData(`/lojas/${currentStore}`, { method: 'PATCH', body: JSON.stringify(payload) });
+    showToast('Perfil e localização salvos! Clima e eventos serão locais.', 'success');
+  } catch (e) {
+    showToast('Perfil salvo localmente. Sincronize quando online.', 'info');
+  }
 }
 
 function carregarPerfil() {
@@ -1761,6 +1811,12 @@ function carregarPerfil() {
       const el = document.getElementById(`cfg-${k}`);
       if (el) el.value = v;
     });
+    if (perfil.latitude)  document.getElementById('cfg-latitude').value  = perfil.latitude;
+    if (perfil.longitude) document.getElementById('cfg-longitude').value = perfil.longitude;
+    if (perfil.cep) {
+      const statusEl = document.getElementById('cfg-cep-status');
+      if (statusEl && perfil.cidade) statusEl.textContent = `📍 ${perfil.cidade}`;
+    }
   } catch (e) {
     // ignore
   }
