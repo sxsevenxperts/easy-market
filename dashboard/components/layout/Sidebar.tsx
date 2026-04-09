@@ -13,14 +13,23 @@ import {
   X,
   ShoppingCart,
   Activity,
+  AlertTriangle,
+  Zap,
+  DollarSign,
 } from 'lucide-react';
 
 const menuItems = [
   { label: 'Dashboard', href: '/', icon: BarChart3 },
   { label: 'Vendas', href: '/vendas', icon: ShoppingCart },
   { label: 'Estoque', href: '/estoque', icon: Package },
-  { label: 'Previsões', href: '/previsoes', icon: TrendingUp },
   { label: 'Alertas', href: '/alertas', icon: AlertCircle },
+
+  // Nova seção: Inteligência de Vendas & Perdas
+  { label: 'Alertas de Perdas', href: '/perdas', icon: AlertTriangle },
+  { label: 'Inteligência de Vendas', href: '/inteligencia-vendas', icon: Zap },
+  { label: 'Análise Fiscal', href: '/analise-fiscal', icon: DollarSign },
+
+  { label: 'Previsões', href: '/previsoes', icon: TrendingUp },
   { label: 'Relatórios', href: '/relatorios', icon: Activity },
   { label: 'Configurações', href: '/configuracoes', icon: Settings },
 ];
