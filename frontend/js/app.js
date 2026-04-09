@@ -624,7 +624,8 @@ async function loadDashboard() {
     const pDeltaEl = document.getElementById('kpi-perdas-delta');
     pDeltaEl.textContent = typeof pDelta === 'number' ? fmtPct(pDelta) : pDelta;
 
-    document.getElementById('kpi-alertas').textContent = kpis.alertas_ativos || kpis.alertas || 3;
+    const alertasVal = kpis.alertas_ativos ?? (Array.isArray(kpis.alertas) ? kpis.alertas.length : kpis.alertas) ?? 3;
+    document.getElementById('kpi-alertas').textContent = alertasVal;
 
     // KPI descriptive texts
     const kpiTextos = kpis.textos || data.textos || {};
